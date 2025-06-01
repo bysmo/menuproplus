@@ -59,7 +59,6 @@ class EditMenu extends Component
             'cancelButtonText' => __('app.close')
         ]);
 
-        $this->dispatch('refreshMenus');
         $this->dispatch('hideEditMenu');
     }
 

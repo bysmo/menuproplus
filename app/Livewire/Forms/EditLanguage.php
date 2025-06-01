@@ -18,7 +18,7 @@ class EditLanguage extends Component
     public $flagCode;
     public $isRtl;
     public $langPath;
-    
+
     public function mount()
     {
         $this->languageCode = $this->language->language_code;
@@ -39,9 +39,9 @@ class EditLanguage extends Component
 
         $setting = LanguageSetting::findOrFail($this->language->id);
 
-        $oldLangExists = File::exists($this->langPath.'/'.$setting->language_code);
+        $oldLangExists = File::exists($this->langPath . '/' . $setting->language_code);
 
-        if($oldLangExists){
+        if ($oldLangExists) {
             // check and create lang folder
             $langExists = File::exists($this->langPath . '/' . $this->languageCode);
 

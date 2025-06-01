@@ -28,8 +28,10 @@ use App\Models\RazorpayPayment;
 use Illuminate\Validation\Rule;
 use App\Models\RestaurantCharge;
 use App\Models\MenuItemVariation;
+use App\Models\FlutterwavePayment;
 use App\Events\SendNewOrderReceived;
 use App\Notifications\SendOrderBill;
+use Illuminate\Support\Facades\Http;
 use App\Scopes\AvailableMenuItemScope;
 use App\Models\PaymentGatewayCredential;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
@@ -46,7 +48,6 @@ class Cart extends Component
     public $showVariationModal = false;
     public $showCartVariationModal = false;
     public $showCustomerNameModal = false;
-    public $showMenuModal = false;
     public $showPaymentModal = false;
     public $showMenu = true;
     public $showCart = false;
@@ -98,6 +99,14 @@ class Cart extends Component
     public $extraCharges;
     public $orderNote;
     public $showItemVariationsModal = false;
+    public $showDeliveryAddressModal = false;
+    public $addressLat;
+    public $addressLng;
+    public $deliveryAddress;
+    public $deliveryFee = null;
+    public $maxPreparationTime;
+    public $etaMin;
+    public $etaMax;
 
     public function mount()
     {
@@ -151,7 +160,7 @@ class Cart extends Component
     public function showItemVariations($id)
     {
         $this->showItemVariationsModal = true;
-        $this->menuItem = MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->findOrFail($id);
+        $this->menuItem = MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->where('show_on_customer_site', true)->findOrFail($id);
     }
 
     public function addCartItems($id, $variationCount , $modifierCount)
@@ -167,7 +176,7 @@ class Cart extends Component
             return;
         }
 
-        $this->menuItem = MenuItem::find($id);
+        $this->menuItem = MenuItem::where('show_on_customer_site', true)->find($id);
 
 
         if ($variationCount > 0) {
@@ -284,22 +293,33 @@ class Cart extends Component
         foreach ($this->extraCharges as $charge) {
             $this->total += $charge->getAmount($this->subTotal);
         }
+
+        $this->total += (float)$this->deliveryFee ?: 0;
     }
 
     public function UpdatedOrderType($value)
     {
-        $mainExtraCharges = RestaurantCharge::whereJsonContains('order_types', $value)
+        $mainExtraCharges = RestaurantCharge::withoutGlobalScopes()
+            ->whereJsonContains('order_types', $value)
             ->where('is_enabled', true)
+            ->where('restaurant_id', $this->restaurant->id)
             ->get();
 
         // Early return for new orders
         if (!$this->orderID) {
+            // Only clear delivery-related fields if the order type is not delivery
+            if ($value !== 'delivery') {
+                $this->addressLat = null;
+                $this->addressLng = null;
+                $this->deliveryAddress = null;
+                $this->deliveryFee = null;
+            }
+
+            $this->calculateMaxPreparationTime();
             $this->extraCharges = $mainExtraCharges;
             $this->calculateTotal();
             return;
         }
-
-
 
         // Early return if no valid order or order is paid
         if (!$this->order || $this->order->status === 'paid') {
@@ -343,7 +363,6 @@ class Cart extends Component
     public function filterMenu($id = null)
     {
         $this->filterCategories = $id;
-        $this->showMenuModal = false;
     }
 
     #[On('showCartItems')]
@@ -364,9 +383,7 @@ class Cart extends Component
     {
         $this->validate([
             'customerName' => 'required',
-            'customerPhone' => [
-            'required',
-            'string',
+            'customerPhone' => ['required',
             Rule::unique('customers', 'phone')->ignore($this->customer->id ?? null),
             ],
         ]);
@@ -394,17 +411,18 @@ class Cart extends Component
         }
     }
 
-    public function getShouldShowWaiterButtonProperty()
+    public function getShouldShowWaiterButtonMobileProperty()
     {
+
         $this->dispatch('refreshComponent');
 
-        if (!$this->restaurant->is_waiter_request_enabled) {
+        if (!$this->restaurant->is_waiter_request_enabled || !$this->restaurant->is_waiter_request_enabled_on_mobile) {
             return false;
         }
 
-        $cameFromQR = request()->query('from_qr') == 1;
+        $cameFromQR = request()->query('hash') === $this->restaurant->hash || request()->boolean('from_qr');
 
-        if ($cameFromQR && !$this->restaurant->is_waiter_request_enabled_open_by_qr) {
+        if ($this->restaurant->is_waiter_request_enabled_open_by_qr && !$cameFromQR) {
             return false;
         }
 
@@ -446,11 +464,22 @@ class Cart extends Component
             return;
         }
 
-        if ($this->customer && (is_null($this->customer->name) || ($this->orderType == 'delivery' && is_null($this->customerAddress)))) {
+        if ($this->orderType == 'delivery') {
+            $deliverySetting = $this->shopBranch->deliverySetting ?? null;
+        }
+
+        if ($this->customer && (is_null($this->customer->name) || ($this->orderType == 'delivery' && is_null($this->customerAddress)) && is_null($deliverySetting))) {
             $this->customerName = $this->customer->name;
             $this->customerAddress = $this->customer->delivery_address;
             $this->customerPhone = $this->customer->phone;
             $this->showCustomerNameModal = true;
+            $this->payNow = $pay;
+            return;
+        }
+
+        if ($this->customer && $this->orderType === 'delivery' && empty($this->addressLat) && empty($this->addressLng) && empty($this->deliveryAddress) && isset($deliverySetting)) {
+            $this->customerAddress = $this->customer->delivery_address;
+            $this->showDeliveryAddressModal = true;
             $this->payNow = $pay;
             return;
         }
@@ -485,9 +514,23 @@ class Cart extends Component
                 'delivery_address' => $this->customerAddress,
                 'status' => 'draft',
                 'order_status' => $this->restaurant->auto_confirm_orders ? 'confirmed' : 'placed',
+                'customer_lat' => $this->addressLat ?? null,
+                'customer_lng' => $this->addressLng ?? null,
+                'delivery_fee' => $this->deliveryFee ?? 0,
+                'is_within_radius' => true,
+                'delivery_started_at' => null,
+                'delivered_at' => null,
+                'estimated_eta_min' => $this->etaMin ?? null,
+                'estimated_eta_max' => $this->etaMax ?? null,
             ]);
         }
 
+        if ($this->customer && $this->orderType === 'delivery' && !empty($this->deliveryAddress) && isset($deliverySetting)) {
+            $this->customer->delivery_address = $this->deliveryAddress;
+            $this->customer->save();
+
+            session(['customer' => $this->customer]);
+        }
 
         $transactionId = uniqid('TXN_', true) . '_' . random_int(100000, 999999);
         session(['transaction_id' => $transactionId]);
@@ -564,6 +607,8 @@ class Cart extends Component
             $this->total += $value->getAmount($this->subTotal);
         }
 
+        $this->total += (float)$this->deliveryFee ?: 0;
+
         $this->total += $order->tip_amount ?? 0;
 
         Order::where('id', $order->id)->update([
@@ -601,13 +646,15 @@ class Cart extends Component
 
     public function initiatePayment($id)
     {
+        $total = round($this->total, 2);
+
         $payment = RazorpayPayment::create([
             'order_id' => $id,
-            'amount' => $this->total
+            'amount' => $total
         ]);
 
         $orderData = [
-            'amount' => ($this->total * 100),
+            'amount' => ($total * 100),
             'currency' => $this->restaurant->currency->currency_code
         ];
 
@@ -671,6 +718,53 @@ class Cart extends Component
             $this->redirect(route('order_success', $payment->order_id));
         }
 
+    }
+
+    public function initiateFlutterwavePayment($id)
+    {
+        try {
+            $paymentGateway = $this->restaurant->paymentGateways;
+            $apiSecret = $paymentGateway->flutterwave_secret;
+            $amount = $this->total;
+            $tx_ref = "txn_" . time();
+
+            $user = $this->customer ?? $this->restaurant;
+
+
+            $data = [
+                "tx_ref" => $tx_ref,
+                "amount" => $amount,
+                "currency" => $this->restaurant->currency->currency_code,
+                "redirect_url" => route('flutterwave.success'),
+                "payment_options" => "card",
+                "customer" => [
+                    "email" => $user->email ?? 'no-email@example.com',
+                    "name" => $user->name ?? 'Guest',
+                    "phone_number" => $user->phone ?? '0000000000',
+                ],
+            ];
+            $response = Http::withHeaders([
+                "Authorization" => "Bearer $apiSecret",
+                "Content-Type" => "application/json"
+            ])->post("https://api.flutterwave.com/v3/payments", $data);
+
+            $responseData = $response->json();
+
+            if (isset($responseData['status']) && $responseData['status'] === 'success') {
+                FlutterwavePayment::create([
+                    'order_id' => $id,
+                    'flutterwave_payment_id' => $tx_ref,
+                    'amount' => $amount,
+                    'payment_status' => 'pending',
+                ]);
+
+                return redirect($responseData['data']['link']);
+            } else {
+                return redirect()->route('flutterwave.failed')->withErrors(['error' => 'Payment initiation failed', 'message' => $responseData]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function hidePaymentModal()
@@ -758,6 +852,28 @@ class Cart extends Component
         $this->showItemDetailModal = true;
     }
 
+    #[On('selectedDeliveryDetails')]
+    public function handleSelectedDeliveryDetails($details)
+    {
+        $this->addressLat = $details['lat'] ?? null;
+        $this->addressLng = $details['lng'] ?? null;
+        $this->deliveryAddress = $details['address'] ?? null;
+        $this->deliveryFee = $details['deliveryFee'] ?? null;
+        $this->etaMin = $details['eta_min'];
+        $this->etaMax = $details['eta_max'];
+
+        $this->calculateMaxPreparationTime();
+        $this->calculateTotal();
+        $this->showDeliveryAddressModal = false;
+    }
+
+    public function calculateMaxPreparationTime()
+    {
+        $this->maxPreparationTime = $this->orderItemList
+            ? max(array_map(fn($item) => $item->preparation_time ?? 0, $this->orderItemList))
+            : 0;
+    }
+
     public function render()
     {
         $locale = session('locale', app()->getLocale());
@@ -765,7 +881,8 @@ class Cart extends Component
         $query = MenuItem::withCount('variations', 'modifierGroups')->with('category')
             ->select('menu_items.*', 'item_categories.category_name')
             ->join('item_categories', 'menu_items.item_category_id', '=', 'item_categories.id')
-            ->where('menu_items.branch_id', $this->shopBranch->id);
+            ->where('menu_items.branch_id', $this->shopBranch->id)
+            ->where('show_on_customer_site', true);
 
         if (!empty($this->filterCategories)) {
             $query = $query->where('menu_items.item_category_id', $this->filterCategories);
@@ -803,8 +920,10 @@ class Cart extends Component
             }
 
             if ($this->showVeg == 1) {
-                return $q->where('menu_items.type', 'veg');
+                $q->where('menu_items.type', 'veg');
             }
+
+            return $q->where('menu_items.is_available', 1);
         }])->where('branch_id', $this->shopBranch->id)->get();
 
         $menuList = Menu::withoutGlobalScopes()->where('branch_id', $this->shopBranch->id)->withCount('items')->get();

@@ -56,10 +56,7 @@ class AddRestaurant extends Component
             'restaurantName' => 'required',
             'fullName' => 'required',
             'email' => 'required|unique:users,email',
-            'password' => 'required',
-            'facebook' => 'required',
-            'instagram' => 'required',
-            'twitter' => 'required',
+            'password' => 'required'
         ]);
 
         $this->showUserForm = false;

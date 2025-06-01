@@ -9,15 +9,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\GeneratesQrCode;
+use App\Models\BaseModel;
 
 
-class Branch extends Model
+class Branch extends BaseModel
 {
     use HasFactory;
     use HasRestaurant;
     use GeneratesQrCode;
 
     protected $guarded = ['id'];
+
+    protected $casts = [
+        'lat' => 'float',
+        'lng' => 'float',
+    ];
 
     public function restaurant(): BelongsTo
     {
@@ -40,13 +46,20 @@ class Branch extends Model
         $this->createQrCode(route('table_order', [$this->restaurant_id]) . '?branch=' . $this->id . '&hash=' . $this->restaurant->hash . '&from_qr=1');
     }
 
+    public function deliverySetting()
+    {
+        return $this->hasOne(BranchDeliverySetting::class, 'branch_id');
+    }
 
+    public function deliveryFeeTiers()
+    {
+        return $this->hasMany(DeliveryFeeTier::class);
+    }
 
     public function qRCodeUrl(): Attribute
     {
         return Attribute::get(fn(): string => asset_url_local_s3('qrcodes/' . $this->getQrCodeFileName()));
     }
-
 
     public function orders(): HasMany
     {

@@ -12,8 +12,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\BaseModel;
 
-class Order extends Model
+class Order extends BaseModel
 {
     use HasFactory;
     use HasBranch;
@@ -90,5 +91,4 @@ class Order extends Model
 
         return 1;
     }
-
 }

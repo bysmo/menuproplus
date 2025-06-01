@@ -4,10 +4,10 @@ namespace App\Models;
 
 use App\Traits\HasBranch;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\BaseModel;
 
-class Area extends Model
+class Area extends BaseModel
 {
     use HasFactory;
     use HasBranch;
@@ -18,5 +18,4 @@ class Area extends Model
     {
         return $this->hasMany(Table::class);
     }
-
 }

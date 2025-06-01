@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class OrderCharge extends Model
+class OrderCharge extends BaseModel
 {
     protected $guarded = ['id'];
 

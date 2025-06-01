@@ -35,6 +35,7 @@ class OrderDetail extends Component
     public $deliveryExecutives;
     public $deliveryExecutive;
     public $orderProgressStatus;
+    public $fromPos = null;
 
     public function mount()
     {
@@ -48,10 +49,11 @@ class OrderDetail extends Component
     }
 
     #[On('showOrderDetail')]
-    public function showOrder($id)
+    public function showOrder($id, $fromPos = null)
     {
         $this->order = Order::with('items', 'items.menuItem', 'items.menuItemVariation')->find($id);
         $this->orderStatus = $this->order->status;
+        $this->fromPos = $fromPos;
         $this->orderProgressStatus = $this->order->order_status->value;
         $this->showOrderDetail = true;
     }
@@ -99,7 +101,6 @@ class OrderDetail extends Component
         }
     }
 
-    #[On('showAddCustomerModal')]
     public function showAddCustomer($id)
     {
         $this->order = Order::find($id);
@@ -299,7 +300,6 @@ class OrderDetail extends Component
             $this->dispatch('showOrderDetail', id: $this->order->id);
             $this->dispatch('posOrderSuccess');
             $this->dispatch('refreshOrders');
-            $this->dispatch('resetPos');
 
             $this->alert('success', __('messages.orderCanceled'), [
                 'toast' => true,
@@ -307,6 +307,12 @@ class OrderDetail extends Component
                 'showCancelButton' => false,
                 'cancelButtonText' => __('app.close')
             ]);
+
+            if ($this->fromPos) {
+                return $this->redirect(route('pos.index'), navigate: true);
+            } else {
+                $this->dispatch('resetPos');
+            }
         }
     }
 

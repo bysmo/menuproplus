@@ -76,7 +76,8 @@ class PlanList extends Component
             $this->stripeSettings->paystack_status,
             $this->stripeSettings->mollie_status,
             $this->stripeSettings->payfast_status,
-            $this->stripeSettings->authorize_status
+            $this->stripeSettings->authorize_status,
+            $this->stripeSettings->flutterwave_status,
         ])) {
             $this->paymentGatewayActive = true;
         }
@@ -136,21 +137,25 @@ class PlanList extends Component
     // Online Payment Handling
     private function handleOnlinePayments()
     {
-        $stripeActive = $this->stripeSettings->stripe_status;
-        $razorpayActive = $this->stripeSettings->razorpay_status;
+        $activeGateways = collect([
+            'stripe' => $this->stripeSettings->stripe_status,
+            'razorpay' => $this->stripeSettings->razorpay_status,
+            'flutterwave' => $this->stripeSettings->flutterwave_status,
+        ])->filter();
 
-        if ($stripeActive && $razorpayActive) {
+        if ($activeGateways->count() > 1) {
             $this->showPaymentMethodModal = true;
             return;
         }
 
-        if ($stripeActive) {
-            $this->initiateStripePayment();
-        } elseif ($razorpayActive) {
-            $this->razorpaySubscription($this->selectedPlan->id);
-        } else {
-            $this->showPaymentMethodModal = true;
-        }
+        $gateway = $activeGateways->keys()->first();
+
+        match ($gateway) {
+            'stripe' => $this->initiateStripePayment(),
+            'razorpay' => $this->razorpaySubscription($this->selectedPlan->id),
+            'flutterwave' => $this->initiateFlutterwavePayment(),
+            default => $this->showPaymentMethodModal = true,
+        };
     }
 
     // Offline Payment Submit
@@ -185,9 +190,9 @@ class PlanList extends Component
         $offlinePlanChange->restaurant_id = $this->restaurant->id;
         $offlinePlanChange->offline_method_id = $this->offlineMethodId;
         $offlinePlanChange->description = $this->offlineDescription;
-        $offlinePlanChange->amount = $this->isAnnual ? $package->annual_price : $package->monthly_price;
+        $offlinePlanChange->amount = $package->package_type == PackageType::LIFETIME ? $package->price : ($this->isAnnual ? $package->annual_price : $package->monthly_price);
         $offlinePlanChange->pay_date = now()->format('Y-m-d');
-        $offlinePlanChange->next_pay_date = $this->isAnnual ? now()->addYear()->format('Y-m-d') : now()->addMonth()->format('Y-m-d');
+        $offlinePlanChange->next_pay_date = $package->package_type == PackageType::LIFETIME ? null : ($this->isAnnual ? now()->addYear()->format('Y-m-d') : now()->addMonth()->format('Y-m-d'));
 
         if ($this->offlineUploadFile) {
             $offlinePlanChange->file_name = Files::uploadLocalOrS3($this->offlineUploadFile, OfflinePlanChange::FILE_PATH);
@@ -593,6 +598,42 @@ class PlanList extends Component
         request()->session()->flash('flash.bannerStyle', 'success');
         request()->session()->flash('flash.link', route('settings.index', ['tab' => 'billing']));
         $this->redirect(route('dashboard'), navigate: true);
+    }
+
+    public function initiateFlutterwavePayment()
+    {
+        $plan = Package::find($this->selectedPlan->id);
+        $type = $plan->package_type === PackageType::LIFETIME ? 'lifetime' : ($this->isAnnual ? 'annual' : 'monthly');
+        $currency_id = $plan->currency_id;
+        if ($plan->package_type == PackageType::LIFETIME) {
+            $amount = $plan->price;
+        } else {
+            $amount = $this->isAnnual ? $this->selectedPlan->annual_price : $this->selectedPlan->monthly_price;
+        }
+
+        if (!$amount) {
+            $this->alert('error', __('messages.noPlanIdFound'));
+            return;
+        }
+
+        $payment = restaurantPayment::create([
+            'restaurant_id' => $this->restaurant->id,
+            'amount' => $amount,
+            'package_id' => $plan->id,
+            'package_type' => $type,
+            'currency_id' => $currency_id,
+        ]);
+
+        $params = [
+            'payment_id' => $payment->id,
+            'amount' => $amount,
+            'currency' => $plan->currency->currency_code,
+            'restaurant_id' => $this->restaurant->id,
+            'package_id' => $plan->id,
+            'package_type' => $type
+        ];
+        // Add these parameters to the dispatch
+        $this->dispatch('redirectToFlutterwave', ['params' => $params]);
     }
 
     public function togglePaymentOptions($value)

@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\BaseModel;
 
-class GlobalInvoice extends Model
+class GlobalInvoice extends BaseModel
 {
 
     protected $guarded = ['id'];
 
     protected $casts = [
         'pay_date' => 'datetime',
-        'next_pay_date'=>'datetime',
+        'next_pay_date' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

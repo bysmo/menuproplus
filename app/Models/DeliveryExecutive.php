@@ -5,8 +5,9 @@ namespace App\Models;
 use App\Traits\HasBranch;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\BaseModel;
 
-class DeliveryExecutive extends Model
+class DeliveryExecutive extends BaseModel
 {
     use HasBranch;
 
@@ -16,5 +17,4 @@ class DeliveryExecutive extends Model
     {
         return $this->hasMany(Order::class)->orderBy('id', 'desc');
     }
-
 }

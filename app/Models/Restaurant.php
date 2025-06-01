@@ -10,8 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Cashier\Billable;
+use App\Models\BaseModel;
 
-class Restaurant extends Model
+class Restaurant extends BaseModel
 {
     use HasFactory, Billable;
 

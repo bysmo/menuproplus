@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class PusherSetting extends Model
+class PusherSetting extends BaseModel
 {
     protected $guarded = ['id'];
 }

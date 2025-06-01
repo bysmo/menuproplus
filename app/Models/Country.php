@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class Country extends Model
+class Country extends BaseModel
 {
 
     use HasFactory;
@@ -17,5 +17,4 @@ class Country extends Model
             return asset('flags/1x1/' . strtolower($this->countries_code) . '.svg');
         });
     }
-
 }

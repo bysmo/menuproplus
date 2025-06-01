@@ -21,8 +21,9 @@ use Symfony\Component\HttpFoundation\File\File;
 use Illuminate\Support\Facades\File as FileFacade;
 use Illuminate\Support\Facades\Storage;
 use App\Traits\GeneratesQrCode;
+use App\Models\BaseModel;
 
-class Table extends Model
+class Table extends BaseModel
 {
 
     use HasFactory;
@@ -38,7 +39,7 @@ class Table extends Model
 
     public function activeOrder(): HasOne
     {
-        return $this->hasOne(Order::class)->whereIn('status', ['billed', 'kot']);
+        return $this->hasOne(Order::class)->whereIn('status', ['billed', 'kot'])->orderBy('id', 'desc');
     }
 
     public function qRCodeUrl(): Attribute

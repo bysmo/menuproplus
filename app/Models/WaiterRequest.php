@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+
+use App\Models\BaseModel;
 use App\Models\Table;
 use App\Models\Branch;
 use App\Traits\HasBranch;
 
-class WaiterRequest extends Model
+class WaiterRequest extends BaseModel
 {
     use HasBranch;
 

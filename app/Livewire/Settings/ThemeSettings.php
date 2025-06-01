@@ -92,8 +92,7 @@ class ThemeSettings extends Component
             'upload_fav_icon_apple_touch_icon',
             'upload_favicon_16',
             'upload_favicon_32',
-            'favicon',
-            'webmanifest',
+            'favicon'
         ]);
         $this->redirect(route('settings.index') . '?tab=theme', navigate: true);
 

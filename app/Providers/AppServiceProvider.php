@@ -35,6 +35,7 @@ use App\Observers\BranchObserver;
 use App\Models\ReservationSetting;
 use App\Observers\PaymentObserver;
 use App\Http\Middleware\SuperAdmin;
+use App\Models\LanguageSetting;
 use App\Models\NotificationSetting;
 use App\Observers\CurrencyObserver;
 use App\Observers\CustomerObserver;
@@ -55,6 +56,7 @@ use App\Observers\PaymentGatewayObserver;
 use Illuminate\Database\Eloquent\Builder;
 use App\Observers\ExpenseCategoryObserver;
 use App\Observers\DeliveryExecutiveObserver;
+use App\Observers\LanguageSettingObserver;
 use App\Observers\RestaurantChargesObserver;
 use App\Observers\ReservationSettingObserver;
 use Spatie\Translatable\Facades\Translatable;
@@ -108,7 +110,7 @@ class AppServiceProvider extends ServiceProvider
         RestaurantCharge::observe(RestaurantChargesObserver::class);
         Expenses::observe(ExpensesObserver::class);
         ExpenseCategory::observe(ExpenseCategoryObserver::class);
-
+        LanguageSetting::observe(LanguageSettingObserver::class);
 
 
         // Implicitly grant "Admin" role all permissions

@@ -43,6 +43,7 @@ class EditMenuItem extends Component
     public $currentLanguage;
     public $languages = [];
     public $globalLocale;
+    public bool $showOnCustomerSite;
 
     public function mount()
     {
@@ -61,6 +62,7 @@ class EditMenuItem extends Component
         $this->hasVariations = ($this->menuItem->variations->count() > 0);
         $this->showItemPrice = ($this->menuItem->variations->count() == 0);
         $this->isAvailable = $this->menuItem->is_available;
+        $this->showOnCustomerSite = $this->menuItem->show_on_customer_site;
 
         foreach ($this->menuItem->translations as $translation) {
             $this->translationNames[$translation->locale] = $translation->item_name;
@@ -112,6 +114,10 @@ class EditMenuItem extends Component
             }
         } else {
             $this->showItemPrice = true;
+            $this->inputs = [];
+            $this->variationName = [];
+            $this->variationPrice = [];
+            $this->i = 0;
         }
     }
 
@@ -128,6 +134,8 @@ class EditMenuItem extends Component
             'itemCategory' => 'required',
             'menu' => 'required',
             'isAvailable' => 'required|boolean',
+            'showOnCustomerSite' => 'required|boolean',
+            'itemImage' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ],[
             'translationNames.' . $this->globalLocale . '.required' => __('validation.itemNameRequired', ['language' => $this->languages[$this->globalLocale]]),
         ]);
@@ -142,6 +150,7 @@ class EditMenuItem extends Component
             'preparation_time' => $this->preparationTime,
             'menu_id' => $this->menu,
             'is_available' => $this->isAvailable,
+            'show_on_customer_site' => $this->showOnCustomerSite,
         ]);
 
         // Efficiently update translations - only update what has changed
@@ -197,7 +206,6 @@ class EditMenuItem extends Component
         }
 
         $this->dispatch('hideEditMenuItem');
-        $this->dispatch('refreshMenus');
         $this->resetForm();
         $this->clearTranslationCache();
 

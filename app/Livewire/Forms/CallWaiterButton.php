@@ -57,6 +57,8 @@ class CallWaiterButton extends Component
 
     public function cancelCall()
     {
+        $this->tableNumber = null;
+        $this->table = null;
         $this->showConfirmation = false;
         $this->showTableSelection = false;
     }

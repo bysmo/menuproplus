@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use App\Traits\HasBranch;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\BaseModel;
 
-class ModifierGroup extends Model
+class ModifierGroup extends BaseModel
 {
     use HasFactory, HasBranch;
 

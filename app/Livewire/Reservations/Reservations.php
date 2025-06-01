@@ -2,25 +2,24 @@
 
 namespace App\Livewire\Reservations;
 
-use App\Models\Reservation;
 use Carbon\Carbon;
-use Livewire\Attributes\On;
 use Livewire\Component;
+use App\Models\Reservation;
+use Livewire\Attributes\On;
 
 class Reservations extends Component
 {
 
     protected $listeners = ['refreshKots' => '$refresh'];
-    public $filterOrders;
     public $dateRangeType;
     public $startDate;
     public $endDate;
     public $showAddReservation = false;
+    public $search = '';
 
     public function mount()
     {
         $this->dateRangeType = 'currentWeek';
-        $this->filterOrders = 'in_kitchen';
         $this->startDate = now()->startOfWeek()->format('m/d/Y');
         $this->endDate = now()->endOfWeek()->format('m/d/Y');
 
@@ -29,53 +28,22 @@ class Reservations extends Component
 
     public function setDateRange()
     {
-        switch ($this->dateRangeType) {
-        case 'today':
-            $this->startDate = now()->startOfDay()->format('m/d/Y');
+        $ranges = [
+            'today' => [now()->startOfDay(), now()->startOfDay()],
+            'lastWeek' => [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()],
+            'nextWeek' => [now()->addWeek()->startOfWeek(), now()->addWeek()->endOfWeek()],
+            'last7Days' => [now()->subDays(7), now()->startOfDay()],
+            'currentMonth' => [now()->startOfMonth(), now()->endOfMonth()],
+            'lastMonth' => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
+            'currentYear' => [now()->startOfYear(), now()->startOfDay()],
+            'lastYear' => [now()->subYear()->startOfYear(), now()->subYear()->endOfYear()],
+            'default' => [now()->startOfWeek(), now()->endOfWeek()],
+        ];
 
-            $this->endDate = now()->startOfDay()->format('m/d/Y');
-            break;
+        [$start, $end] = $ranges[$this->dateRangeType] ?? $ranges['default'];
 
-        case 'lastWeek':
-            $this->startDate = now()->subWeek()->startOfWeek()->format('m/d/Y');
-            $this->endDate = now()->subWeek()->endOfWeek()->format('m/d/Y');
-            break;
-        case 'nextWeek':
-            $this->startDate = now()->addWeek()->startOfWeek()->format('m/d/Y');
-            $this->endDate = now()->addWeek()->endOfWeek()->format('m/d/Y');
-            break;
-
-        case 'last7Days':
-            $this->startDate = now()->subDays(7)->format('m/d/Y');
-            $this->endDate = now()->startOfDay()->format('m/d/Y');
-            break;
-
-        case 'currentMonth':
-            $this->startDate = now()->startOfMonth()->format('m/d/Y');
-            $this->endDate = now()->endOfMonth()->format('m/d/Y');
-            break;
-
-        case 'lastMonth':
-            $this->startDate = now()->subMonth()->startOfMonth()->format('m/d/Y');
-            $this->endDate = now()->subMonth()->endOfMonth()->format('m/d/Y');
-            break;
-
-        case 'currentYear':
-            $this->startDate = now()->startOfYear()->format('m/d/Y');
-            $this->endDate = now()->startOfDay()->format('m/d/Y');
-            break;
-
-        case 'lastYear':
-            $this->startDate = now()->subYear()->startOfYear()->format('m/d/Y');
-            $this->endDate = now()->subYear()->endOfYear()->format('m/d/Y');
-            break;
-
-        default:
-            $this->startDate = now()->startOfWeek()->format('m/d/Y');
-            $this->endDate = now()->endOfWeek()->format('m/d/Y');
-            break;
-        }
-
+        $this->startDate = $start->format('m/d/Y');
+        $this->endDate = $end->format('m/d/Y');
     }
 
     #[On('setStartDate')]
@@ -100,10 +68,18 @@ class Reservations extends Component
         $start = Carbon::createFromFormat('m/d/Y', $this->startDate)->startOfDay()->toDateTimeString();
         $end = Carbon::createFromFormat('m/d/Y', $this->endDate)->endOfDay()->toDateTimeString();
 
-        $reservations = Reservation::orderBy('reservation_date_time', 'asc')
-            ->whereDate('reservation_date_time', '>=', $start)->whereDate('reservation_date_time', '<=', $end)
+        $reservations = Reservation::with('customer', 'table')
+            ->orderBy('reservation_date_time', 'asc')
+            ->whereDate('reservation_date_time', '>=', $start)
+            ->whereDate('reservation_date_time', '<=', $end)
+            ->where(function ($query) {
+                $query->whereHas('customer', function ($q) {
+                    $q->where('name', 'like', '%' . $this->search . '%')
+                        ->orWhere('email', 'like', '%' . $this->search . '%')
+                        ->orWhere('phone', 'like', '%' . $this->search . '%');
+                });
+            })
             ->get();
-
 
         return view('livewire.reservations.reservations', [
             'reservations' => $reservations

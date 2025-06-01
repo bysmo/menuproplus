@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class PackageModule extends Model
+class PackageModule extends BaseModel
 {
     protected $guarded = ['id'];
 }

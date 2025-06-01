@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\StorageSetting
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|StorageSetting whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class StorageSetting extends Model
+class StorageSetting extends BaseModel
 {
 
     const HASH_TEMP_FILE_TIME = 60;

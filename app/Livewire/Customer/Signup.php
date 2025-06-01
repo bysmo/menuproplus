@@ -20,6 +20,9 @@ class Signup extends Component
     public $customer;
     public $verificationCode;
     public $restaurant;
+    public $name;
+    public $phone;
+    public $showSignUpProcess = false;
 
     public function mount()
     {
@@ -38,18 +41,43 @@ class Signup extends Component
             'email' => 'required|email'
         ]);
 
-        $customer = Customer::where('email', $this->email)->firstOrNew();
-        $customer->email = $this->email;
-        $customer->restaurant_id = $this->restaurant->id;
-        $customer->save();
+        $customer = Customer::where('email', $this->email)->first();
 
-        $this->customer = $customer;
+        if (!$customer && !$this->showSignUpProcess) {
+            $this->showSignUpProcess = true;
+            return;
+        }
 
-        if ($this->restaurant->customer_login_required) {
-            $this->sendVerification();
 
+        if ($customer) {
+            $this->customer = $customer;
+
+            if ($this->restaurant->customer_login_required) {
+                $this->sendVerification();
+            } else {
+                $this->setCustomerDetail($customer);
+            }
         } else {
-            $this->setCustomerDetail($customer);
+            // If customer does not exist, ask for additional details
+            $this->validate([
+                'name' => 'required|string',
+                'phone' => 'required|string'
+            ]);
+
+            $customer = new Customer();
+            $customer->email = $this->email;
+            $customer->restaurant_id = $this->restaurant->id;
+            $customer->name = $this->name;
+            $customer->phone = $this->phone;
+            $customer->save();
+
+            $this->customer = $customer;
+
+            if ($this->restaurant->customer_login_required) {
+                $this->sendVerification();
+            } else {
+                $this->setCustomerDetail($customer);
+            }
         }
     }
 
@@ -92,7 +120,11 @@ class Signup extends Component
         ]);
 
         $this->showVerifcationCode = true;
-        $this->customer->notify(new CustomerEmailVerify());
+        try {
+            $this->customer->notify(new CustomerEmailVerify());
+        } catch (\Exception $e) {
+            \Log::error('Error sending email verification notification: ' . $e->getMessage());
+        }
     }
 
     public function render()

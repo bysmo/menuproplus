@@ -141,7 +141,11 @@ class RestaurantSignup extends Component
         }
 
         $superadmins = User::withoutGlobalScopes()->role('Super Admin')->get();
-        Notification::send($superadmins, new NewRestaurantSignup($restaurant));
+        try {
+            Notification::send($superadmins, new NewRestaurantSignup($restaurant));
+        } catch (\Exception $e) {
+            \Log::error('Error sending new restaurant signup notification: ' . $e->getMessage());
+        }
 
         if (module_enabled('Subdomain')) {
             $hash = encrypt($user->id);

@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class SuperadminPaymentGateway extends Model
+class SuperadminPaymentGateway extends BaseModel
 {
     protected $guarded = ['id'];
 
@@ -38,4 +39,18 @@ class SuperadminPaymentGateway extends Model
         return ($this->stripe_type == 'test' ? $this->stripe_test_webhook_key : $this->stripe_live_webhook_key);
     }
 
+    public function getFlutterwaveKeyAttribute()
+    {
+        return ($this->flutterwave_type == 'test' ? $this->test_flutterwave_key : $this->live_flutterwave_key);
+    }
+
+    public function getFlutterwaveSecretAttribute()
+    {
+        return ($this->flutterwave_type == 'test' ? $this->test_flutterwave_secret : $this->live_flutterwave_secret);
+    }
+
+    public function getFlutterwaveWebhookKeyAttribute()
+    {
+        return ($this->flutterwave_type == 'test' ? $this->flutterwave_test_webhook_key : $this->flutterwave_live_webhook_key);
+    }
 }

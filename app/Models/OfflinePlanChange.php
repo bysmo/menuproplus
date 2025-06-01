@@ -4,9 +4,9 @@ namespace App\Models;
 
 use App\Traits\HasRestaurant;
 use App\Scopes\RestaurantScope;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class OfflinePlanChange extends Model
+class OfflinePlanChange extends BaseModel
 {
 
     use HasRestaurant;
@@ -14,7 +14,7 @@ class OfflinePlanChange extends Model
     const FILE_PATH = 'offline-invoice';
 
     protected $guarded = ['id'];
-    
+
     protected $dates = [
         'pay_date',
         'next_pay_date'
@@ -40,7 +40,6 @@ class OfflinePlanChange extends Model
     public function offlineMethod()
     {
         return $this->belongsTo(OfflinePaymentMethod::class, 'offline_method_id')->withoutGlobalScope(restaurantScope::class);
-
     }
 
     public function getFileAttribute()

@@ -16,6 +16,8 @@ class ItemReport extends Component
     public $dateRangeType;
     public $startDate;
     public $endDate;
+    public $startTime = '00:00'; // Default start time
+    public $endTime = '23:59';  // Default end time
     public $searchTerm;
 
     public function mount()
@@ -90,23 +92,53 @@ class ItemReport extends Component
     {
         if (!in_array('Export Report', restaurant_modules())) {
             $this->dispatch('showUpgradeLicense');
+        } else {
+            $data = $this->prepareDateTimeData();
+
+            return Excel::download(
+                new ItemReportExport($data['startDateTime'], $data['endDateTime'], $data['startTime'], $data['endTime'], $data['timezone'], $this->searchTerm),
+                'item-report-' . now()->toDateTimeString() . '.xlsx'
+            );
         }
-        else {
-            return Excel::download(new ItemReportExport($this->startDate, $this->endDate), 'item-report-' . now()->toDateTimeString() . '.xlsx');
-        }
+    }
+
+    private function prepareDateTimeData()
+    {
+        $timezone = timezone();
+
+        $startDateTime = Carbon::createFromFormat('m/d/Y H:i', "{$this->startDate} {$this->startTime}", $timezone)
+            ->setTimezone('UTC')->toDateTimeString();
+
+        $endDateTime = Carbon::createFromFormat('m/d/Y H:i', "{$this->endDate} {$this->endTime}", $timezone)
+            ->setTimezone('UTC')->toDateTimeString();
+
+        $startTime = Carbon::parse($this->startTime, $timezone)->setTimezone('UTC')->format('H:i');
+        $endTime = Carbon::parse($this->endTime, $timezone)->setTimezone('UTC')->format('H:i');
+
+        return compact('timezone', 'startDateTime', 'endDateTime', 'startTime', 'endTime');
     }
 
     public function render()
     {
-        $start = Carbon::createFromFormat('m/d/Y', $this->startDate)->startOfDay()->toDateTimeString();
-        $end = Carbon::createFromFormat('m/d/Y', $this->endDate)->endOfDay()->toDateTimeString();
+        $dateTimeData = $this->prepareDateTimeData();
 
         $query = MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)
-            ->with(['orders' => function ($q) use ($start, $end) {
+            ->with(['orders' => function ($q) use ($dateTimeData) {
                 return $q->join('orders', 'orders.id', '=', 'order_items.order_id')
-                    ->whereDate('orders.date_time', '>=', $start)->whereDate('orders.date_time', '<=', $end)
-                    ->where('orders.status', 'paid');
+                    ->whereBetween('orders.date_time', [$dateTimeData['startDateTime'], $dateTimeData['endDateTime']])
+                    ->where('orders.status', 'paid')
+                    ->where(function ($q) use ($dateTimeData) {
+                        if ($dateTimeData['startTime'] < $dateTimeData['endTime']) {
+                            $q->whereRaw("TIME(orders.date_time) BETWEEN ? AND ?", [$dateTimeData['startTime'], $dateTimeData['endTime']]);
+                        } else {
+                            $q->where(function ($sub) use ($dateTimeData) {
+                                $sub->whereRaw("TIME(orders.date_time) >= ?", [$dateTimeData['startTime']])
+                                    ->orWhereRaw("TIME(orders.date_time) <= ?", [$dateTimeData['endTime']]);
+                            });
+                        }
+                    });
             }, 'category', 'variations']);
+
 
         if ($this->searchTerm) {
             $query->where(function ($q) {

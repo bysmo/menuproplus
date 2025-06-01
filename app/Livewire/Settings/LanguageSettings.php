@@ -38,7 +38,6 @@ class LanguageSettings extends Component
             $this->languageActive[] = (bool)$value->active;
             $this->languageRtl[] = (bool)$value->is_rtl;
         }
-
     }
 
     #[On('hideAddLanguage')]
@@ -79,17 +78,17 @@ class LanguageSettings extends Component
         }
 
         if (Schema::hasTable('ltm_translations')) {
-            DB::statement('DELETE FROM ltm_translations where locale = "'.$this->language->language_code.'"');
+            DB::statement('DELETE FROM ltm_translations where locale = "' . $this->language->language_code . '"');
         }
 
 
         cache()->forget('languages');
-        
+
         if (languages()->count() == 1) {
             User::withOutGlobalScopes()->update(['locale' => global_setting()->locale]);
         }
 
-        
+
         $this->dispatch('hideDeleteLanguage');
 
         $this->confirmDeleteLanguageModal = false;
@@ -98,14 +97,18 @@ class LanguageSettings extends Component
     public function submitForm()
     {
         foreach ($this->languageID as $key => $value) {
-            LanguageSetting::where('id', $value)
-                ->update([
-                    'active' => $this->languageActive[$key],
-                    'is_rtl' => $this->languageRtl[$key]
-                ]);
+            $language = LanguageSetting::find($value);
+
+            if ($language) {
+                $language->active = $this->languageActive[$key];
+                $language->is_rtl = $this->languageRtl[$key];
+                $language->save();
+            }
         }
 
+
         cache()->forget('languages');
+        session()->forget('isRtl');
 
         $this->alert('success', __('messages.settingsUpdated'), [
             'toast' => true,
@@ -119,5 +122,4 @@ class LanguageSettings extends Component
     {
         return view('livewire.settings.language-settings');
     }
-
 }

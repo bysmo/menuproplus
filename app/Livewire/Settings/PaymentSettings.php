@@ -35,6 +35,17 @@ class PaymentSettings extends Component
     public $isofflinepaymentEnabled;
     public bool $enablePayViaCash;
     public bool $enableOfflinePayment;
+    public $webhookUrl;
+    public $flutterwaveMode;
+    public $flutterwaveStatus;
+    public $liveFlutterwaveKey;
+    public $liveFlutterwaveSecret;
+    public $liveFlutterwaveHash;
+    public $testFlutterwaveKey;
+    public $testFlutterwaveSecret;
+    public $testFlutterwaveHash;
+    public $testFlutterwaveWebhookKey;
+    public $isFlutterwaveEnabled;
 
     public function mount()
     {
@@ -60,6 +71,7 @@ class PaymentSettings extends Component
 
         $this->isRazorpayEnabled = $this->paymentGateway->razorpay_status;
         $this->isStripeEnabled = $this->paymentGateway->stripe_status;
+        $this->isFlutterwaveEnabled = $this->paymentGateway->flutterwave_status;
 
         $this->enableForDineIn = $this->paymentGateway->is_dine_in_payment_enabled;
         $this->enableForDelivery = $this->paymentGateway->is_delivery_payment_enabled;
@@ -70,6 +82,23 @@ class PaymentSettings extends Component
         $this->paymentDetails = $this->paymentGateway->offline_payment_detail;
         $this->qrCodeImage = $this->paymentGateway->qr_code_image_url;
         $this->enablePayViaCash = (bool)$this->paymentGateway->is_cash_payment_enabled;
+
+        $this->flutterwaveMode = $this->paymentGateway->flutterwave_mode;
+        $this->flutterwaveStatus = (bool)$this->paymentGateway->flutterwave_status;
+        $this->liveFlutterwaveKey = $this->paymentGateway->live_flutterwave_key;
+        $this->liveFlutterwaveSecret = $this->paymentGateway->live_flutterwave_secret;
+        $this->liveFlutterwaveHash = $this->paymentGateway->live_flutterwave_hash;
+
+        $this->testFlutterwaveKey = $this->paymentGateway->test_flutterwave_key;
+        $this->testFlutterwaveSecret = $this->paymentGateway->test_flutterwave_secret;
+        $this->testFlutterwaveHash = $this->paymentGateway->test_flutterwave_hash;
+
+        $hash = restaurant()->hash;
+        $this->testFlutterwaveWebhookKey = $this->paymentGateway->flutterwave_webhook_secret_hash ? $this->paymentGateway->flutterwave_webhook_secret_hash : substr(md5($hash), 0, 10);
+
+        if ($this->activePaymentSetting === 'flutterwave') {
+            $this->webhookUrl = route('flutterwave.webhook', ['hash' => $hash]);
+        }
     }
 
     public function submitFormServiceSpecific()
@@ -206,6 +235,80 @@ class PaymentSettings extends Component
             $this->addError('stripeKey', 'Invalid Stripe key or secret.');
         } catch (\Exception $e) {
             $this->addError('stripeKey', 'Error: ' . $e->getMessage());
+        }
+
+        return 1;
+    }
+
+    public function submitFlutterwaveForm()
+    {
+
+        $this->validate(
+            [
+                'flutterwaveStatus' => 'required|boolean',
+                'flutterwaveMode' => 'required_if:flutterwaveStatus,true',
+                'liveFlutterwaveKey' => 'required_if:flutterwaveMode,live',
+                'liveFlutterwaveSecret' => 'required_if:flutterwaveMode,live',
+                'liveFlutterwaveHash' => 'required_if:flutterwaveMode,live',
+                'testFlutterwaveKey' => 'required_if:flutterwaveMode,test',
+                'testFlutterwaveSecret' => 'required_if:flutterwaveMode,test',
+                'testFlutterwaveHash' => 'required_if:flutterwaveMode,test',
+            ],
+            [
+                'flutterwaveStatus.required' => __('validation.flutterwaveStatusRequired'),
+                'flutterwaveMode.required_if' => __('validation.flutterwaveModeRequired'),
+                'liveFlutterwaveKey.required_if' => __('validation.liveFlutterwaveKeyRequired'),
+                'liveFlutterwaveSecret.required_if' => __('validation.liveFlutterwaveSecretRequired'),
+                'liveFlutterwaveHash.required_if' => __('validation.liveFlutterwaveHashRequired'),
+                'testFlutterwaveKey.required_if' => __('validation.testFlutterwaveKeyRequired'),
+                'testFlutterwaveSecret.required_if' => __('validation.testFlutterwaveSecretRequired'),
+                'testFlutterwaveHash.required_if' => __('validation.testFlutterwaveHashRequired'),
+            ]
+        );
+        if ($this->saveFlutterwaveSettings() === 0) {
+            $this->updatePaymentStatus();
+            $this->alertSuccess();
+        }
+    }
+
+    private function saveFlutterwaveSettings()
+    {
+
+        if (!$this->flutterwaveStatus) {
+            $this->paymentGateway->update([
+                'flutterwave_status' => $this->flutterwaveStatus,
+            ]);
+
+            return 0;
+        }
+
+        try {
+            $apiSecret = $this->flutterwaveMode === 'live' ? $this->liveFlutterwaveSecret : $this->testFlutterwaveSecret;
+
+            $response = Http::withToken($apiSecret)
+                ->get('https://api.flutterwave.com/v3/transactions');
+
+            if ($response->successful()) {
+                $this->paymentGateway->update([
+                    'flutterwave_mode' => $this->flutterwaveMode,
+                    'flutterwave_status' => $this->flutterwaveStatus,
+                    'live_flutterwave_key' => $this->liveFlutterwaveKey,
+                    'live_flutterwave_secret' => $this->liveFlutterwaveSecret,
+                    'live_flutterwave_hash' => $this->liveFlutterwaveHash,
+                    'test_flutterwave_key' => $this->testFlutterwaveKey,
+                    'test_flutterwave_secret' => $this->testFlutterwaveSecret,
+                    'test_flutterwave_hash' => $this->testFlutterwaveHash,
+                    'flutterwave_webhook_secret_hash' => $this->testFlutterwaveWebhookKey,
+                ]);
+                return 0;
+            }
+
+            $this->addError(
+                $this->flutterwaveMode === 'live' ? 'liveFlutterwaveKey' : 'testFlutterwaveKey',
+                __('validation.InvalidFlutterwaveKeyOrSecret')
+            );
+        } catch (\Exception $e) {
+            $this->addError('flutterwaveKey', 'Error: ' . $e->getMessage());
         }
 
         return 1;

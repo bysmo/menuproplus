@@ -5,6 +5,7 @@ namespace App\Livewire\Forms;
 use Livewire\Component;
 use App\Models\CustomMenu;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 class DisableLanding extends Component
@@ -14,6 +15,8 @@ class DisableLanding extends Component
 
     public $settings;
     public $disableLandingSite;
+    public $landingType;
+
     public $landingSiteType;
     public $landingSiteUrl;
     public $facebook;
@@ -39,12 +42,15 @@ class DisableLanding extends Component
     public $menu;
     public $menuStates = [];
     public $menuIdToDelete = null;
+    #[Url]
+    public $activeSetting = 'settings';
 
     protected $listeners = ['refreshCustomers' => '$refresh'];
 
     public function mount()
     {
         $this->disableLandingSite = $this->settings ? (bool)$this->settings->disable_landing_site : false;
+        $this->landingType = $this->settings ? $this->settings->landing_type : false;
         $this->landingSiteType = $this->settings ? $this->settings->landing_site_type : '';
         $this->landingSiteUrl = $this->settings ? $this->settings->landing_site_url : '';
         $this->facebook = $this->settings ? $this->settings->facebook_link : '';
@@ -78,6 +84,7 @@ class DisableLanding extends Component
         ]);
 
         $this->settings->disable_landing_site = $this->disableLandingSite;
+        $this->settings->landing_type = $this->landingType;
         $this->settings->landing_site_type = $this->landingSiteType;
         $this->settings->landing_site_url = $this->landingSiteUrl;
         $this->settings->facebook_link = $this->facebook;

@@ -117,6 +117,7 @@ class UpdatePackage extends Component
     {
 
         $this->validatePackageData();
+
         $restaurant = Restaurant::with('package')->findOrFail($this->restaurant->id);
         $package = Package::findOrFail($this->selectedPackage->id);
         $isTrial = $this->packageType === PackageType::TRIAL;
@@ -172,7 +173,7 @@ class UpdatePackage extends Component
                 'gateway_name' => 'offline',
                 'transaction_id' => $subscription->transaction_id,
                 'pay_date' => $subscription->subscribed_on_date,
-                'next_pay_date' => $this->nextPayDate,  
+                'next_pay_date' => $this->nextPayDate,
             ]);
 
             $restaurant->save();
@@ -185,11 +186,9 @@ class UpdatePackage extends Component
                 'showCancelButton' => false,
                 'cancelButtonText' => __('app.close'),
             ]);
-
         } catch (\Throwable $th) {
             info($th);
         }
-
     }
 
     public function validatePackageData()

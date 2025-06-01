@@ -16,23 +16,33 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ItemReportExport implements WithMapping, FromCollection, WithHeadings, WithStyles, ShouldAutoSize
 {
+    protected string $startDateTime, $endDateTime;
+    protected string $startTime, $endTime, $timezone, $searchTerm;
+    protected $headingDateTime, $headingEndDateTime, $headingStartTime, $headingEndTime;
 
-    protected $startDate;
-    protected $endDate;
-
-    public function __construct($startDate, $endDate)
+    public function __construct(string $startDateTime, string $endDateTime, string $startTime, string $endTime, string $timezone, string $searchTerm = '')
     {
-        $this->startDate = $startDate;
-        $this->endDate = $endDate;
+        $this->startDateTime = $startDateTime;
+        $this->endDateTime = $endDateTime;
+        $this->startTime = $startTime;
+        $this->endTime = $endTime;
+        $this->timezone = $timezone;
+        $this->searchTerm = $searchTerm;
 
-        $this->startDate = Carbon::createFromFormat('m/d/Y', $this->startDate)->toDateString();
-        $this->endDate = Carbon::createFromFormat('m/d/Y', $this->endDate)->toDateString();
+        $this->headingDateTime = Carbon::parse($startDateTime)->setTimezone($timezone)->format('Y-m-d');
+        $this->headingEndDateTime = Carbon::parse($endDateTime)->setTimezone($timezone)->format('Y-m-d');
+        $this->headingStartTime = Carbon::parse($startTime)->setTimezone($timezone)->format('h:i A');
+        $this->headingEndTime = Carbon::parse($endTime)->setTimezone($timezone)->format('h:i A');
     }
 
     public function headings(): array
     {
+        $headingTitle = $this->headingDateTime === $this->headingEndDateTime
+            ? __('modules.report.salesDataFor') . " {$this->headingDateTime}, " . __('modules.report.timePeriod') . " {$this->headingStartTime} - {$this->headingEndTime}"
+            : __('modules.report.salesDataFrom') . " {$this->headingDateTime} " . __('app.to') . " {$this->headingEndDateTime}, " . __('modules.report.timePeriodEachDay') . " {$this->headingStartTime} - {$this->headingEndTime}";
+
         return [
-            [__('menu.itemReport') . ' ' . $this->startDate .' - ' . $this->endDate],
+            [__('menu.itemReport') . ' ' . $headingTitle],
             [
                 'Item Name',
                 'Item Category Name',
@@ -54,8 +64,8 @@ class ItemReportExport implements WithMapping, FromCollection, WithHeadings, Wit
                     $item->item_name . ' (' . $variation->variation . ')',
                     $item->category->category_name,
                     $quantitySold,
-                    $variation->price,
-                    $variation->price * $quantitySold,
+                    currency_format($variation->price, restaurant()->currency_id),
+                    currency_format($variation->price * $quantitySold, restaurant()->currency_id),
                 ];
             }
         } else {
@@ -65,8 +75,8 @@ class ItemReportExport implements WithMapping, FromCollection, WithHeadings, Wit
                 $item->item_name,
                 $item->category->category_name,
                 $quantitySold,
-                $item->price,
-                $item->price * $quantitySold,
+                currency_format($item->price, restaurant()->currency_id),
+                currency_format($item->price * $quantitySold, restaurant()->currency_id),
             ];
         }
 
@@ -98,9 +108,27 @@ class ItemReportExport implements WithMapping, FromCollection, WithHeadings, Wit
     {
         return MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->with(['orders' => function ($q) {
             return $q->join('orders', 'orders.id', '=', 'order_items.order_id')
-                ->whereDate('orders.date_time', '>=', $this->startDate)
-                ->whereDate('orders.date_time', '<=', $this->endDate)
-                ->where('orders.status', 'paid');
-        }, 'category', 'variations'])->get();
+            ->whereBetween('orders.date_time', [$this->startDateTime, $this->endDateTime])
+            ->where('orders.status', 'paid')
+            ->where(function ($q) {
+                if ($this->startTime < $this->endTime) {
+                $q->whereRaw("TIME(orders.date_time) BETWEEN ? AND ?", [$this->startTime, $this->endTime]);
+                } else {
+                $q->where(function ($sub) {
+                    $sub->whereRaw("TIME(orders.date_time) >= ?", [$this->startTime])
+                    ->orWhereRaw("TIME(orders.date_time) <= ?", [$this->endTime]);
+                });
+                }
+            });
+        }, 'category', 'variations'])->where(function ($query) {
+            if ($this->searchTerm) {
+            $query->where(function ($q) {
+                $q->where('item_name', 'like', '%' . $this->searchTerm . '%')
+                ->orWhereHas('category', function ($q) {
+                    $q->where('category_name', 'like', '%' . $this->searchTerm . '%');
+                });
+            });
+            }
+        })->get();
     }
 }

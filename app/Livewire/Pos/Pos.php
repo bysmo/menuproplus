@@ -78,6 +78,7 @@ class Pos extends Component
     public $discountedTotal;
     public $tipAmount = 0;
     public $orderStatus;
+    public $deliveryFee = 0;
 
     public function mount()
     {
@@ -106,6 +107,7 @@ class Pos extends Component
 
                 $this->orderNumber = $this->tableOrder->activeOrder->order_number;
                 $this->tipAmount = $this->tableOrder->activeOrder->tip_amount;
+                $this->deliveryFee = $this->tableOrder->activeOrder->delivery_fee;
                 $this->showTableOrder();
 
                 if ($this->orderDetail) {
@@ -119,6 +121,9 @@ class Pos extends Component
 
         if ($this->orderID) {
             $order = Order::find($this->orderID);
+            if ($order->status === 'canceled') {
+                return $this->redirect(route('pos.index'), navigate: true);
+            }
             $this->orderNumber = $order->order_number;
             $this->noOfPax = $order->number_of_pax;
             $this->selectWaiter = $order->waiter_id ?? null;
@@ -128,6 +133,7 @@ class Pos extends Component
             $this->discountValue = $order->discount_type === 'percent' ? rtrim(rtrim($order->discount_value, '0'), '.') : $order->discount_value;
             $this->discountType = $order->discount_type;
             $this->tipAmount = $order->tip_amount;
+            $this->deliveryFee = $order->delivery_fee;
             $this->orderStatus = $order->order_status;
 
             if ($this->orderDetail) {
@@ -238,6 +244,8 @@ class Pos extends Component
 
     public function addCartItems($id, $variationCount, $modifierCount)
     {
+        if (!user_can('Create Order')) return;
+
         if ($this->orderID && $this->orderDetail && $this->orderDetail->status === 'kot') {
             $this->addError('error', __('messages.errorWantToCreateNewKot'));
             $this->showNewKotButton = true;
@@ -360,6 +368,8 @@ class Pos extends Component
 
     public function addQty($id)
     {
+        if (!user_can('Update Order')) return;
+
         $this->orderItemQty[$id] = isset($this->orderItemQty[$id]) ? ($this->orderItemQty[$id] + 1) : 1;
         $basePrice = $this->orderItemVariation[$id]->price ?? $this->orderItemList[$id]->price;
         $this->orderItemAmount[$id] = $this->orderItemQty[$id] * ($basePrice + ($this->orderItemModifiersPrice[$id] ?? 0));
@@ -368,6 +378,8 @@ class Pos extends Component
 
     public function subQty($id)
     {
+        if (!user_can('Update Order')) return;
+
         $this->orderItemQty[$id] = (isset($this->orderItemQty[$id]) && $this->orderItemQty[$id] > 1) ? ($this->orderItemQty[$id] - 1) : 1;
         $basePrice = $this->orderItemVariation[$id]->price ?? $this->orderItemList[$id]->price;
         $this->orderItemAmount[$id] = $this->orderItemQty[$id] * ($basePrice + ($this->orderItemModifiersPrice[$id] ?? 0));
@@ -414,6 +426,11 @@ class Pos extends Component
         if ($this->tipAmount > 0) {
             $this->total += $this->tipAmount;
         }
+
+        if ($this->deliveryFee > 0) {
+            $this->total += $this->deliveryFee;
+        }
+
     }
 
     public function addDiscounts()
@@ -645,6 +662,10 @@ class Pos extends Component
                     $this->total += $this->tipAmount;
                 }
 
+                if ($this->deliveryFee > 0) {
+                    $this->total += $this->deliveryFee;
+                }
+
                 $this->total -= $this->discountAmount;
 
                 Order::where('id', $order->id)->update([
@@ -722,6 +743,10 @@ class Pos extends Component
                 $this->total += $this->tipAmount;
             }
 
+            if ($this->deliveryFee > 0) {
+                $this->total += $this->deliveryFee;
+            }
+
             $this->total -= $this->discountAmount;
 
             Order::where('id', $order->id)->update([
@@ -772,7 +797,7 @@ class Pos extends Component
                     $this->dispatch('print_location', $url);
                     break;
                 default:
-                    $this->dispatch('showOrderDetail', id: $order->id);
+                    $this->dispatch('showOrderDetail', id: $order->id, fromPos: true);
                     break;
             }
         }
@@ -781,7 +806,7 @@ class Pos extends Component
 
     #[On('resetPos')]
     public function resetPos()
-    {
+    {   
         $this->search = null;
         $this->filterCategories = null;
         $this->menuItem = null;
@@ -790,6 +815,7 @@ class Pos extends Component
         $this->orderNumber = Order::latest()->first()->order_number + 1;
         $this->discountedTotal = 0;
         $this->tipAmount = 0;
+        $this->deliveryFee = 0;
         $this->tableNo = null;
         $this->tableId = null;
         $this->noOfPax = null;

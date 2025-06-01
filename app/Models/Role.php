@@ -8,7 +8,7 @@ use Spatie\Permission\Models\Role as SpatieRole;
 class Role extends SpatieRole
 {
     use HasRestaurant;
-    
+
     protected $fillable = [
         'name',
         'guard_name',
@@ -20,4 +20,4 @@ class Role extends SpatieRole
     {
         return $this->belongsTo(Restaurant::class);
     }
-} 
+}

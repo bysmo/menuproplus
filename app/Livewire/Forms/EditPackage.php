@@ -56,6 +56,8 @@ class EditPackage extends Component
     public $razorpayLifetimePlanId;
     public $packageCurrency;
     public $branchLimit;
+    public $flutterwaveAnnualPlanId;
+    public $flutterwaveMonthlyPlanId;
 
     public function mount()
     {
@@ -90,6 +92,8 @@ class EditPackage extends Component
         $this->razorpayMonthlyPlanId = $this->package->razorpay_monthly_plan_id;
         // $this->stripeLifetimePlanId = $this->package->stripe_lifetime_plan_id;
         // $this->razorpayLifetimePlanId = $this->package->razorpay_lifetime_plan_id;
+        $this->flutterwaveAnnualPlanId = $this->package->flutterwave_annual_plan_id;
+        $this->flutterwaveMonthlyPlanId = $this->package->flutterwave_monthly_plan_id;
         $this->selectedFeatures = $this->package->additional_features ? json_decode($this->package->additional_features, true) : [];
         $this->branchLimit = $this->package->branch_limit;
     }
@@ -194,6 +198,11 @@ class EditPackage extends Component
             $validateRules['stripeAnnualPlanId'] = $this->annualStatus ? 'required' : 'nullable';
         }
 
+        if ($this->paymentKey->flutterwave_status == 1) {
+            $validateRules['flutterwaveMonthlyPlanId'] = $this->monthlyPrice ? 'required' : 'nullable';
+            $validateRules['flutterwaveAnnualPlanId'] = $this->annualPrice ? 'required' : 'nullable';
+        }
+
         $validateMessages = [
             'packageName.unique' => 'The package name has already been taken.',
             'price.required_if' => 'The price field is required.',
@@ -239,6 +248,8 @@ class EditPackage extends Component
             'razorpay_monthly_plan_id' => $this->razorpayMonthlyPlanId,
             'stripe_lifetime_plan_id' => $this->packageType === PackageType::LIFETIME ? $this->stripeLifetimePlanId : null,
             'razorpay_lifetime_plan_id' => $this->packageType === PackageType::LIFETIME ? $this->razorpayLifetimePlanId : null,
+            'flutterwave_annual_plan_id' => $this->flutterwaveAnnualPlanId,
+            'flutterwave_monthly_plan_id' => $this->flutterwaveMonthlyPlanId,
             'additional_features' => json_encode($this->selectedFeatures),
             'branch_limit' => $this->branchLimit,
         ]);

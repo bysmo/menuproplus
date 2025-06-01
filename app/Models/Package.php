@@ -5,8 +5,9 @@ namespace App\Models;
 use App\Enums\PackageType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\BaseModel;
 
-class Package extends Model
+class Package extends BaseModel
 {
     use HasFactory;
 
@@ -14,6 +15,8 @@ class Package extends Model
 
     protected $casts = [
         'package_type' => PackageType::class,
+        'trial_days' => 'integer',
+        'trial_notification_before_days' => 'integer',
     ];
 
     const ADDITIONAL_FEATURES = [
@@ -43,5 +46,4 @@ class Package extends Model
     {
         return $this->hasMany(Restaurant::class, 'package_id');
     }
-
 }

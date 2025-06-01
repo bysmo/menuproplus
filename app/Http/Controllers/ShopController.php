@@ -63,6 +63,11 @@ class ShopController extends Controller
     public function orderSuccess(string $id)
     {
         $order = Order::withoutGlobalScopes()->findOrFail($id);
+        
+        if ($order->status === 'draft') {
+            abort(404);
+        }
+
         $shopBranch = request()->filled('branch')
             ? Branch::withoutGlobalScopes()->find(request('branch'))
             : $order->branch;
@@ -104,6 +109,19 @@ class ShopController extends Controller
         abort_if(!in_array('Table Reservation', $packageModules), 403);
 
         return view('shop.bookings', compact('restaurant', 'shopBranch'));
+    }
+
+    /**
+     * Show user's addresses page
+     */
+    public function myAddresses(string $hash)
+    {
+        $restaurant = Restaurant::with('currency')->where('hash', $hash)->firstOrFail();
+        $shopBranch = $this->getShopBranch($restaurant);
+
+        $this->redirectIfSubdomainIsEnabled($restaurant);
+
+        return view('shop.addresses', compact('restaurant', 'shopBranch'));
     }
 
     /**

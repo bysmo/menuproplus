@@ -61,8 +61,8 @@ class RestaurantObserver
         $restaurant->update([
             'package_id' => $package->id,
             'package_type' => $isTrialActive ? 'trial' : 'monthly',
-            'trial_ends_at' => $isTrialActive ? now()->addDays($trialPackage->trial_days) : null,
-            'license_expire_on' => $isTrialActive ? now()->addDays($trialPackage->trial_days) : now()->addMonth(),
+            'trial_ends_at' => $isTrialActive ? now()->addDays((int)$trialPackage->trial_days) : null,
+            'license_expire_on' => $isTrialActive ? now()->addDays((int)$trialPackage->trial_days) : now()->addMonth(),
             'license_updated_at' => now(),
             'subscription_updated_at' => now(),
         ]);

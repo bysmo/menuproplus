@@ -5,8 +5,9 @@ namespace App\Models;
 use App\Traits\HasBranch;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class ExpenseCategory extends Model
+class ExpenseCategory extends BaseModel
 {
     use HasFactory, HasBranch;
 
@@ -24,5 +25,4 @@ class ExpenseCategory extends Model
     {
         return $this->hasMany(Expenses::class);
     }
-
 }

@@ -15,22 +15,31 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class CategoryReportExport implements WithMapping, FromCollection, WithHeadings, WithStyles, ShouldAutoSize
 {
-    protected $startDate;
-    protected $endDate;
+    protected string $startDateTime, $endDateTime, $startTime, $endTime, $timezone, $offset;
+    protected $headingDateTime, $headingEndDateTime, $headingStartTime, $headingEndTime;
 
-    public function __construct($startDate, $endDate)
+    public function __construct(string $startDateTime, string $endDateTime, string $startTime, string $endTime, string $timezone)
     {
-        $this->startDate = $startDate;
-        $this->endDate = $endDate;
+        $this->startDateTime = $startDateTime;
+        $this->endDateTime = $endDateTime;
+        $this->startTime = $startTime;
+        $this->endTime = $endTime;
+        $this->timezone = $timezone;
 
-        $this->startDate = Carbon::createFromFormat('m/d/Y', $this->startDate)->toDateString();
-        $this->endDate = Carbon::createFromFormat('m/d/Y', $this->endDate)->toDateString();
+        $this->headingDateTime = Carbon::parse($startDateTime)->setTimezone($timezone)->format('Y-m-d');
+        $this->headingEndDateTime = Carbon::parse($endDateTime)->setTimezone($timezone)->format('Y-m-d');
+        $this->headingStartTime = Carbon::parse($startTime)->setTimezone($timezone)->format('h:i A');
+        $this->headingEndTime = Carbon::parse($endTime)->setTimezone($timezone)->format('h:i A');
     }
 
     public function headings(): array
     {
+        $headingTitle = $this->headingDateTime === $this->headingEndDateTime
+            ? __('modules.report.salesDataFor') . " {$this->headingDateTime}, " . __('modules.report.timePeriod') . " {$this->headingStartTime} - {$this->headingEndTime}"
+            : __('modules.report.salesDataFrom') . " {$this->headingDateTime} " . __('app.to') . " {$this->headingEndDateTime}, " . __('modules.report.timePeriodEachDay') . " {$this->headingStartTime} - {$this->headingEndTime}";
+
         return [
-            [__('menu.categoryReport') . ' ' . $this->startDate .' - ' . $this->endDate],
+            [__('menu.categoryReport') . ' ' . $headingTitle],
             [
             'Item Category',
             'Quantity Sold',
@@ -43,8 +52,8 @@ class CategoryReportExport implements WithMapping, FromCollection, WithHeadings,
     {
         return [
             $item->category_name,
-            $item->orders->sum('quantity'),
-            $item->orders->sum(function($order) { return $order->quantity * $order->price; })
+            $item->orders->sum('quantity') ?: 0,
+            currency_format($item->orders->sum(function($order) { return $order->quantity * $order->price; }), restaurant()->currency_id)
         ];
     }
 
@@ -73,9 +82,18 @@ class CategoryReportExport implements WithMapping, FromCollection, WithHeadings,
     {
         return ItemCategory::with(['orders' => function ($q) {
             return $q->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->whereDate('orders.date_time', '>=', $this->startDate)->whereDate('orders.date_time', '<=', $this->endDate)
-            ->where('orders.status', 'paid')
-            ->select('order_items.*', 'orders.amount_paid');
+                ->whereBetween('orders.date_time', [$this->startDateTime, $this->endDateTime])
+                ->where('orders.status', 'paid')
+                ->where(function ($q) {
+                    if ($this->startTime < $this->endTime) {
+                        $q->whereRaw("TIME(orders.date_time) BETWEEN ? AND ?", [$this->startTime, $this->endTime]);
+                    } else {
+                        $q->where(function ($sub) {
+                            $sub->whereRaw("TIME(orders.date_time) >= ?", [$this->startTime])
+                                ->orWhereRaw("TIME(orders.date_time) <= ?", [$this->endTime]);
+                        });
+                    }
+                });
         }])->get();
     }
 

@@ -4,12 +4,13 @@ namespace App\Livewire\Customer;
 
 use Livewire\Component;
 use App\Models\Customer;
+use Livewire\Attributes\On;
 use App\Exports\CustomerExport;
 use App\Imports\CustomerImport;
 use App\Imports\CustomersImport;
 use App\Jobs\ImportCustomerDataJob;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Bus;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
@@ -33,6 +34,13 @@ class CustomerList extends Component
         {
             return Excel::download(new CustomerExport, 'customers-' . now()->toDateTimeString() . '.xlsx');
         }
+    }
+
+
+    #[On('closeAddCustomer')]
+    public function closeAddCustomer()
+    {
+        $this->showAddCustomer = false;
     }
 
     public function importCustomerList()

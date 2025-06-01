@@ -51,9 +51,8 @@ class AddMenu extends Component
         $this->menuName = '';
         $this->translations = array_fill_keys(array_keys($this->translations), '');
 
-
-        $this->dispatch('refreshMenus');
         $this->dispatch('menuAdded');
+        $this->dispatch('refreshMenus');
 
         $this->alert('success', __('messages.menuAdded'), [
             'toast' => true,

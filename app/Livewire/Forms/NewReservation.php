@@ -66,7 +66,7 @@ class NewReservation extends Component
                 // Generate time slots based on the time slot difference
                 $startTime = Carbon::parse($settings->time_slot_start);
                 $endTime = Carbon::parse($settings->time_slot_end);
-                $slotDifference = $settings->time_slot_difference;
+                $slotDifference = (int)$settings->time_slot_difference;
 
                 $this->timeSlots = [];
                 

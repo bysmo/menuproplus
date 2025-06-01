@@ -11,8 +11,6 @@ class Menus extends Component
 {
     use LivewireAlert;
 
-    protected $listeners = ['refreshMenus' => 'mount'];
-
     public $activeMenu;
     public $search = '';
     public $menuId = null;
@@ -20,6 +18,7 @@ class Menus extends Component
     public $showEditMenuModal = false;
     public $confirmDeleteMenuModal = false;
 
+    protected $listeners = ['refreshMenus' => '$refresh'];
     public function mount()
     {
         $firstMenu = Menu::first();

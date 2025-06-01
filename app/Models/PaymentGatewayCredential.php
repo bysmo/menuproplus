@@ -6,8 +6,9 @@ use App\Traits\HasRestaurant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class PaymentGatewayCredential extends Model
+class PaymentGatewayCredential extends BaseModel
 {
 
     use HasFactory, HasRestaurant;
@@ -35,5 +36,20 @@ class PaymentGatewayCredential extends Model
         return Attribute::get(function (): string {
             return $this->qr_code_image ? asset_url_local_s3(self::QR_CODE_FOLDER . '/' . $this->qr_code_image) : '';
         });
+    }
+
+    public function getFlutterwaveKeyAttribute()
+    {
+        return ($this->flutterwave_mode == 'test' ? $this->test_flutterwave_key : $this->live_flutterwave_key);
+    }
+
+    public function getFlutterwaveSecretAttribute()
+    {
+        return ($this->flutterwave_mode == 'test' ? $this->test_flutterwave_secret : $this->live_flutterwave_secret);
+    }
+
+    public function getFlutterwaveWebhookKeyAttribute()
+    {
+        return ($this->flutterwave_mode == 'test' ? $this->flutterwave_test_webhook_key : $this->flutterwave_live_webhook_key);
     }
 }

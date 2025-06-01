@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -45,6 +46,12 @@ class LocaleMiddleware
 
         if (!$user->isRestaurantApproved() && Route::currentRouteName() !== 'account_unverified') {
             return redirect()->route('account_unverified');
+        }
+
+        if (!$user?->isRestaurantActive()) {
+            Auth::logout();
+            session()->flush();
+            return redirect()->route('login')->withErrors(['email' => __('Restaurant is inactive. Contact admin.')]);
         }
 
         return $next($request);

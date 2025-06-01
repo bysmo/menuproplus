@@ -301,9 +301,17 @@ if (!function_exists('isRtl')) {
         }
 
         if (user()) {
+
+
             $language = LanguageSetting::where('language_code', auth()->user()->locale)->first();
-            $isRtl = ($language->is_rtl == 1);
-            session(['isRtl' => $isRtl]);
+            if (!$language) {
+                $isRtl = false;
+                session(['isRtl' => $isRtl]);
+            }
+           else {
+                $isRtl = ($language->is_rtl == 1);
+                session(['isRtl' => $isRtl]);
+           }
         }
 
         return false;
@@ -399,7 +407,7 @@ if (!function_exists('getDomain')) {
     function getDomain($host = false)
     {
         if (!$host) {
-            $host = $_SERVER['SERVER_NAME'] ?? 'menupro.test';
+            $host = $_SERVER['SERVER_NAME'] ?? 'tabletrack.test';
         }
 
         $shortDomain = config('app.short_domain_name');

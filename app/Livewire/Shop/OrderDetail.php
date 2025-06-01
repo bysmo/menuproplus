@@ -11,6 +11,8 @@ use Livewire\Attributes\On;
 use App\Models\StripePayment;
 use App\Models\RazorpayPayment;
 use App\Notifications\SendOrderBill;
+use Illuminate\Support\Facades\Http;
+use App\Models\FlutterwavePayment;
 use App\Models\PaymentGatewayCredential;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 
@@ -25,6 +27,7 @@ class OrderDetail extends Component
     public $paymentGateway;
     public $razorpayStatus;
     public $stripeStatus;
+    public $flutterwaveStatus;
     public $showPaymentModal = false;
     public $paymentOrder;
     public $showQrCode = false;
@@ -68,6 +71,7 @@ class OrderDetail extends Component
         $this->paymentGateway = PaymentGatewayCredential::withoutGlobalScopes()->where('restaurant_id', $this->restaurant->id)->first();
         $this->razorpayStatus = (bool)$this->paymentGateway->razorpay_status;
         $this->stripeStatus = (bool)$this->paymentGateway->stripe_status;
+        $this->flutterwaveStatus = (bool)$this->paymentGateway->flutterwave_status;
 
         $this->qrCodeImage = $this->restaurant->qr_code_image;
         $this->canAddTip = $this->restaurant->enable_tip_shop && $this->order->status !== 'paid';
@@ -108,9 +112,10 @@ class OrderDetail extends Component
             'amount' => (int) round($this->total * 100),
             'currency' => $this->restaurant->currency->currency_code
         ];
-
-        $apiKey = $this->restaurant->paymentGateways->razorpay_key;
-        $secretKey = $this->restaurant->paymentGateways->razorpay_secret;
+        
+        $paymentGateway = $this->restaurant->paymentGateways;
+        $apiKey = $paymentGateway->razorpay_key;
+        $secretKey = $paymentGateway->razorpay_secret;
 
         $api  = new Api($apiKey, $secretKey);
         $razorpayOrder = $api->order->create($orderData);
@@ -271,6 +276,53 @@ class OrderDetail extends Component
 
         $message = $newTip > 0 ? __('messages.tipAddedSuccessfully') : __('messages.tipRemovedSuccessfully');
         $this->alert('success', $message, ['toast' => true]);
+    }
+
+    public function initiateFlutterwavePayment($id)
+    {
+        try {
+            $paymentGateway = $this->restaurant->paymentGateways;
+            $apiSecret = $paymentGateway->flutterwave_secret;
+            $amount = $this->total;
+            $tx_ref = "txn_" . time();
+
+            $user = $this->customer ?? $this->restaurant;
+
+
+            $data = [
+                "tx_ref" => $tx_ref,
+                "amount" => $amount,
+                "currency" => $this->restaurant->currency->currency_code,
+                "redirect_url" => route('flutterwave.success'),
+                "payment_options" => "card",
+                "customer" => [
+                    "email" => $user->email ?? 'no-email@example.com',
+                    "name" => $user->name ?? 'Guest',
+                    "phone_number" => $user->phone ?? '0000000000',
+                ],
+            ];
+            $response = Http::withHeaders([
+                "Authorization" => "Bearer $apiSecret",
+                "Content-Type" => "application/json"
+            ])->post("https://api.flutterwave.com/v3/payments", $data);
+
+            $responseData = $response->json();
+
+            if (isset($responseData['status']) && $responseData['status'] === 'success') {
+                FlutterwavePayment::create([
+                    'order_id' => $id,
+                    'flutterwave_payment_id' => $tx_ref,
+                    'amount' => $amount,
+                    'payment_status' => 'pending',
+                ]);
+
+                return redirect($responseData['data']['link']);
+            } else {
+                return redirect()->route('flutterwave.failed')->withErrors(['error' => 'Payment initiation failed', 'message' => $responseData]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
 

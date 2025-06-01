@@ -23,7 +23,7 @@ class EditCustomer extends Component
 
     }
 
-    public function submitForm()
+    public function editFrontFeature()
     {
         $this->validate([
             'customerEmail' => 'required|email'

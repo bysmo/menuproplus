@@ -38,7 +38,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|FileStorage whereFilename($value)
  * @mixin \Eloquent
  */
-class FileStorage extends Model
+class FileStorage extends BaseModel
 {
 
     use HasFactory, IconTrait, HasRestaurant;
@@ -77,7 +77,5 @@ class FileStorage extends Model
         }
 
         return '0 bytes';
-
     }
-
 }

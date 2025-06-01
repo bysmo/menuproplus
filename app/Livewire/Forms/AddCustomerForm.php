@@ -34,7 +34,7 @@ class AddCustomerForm extends Component
             'delivery_address' => $this->customerAddress,
              ]);
 
-             $this->dispatch('hideEditCustomer');
+             $this->dispatch('closeAddCustomer');
 
              $this->alert('success', __('messages.customerAdded'), [
             'toast' => true,

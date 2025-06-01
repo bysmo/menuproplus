@@ -2,10 +2,11 @@
 
 namespace App\Livewire\Payments;
 
-use App\Models\ExpenseCategory as ModelsExpenseCategory;
 use Livewire\Component;
+use Livewire\Attributes\On;
 use Livewire\WithPagination;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use App\Models\ExpenseCategory as ModelsExpenseCategory;
 
 class ExpenseCategory extends Component
 {
@@ -22,6 +23,23 @@ class ExpenseCategory extends Component
     {
         $this->showEditExpenseCategoryModal = true;
         $this->selectedExpenseCategory = ModelsExpenseCategory::find($id);
+    }
+
+     #[On('hideEditExpenseCategory')]
+    public function hideEditExpenseCategory()
+    {
+        $this->showEditExpenseCategoryModal = false;
+    }
+
+    public function showAddExpenseCategory()
+    {
+        $this->showAddExpenseCategoryModal = true;
+    }
+
+    #[On('hideAddExpenseCategory')]
+    public function hideAddExpenseCategory()
+    {
+        $this->showAddExpenseCategoryModal = false;
     }
 
     public function showDeleteExpenseCategory($id)

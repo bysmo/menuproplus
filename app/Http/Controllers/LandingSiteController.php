@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Livewire\LandingSite\FooterSetting;
+use App\Livewire\Settings\LanguageSettings;
 use App\Models\CustomMenu;
 use Illuminate\Http\Request;
 use App\Models\GlobalSetting;
+use App\Models\LanguageSetting;
 
 class LandingSiteController extends Controller
 {
@@ -19,8 +22,8 @@ class LandingSiteController extends Controller
     public function showMenu()
     {
         $customMenu = CustomMenu::all();
-        // dd($customMenu);
-        return view('layouts.landing', compact('customMenu'));
+        $footerSetting = FooterSetting::where('language_id', request()->get('language_id'))->first();
+        return view('layouts.landing', compact('customMenu', 'footerSetting'));
     }
 
 }

@@ -6,8 +6,9 @@ use App\Traits\HasRestaurant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\BaseModel;
 
-class RestaurantPayment extends Model
+class RestaurantPayment extends BaseModel
 {
     use HasFactory;
     use HasRestaurant;
@@ -27,5 +28,4 @@ class RestaurantPayment extends Model
     {
         return $this->belongsTo(Package::class);
     }
-
 }

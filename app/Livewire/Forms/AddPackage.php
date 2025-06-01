@@ -47,6 +47,8 @@ class AddPackage extends Component
     public $showPackageDetailsForm = true;
     public $showModulesForm = false;
     public $branchLimit;
+    public $flutterwaveAnnualPlanId;
+    public $flutterwaveMonthlyPlanId;
 
 
     public function mount()
@@ -156,6 +158,14 @@ class AddPackage extends Component
             $validateRules['stripeMonthlyPlanId'] = 'required';
         }
 
+        if (($this->monthlyPrice == true ) && ($this->paymentKey->flutterwave_status == 1)) {
+            $validateRules['flutterwaveMonthlyPlanId'] = 'required';
+        }
+
+        if (($this->annualPrice == true ) && ($this->paymentKey->flutterwave_status == 1)) {
+            $validateRules['flutterwaveAnnualPlanId'] = 'required';
+        }
+
         $validateMessages = [
             'selectedModules.min' => 'Please select at least one module',
             'packageName.unique' => 'The package name has already been taken.',
@@ -189,6 +199,8 @@ class AddPackage extends Component
         $package->stripe_monthly_plan_id = $this->stripeMonthlyPlanId;
         $package->razorpay_annual_plan_id = $this->razorpayAnnualPlanId;
         $package->razorpay_monthly_plan_id = $this->razorpayMonthlyPlanId;
+        $package->flutterwave_annual_plan_id = $this->flutterwaveAnnualPlanId;
+        $package->flutterwave_monthly_plan_id = $this->flutterwaveMonthlyPlanId;
         $package->additional_features = json_encode($this->selectedFeatures);
         $package->branch_limit = $this->branchLimit;
         $package->save();

@@ -95,6 +95,7 @@ class AddMenuItem extends Component
             'itemCategory' => 'required',
             'menu' => 'required',
             'isAvailable' => 'required|boolean',
+            'itemImage' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ],[
             'translationNames.' . $this->globalLocale . '.required' => __('validation.itemNameRequired', ['language' => $this->languages[$this->globalLocale]]),
         ]);

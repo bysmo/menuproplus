@@ -3,6 +3,7 @@
 namespace App\Livewire\Order;
 
 use App\Models\Order;
+use App\Models\User;
 use App\Models\ReceiptSetting;
 use Carbon\Carbon;
 use Livewire\Attributes\On;
@@ -19,18 +20,43 @@ class Orders extends Component
     public $startDate;
     public $endDate;
     public $receiptSettings;
+    public $waiters;
+    public $filterWaiter;
+    public $pollingEnabled = true;
+    public $pollingInterval = 10;
 
     public function mount()
     {
-        $this->dateRangeType = 'today';
+        // Load date range type from cookie
+        $this->dateRangeType = request()->cookie('orders_date_range_type', 'today');
         $this->startDate = now()->startOfWeek()->format('m/d/Y');
         $this->endDate = now()->endOfWeek()->format('m/d/Y');
+        $this->waiters = User::role('Waiter_' . restaurant()->id)->get();
+
+        // Load polling settings from cookies
+        $this->pollingEnabled = filter_var(request()->cookie('orders_polling_enabled', 'true'), FILTER_VALIDATE_BOOLEAN);
+        $this->pollingInterval = (int)request()->cookie('orders_polling_interval', 10);
 
         if (!is_null($this->orderID)) {
             $this->dispatch('showOrderDetail', id: $this->orderID);
         }
 
         $this->setDateRange();
+    }
+
+    public function updatedDateRangeType($value)
+    {
+        cookie()->queue(cookie('orders_date_range_type', $value, 60 * 24 * 30)); // 30 days
+    }
+
+    public function updatedPollingEnabled($value)
+    {
+        cookie()->queue(cookie('orders_polling_enabled', $value ? 'true' : 'false', 60 * 24 * 30)); // 30 days
+    }
+
+    public function updatedPollingInterval($value)
+    {
+        cookie()->queue(cookie('orders_polling_interval', (int)$value, 60 * 24 * 30)); // 30 days
     }
 
     public function setDateRange()
@@ -171,6 +197,12 @@ class Orders extends Component
             default:
                 $orderList = $orders;
                 break;
+        }
+
+        if ($this->filterWaiter) {
+            $orderList = $orderList->filter(function ($order) {
+                return $order->waiter_id == $this->filterWaiter;
+            });
         }
 
         $receiptSettings = restaurant()->receiptSetting;

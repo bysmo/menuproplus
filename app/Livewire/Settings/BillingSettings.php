@@ -13,6 +13,7 @@ use App\Models\OfflinePlanChange;
 use App\Models\GlobalSubscription;
 use App\Models\SuperadminPaymentGateway;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Illuminate\Support\Facades\Http;
 
 class BillingSettings extends Component
 {
@@ -103,11 +104,12 @@ class BillingSettings extends Component
 
         if ($paymentGateway) {
             try {
-                if ($gatewayName === 'stripe') {
-                    $this->cancelStripeSubscription($subscriptionId, $cancelType, $paymentGateway->stripe_secret);
-                } elseif ($gatewayName === 'razorpay') {
-                    $this->cancelRazorpaySubscription($subscriptionId, $cancelType, $paymentGateway->razorpay_key, $paymentGateway->razorpay_secret);
-                }
+                match ($gatewayName) {
+                    'stripe' => $this->cancelStripeSubscription($subscriptionId, $cancelType, $paymentGateway->stripe_secret),
+                    'razorpay' => $this->cancelRazorpaySubscription($subscriptionId, $cancelType, $paymentGateway->razorpay_key, $paymentGateway->razorpay_secret),
+                    'flutterwave' => $this->cancelFlutterwaveSubscription($subscriptionId, $cancelType, $paymentGateway->flutterwave_secret),
+                    default => session()->flash('error', __('messages.invalidGateway')),
+                };
             } catch (\Exception $e) {
                 session()->flash('error', $gatewayName . ' Error: ' . $e->getMessage());
             }
@@ -215,9 +217,48 @@ class BillingSettings extends Component
         $offlineInvoice->gateway_name = 'offline';
         $offlineInvoice->transaction_id = $subscription->transaction_id;
         $offlineInvoice->save();
-
     }
 
+    private function cancelFlutterwaveSubscription($subscriptionId, $cancelType, $flutterwaveSecret)
+    {
+        try {
+
+            $response = Http::withToken($flutterwaveSecret)
+                ->put("https://api.flutterwave.com/v3/subscriptions/{$subscriptionId}/cancel");
+
+            if ($response->successful() && $response->json('status') === 'success') {
+                $restaurant = Restaurant::find(restaurant()->id);
+
+                if ($cancelType) {
+                    $this->updateSubscription($restaurant);
+                } else {
+                    $licenseDuration = $restaurant->package_type === 'monthly' ? 'addMonth' : 'addYear';
+                    if ($restaurant->license_updated_at) {
+                        $restaurant->license_expire_on = \Carbon\Carbon::parse($restaurant->license_updated_at)->$licenseDuration();
+                        $restaurant->save();
+                    } else {
+                        $this->alert('error', __('messages.invalidLicenseDate'));
+                    }
+                }
+
+                $this->alert('success', __('messages.subscriptionCancelled'), [
+                    'toast' => true,
+                    'position' => 'top-end',
+                    'showCancelButton' => false,
+                    'cancelButtonText' => __('app.close')
+                ]);
+            } else {
+                // Show error alert if the cancellation fails
+                $this->alert('error', __('messages.cancelFailed') . ': ' . $response->json('message'));
+            }
+        } catch (\Exception $e) {
+            // Handle exceptions and show error alert
+            $this->alert('error', __('messages.errorOccurred') . ': ' . $e->getMessage());
+        }
+
+        // Refresh the page after the operation
+        $this->js("Livewire.navigate(window.location.href)");
+    }
 
     public function render()
     {

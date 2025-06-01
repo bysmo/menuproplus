@@ -4,9 +4,9 @@ namespace App\Models;
 
 use App\Traits\HasRestaurant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class NotificationSetting extends Model
+class NotificationSetting extends BaseModel
 {
     use HasFactory;
     use HasRestaurant;

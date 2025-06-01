@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\BaseModel;
 
-class Kot extends Model
+class Kot extends BaseModel
 {
     use HasFactory;
     use HasBranch;
@@ -40,5 +41,4 @@ class Kot extends Model
 
         return 1;
     }
-
 }

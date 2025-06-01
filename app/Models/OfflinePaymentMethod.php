@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class OfflinePaymentMethod extends Model
+class OfflinePaymentMethod extends BaseModel
 {
     protected $fillable = ['name', 'description', 'status'];
 
@@ -12,5 +12,4 @@ class OfflinePaymentMethod extends Model
     {
         return $this->hasMany(OfflinePlanChange::class, 'offline_method_id');
     }
-
 }

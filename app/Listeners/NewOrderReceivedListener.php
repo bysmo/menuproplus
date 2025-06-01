@@ -28,7 +28,11 @@ class NewOrderReceivedListener
     {
         $users = User::role('Admin_'.$event->order->branch->restaurant_id)->where('restaurant_id', $event->order->branch->restaurant->id)->withoutGlobalScope(BranchScope::class)->get();
 
-        Notification::send($users, new NewOrderReceived($event->order));
+        try {
+            Notification::send($users, new NewOrderReceived($event->order));
+        } catch (\Exception $e) {
+            \Log::error('Error sending new order received notification: ' . $e->getMessage());
+        }
 
         $pushNotification = new DashboardController();
         $pushUsersIds = [$users->pluck('id')->toArray()];

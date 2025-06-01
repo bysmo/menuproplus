@@ -11,10 +11,34 @@ class BranchSettings extends Component
 {
     use LivewireAlert;
 
-    public $showAddBranchModal = false;
-    public $showEditBranchModal = false;
+    // Form fields
+    public $branchName;
+    public $branchAddress;
+    public $branchLat = '26.9125';
+    public $branchLng = '75.7875';
+
+    // States
+    public $isEditing = false;
     public $confirmDeleteBranchModal = false;
-    public $activeBranch;
+    public $activeBranch = null;
+    public $activeBranchId = null;
+    public $formMode = 'add'; // 'add' or 'edit'
+
+    public function mount()
+    {
+        $this->resetForm();
+    }
+
+    public function resetForm()
+    {
+        $this->branchName = '';
+        $this->branchAddress = '';
+        $this->branchLat = '26.9125';
+        $this->branchLng = '75.7875';
+        $this->activeBranchId = null;
+        $this->formMode = 'add';
+        $this->isEditing = false;
+    }
 
     private function checkBranchLimit(): bool
     {
@@ -42,41 +66,49 @@ class BranchSettings extends Component
         return true;
     }
 
-    public function showAddBranch(): void
+    public function createMode()
     {
-        $this->showAddBranchModal = $this->checkBranchLimit();
+        if (!$this->checkBranchLimit()) {
+            return;
+        }
+        $this->dispatch('initAddressMap');
+
+        $this->resetForm();
+        $this->formMode = 'add';
+        $this->isEditing = true;
     }
 
-    #[On('hideAddBranch')]
-    public function hideAddBranch()
+    public function editMode($id)
     {
-        $this->showAddBranchModal = false;
+        $branch = Branch::findOrFail($id);
+        $this->activeBranchId = $branch->id;
+        $this->activeBranch = $branch;
+        $this->branchName = $branch->name;
+        $this->branchAddress = $branch->address;
+        $this->branchLat = $branch->lat ?? '26.9125';
+        $this->branchLng = $branch->lng ?? '75.7875';
+        $this->formMode = 'edit';
+        $this->isEditing = true;
+        $this->dispatch('initAddressMap');
     }
 
-    #[On('hideEditBranch')]
-    public function hideEditBranch()
+    public function cancelEdit()
     {
-        $this->showEditBranchModal = false;
+        $this->resetForm();
     }
 
     public function showDeleteBranch($id)
     {
         $this->activeBranch = Branch::findOrFail($id);
+        $this->activeBranchId = $id;
         $this->confirmDeleteBranchModal = true;
     }
 
-    public function showEditBranch($id)
+    public function deleteBranch()
     {
-        $this->activeBranch = Branch::findOrFail($id);
-        $this->showEditBranchModal = true;
-    }
-
-    public function deleteBranch($id)
-    {
-        Branch::destroy($id);
-
+        Branch::destroy($this->activeBranchId);
         $this->activeBranch = null;
-
+        $this->activeBranchId = null;
         $this->confirmDeleteBranchModal = false;
 
         session(['branches' => Branch::get()]);
@@ -87,19 +119,88 @@ class BranchSettings extends Component
             'showCancelButton' => false,
             'cancelButtonText' => __('app.close')
         ]);
-
     }
 
-    #[On('hideEditCurrency')]
-    public function hideEditCurrency()
+    #[On('updateLivewireMapProperties')]
+    public function updateLivewireMapProperties($lat, $lng)
     {
-        $this->showEditBranchModal = false;
+        $this->branchLat = $lat;
+        $this->branchLng = $lng;
+    }
+
+    public function saveBranch()
+    {
+        if ($this->formMode == 'add' && !$this->checkBranchLimit()) {
+            $this->alert('error', __('messages.invalidRequest'), [
+                'toast' => true,
+                'position' => 'top-end',
+                'showCancelButton' => false,
+                'cancelButtonText' => __('app.close')
+            ]);
+            return;
+        }
+
+        // Different validation rules based on mode
+        if ($this->formMode == 'add') {
+            $this->validate([
+                'branchName' => 'required|unique:branches,name,null,id,restaurant_id,' . restaurant()->id,
+                'branchAddress' => 'required',
+                'branchLat' => 'required|numeric|between:-90,90',
+                'branchLng' => 'required|numeric|between:-180,180',
+            ]);
+
+            Branch::create([
+                'name' => $this->branchName,
+                'restaurant_id' => restaurant()->id,
+                'address' => $this->branchAddress,
+                'lat' => $this->branchLat,
+                'lng' => $this->branchLng,
+            ]);
+
+            $this->alert('success', __('messages.branchAdded'), [
+                'toast' => true,
+                'position' => 'top-end',
+                'showCancelButton' => false,
+                'cancelButtonText' => __('app.close')
+            ]);
+        } else {
+            $this->validate([
+                'branchName' => 'required|unique:branches,name,'.$this->activeBranchId.',id,restaurant_id,' . restaurant()->id,
+                'branchAddress' => 'required',
+                'branchLat' => 'required|numeric|between:-90,90',
+                'branchLng' => 'required|numeric|between:-180,180'
+            ]);
+
+            Branch::where('id', $this->activeBranchId)->update([
+                'name' => $this->branchName,
+                'restaurant_id' => restaurant()->id,
+                'address' => $this->branchAddress,
+                'lat' => $this->branchLat,
+                'lng' => $this->branchLng,
+            ]);
+
+            session()->forget(['restaurant', 'branch']);
+
+            $this->alert('success', __('messages.branchUpdated'), [
+                'toast' => true,
+                'position' => 'top-end',
+                'showCancelButton' => false,
+                'cancelButtonText' => __('app.close')
+            ]);
+        }
+
         session(['branches' => Branch::get()]);
+        $this->resetForm();
     }
 
     public function render()
     {
-        return view('livewire.settings.branch-settings');
-    }
+        $branches = Branch::where('restaurant_id', restaurant()->id)->get();
+        $mapApiKey = global_setting()->google_map_api_key ?? null;
 
+        return view('livewire.settings.branch-settings', [
+            'branches' => $branches,
+            'mapApiKey' => $mapApiKey
+        ]);
+    }
 }

@@ -129,6 +129,19 @@ class MenuItems extends Component
         ]);
     }
 
+    public function toggleShowOnCustomerSite($id)
+    {
+        $menuItem = MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->findOrFail($id);
+        $menuItem->update(['show_on_customer_site' => !$menuItem->show_on_customer_site]);
+
+        $this->alert('success', __('messages.menuItemUpdated'), [
+            'toast' => true,
+            'position' => 'top-end',
+            'showCancelButton' => false,
+            'cancelButtonText' => __('app.close')
+        ]);   
+    }
+
     public function render()
     {
         $this->clearFilterButton = false;

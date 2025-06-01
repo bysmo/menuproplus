@@ -6,13 +6,13 @@ use App\Traits\HasRestaurant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\BaseModel;
 
-class CustomMenu extends Model
+class CustomMenu extends BaseModel
 {
     //
     use HasFactory;
     use Notifiable;
-    // use HasRestaurant;
-    protected $guarded = [];
 
+    protected $guarded = [];
 }

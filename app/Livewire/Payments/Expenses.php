@@ -70,17 +70,16 @@ class Expenses extends Component
 
     public function deleteExpenseData($id)
     {
+        ModelExpense::find($id)->delete();
+        $this->confirmDeleteExpense = false;
+        $this->deleteExpense = null;
 
-           ModelExpense::find($id)->delete();
-           $this->confirmDeleteExpense = false;
-            $this->deleteExpense = null;
-
-           $this->alert('success', __('messages.expenseDeleted'), [
-           'toast' => true,
-           'position' => 'top-end',
-           'showCancelButton' => false,
-           'cancelButtonText' => __('app.close')
-           ]);
+        $this->alert('success', __('messages.expenseDeleted'), [
+        'toast' => true,
+        'position' => 'top-end',
+        'showCancelButton' => false,
+        'cancelButtonText' => __('app.close')
+        ]);
     }
 
     public function clearFilters()

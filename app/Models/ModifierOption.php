@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\BaseModel;
 
-class ModifierOption extends Model
+class ModifierOption extends BaseModel
 {
     use HasFactory;
 
@@ -18,9 +19,9 @@ class ModifierOption extends Model
         return $this->belongsTo(ModifierGroup::class, 'modifier_group_id');
     }
 
-    public function orderItemModifierOptions() : HasMany
+    public function orderItemModifierOptions(): HasMany
     {
-        return $this->hasMany(OrderItemModifierOption::class , 'modifier_option_id');
+        return $this->hasMany(OrderItemModifierOption::class, 'modifier_option_id');
     }
 
     public function kotItemModiferOptions(): HasMany

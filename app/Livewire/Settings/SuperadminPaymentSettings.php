@@ -32,6 +32,16 @@ class SuperadminPaymentSettings extends Component
     public $stripeWebhookKey;
     public $testStripeWebhookKey;
     public $webhookUrl;
+    public $flutterwaveSecret;
+    public $flutterwaveKey;
+    public $flutterwaveHash;
+    public $testFlutterwaveSecret;
+    public $testFlutterwaveKey;
+    public $testFlutterwaveHash;
+    public $flutterwaveStatus;
+    public $selectFlutterwaveEnvironment;
+    public $flutterwaveWebhookKey;
+    public $testFlutterwaveWebhookKey;
 
     public function mount()
     {
@@ -66,14 +76,31 @@ class SuperadminPaymentSettings extends Component
         $this->stripeWebhookKey = $this->paymentGateway->stripe_live_webhook_key;
         $this->testStripeWebhookKey = $this->paymentGateway->stripe_test_webhook_key;
 
+        $this->selectFlutterwaveEnvironment = $this->paymentGateway->flutterwave_type;
+        $this->flutterwaveStatus = (bool)$this->paymentGateway->flutterwave_status;
+
+        $this->flutterwaveKey = $this->paymentGateway->live_flutterwave_key;
+        $this->flutterwaveSecret = $this->paymentGateway->live_flutterwave_secret;
+        $this->flutterwaveHash = $this->paymentGateway->live_flutterwave_hash;
+
+        $this->testFlutterwaveKey = $this->paymentGateway->test_flutterwave_key;
+        $this->testFlutterwaveSecret = $this->paymentGateway->test_flutterwave_secret;
+        $this->testFlutterwaveHash = $this->paymentGateway->test_flutterwave_hash;
+        
+        $hash = global_setting()->hash;
+        $this->flutterwaveWebhookKey = $this->paymentGateway->flutterwave_live_webhook_key ? $this->paymentGateway->flutterwave_live_webhook_key : substr(md5($hash), 0, 10);
+        $this->testFlutterwaveWebhookKey = $this->paymentGateway->flutterwave_test_webhook_key ? $this->paymentGateway->flutterwave_test_webhook_key : substr(md5($hash), 0, 10);
+
         if ($this->activePaymentSetting === 'stripe') {
-            $hash = global_setting()->hash;
             $this->webhookUrl = route('billing.verify-webhook', ['hash' => $hash]);
         }
 
         if ($this->activePaymentSetting === 'razorpay') {
-            $hash = global_setting()->hash;
             $this->webhookUrl = route('billing.save_razorpay-webhook', ['hash' => $hash]);
+        }
+
+        if ($this->activePaymentSetting === 'flutterwave') {
+            $this->webhookUrl = route('billing.save-flutterwave-webhook', ['hash' => $hash]);
         }
 
     }
@@ -189,6 +216,69 @@ class SuperadminPaymentSettings extends Component
 
         $this->paymentGateway->update([
             'stripe_status' => $this->stripeStatus
+        ]);
+
+        $this->paymentGateway->fresh();
+        $this->dispatch('settingsUpdated');
+        cache()->forget('superadminPaymentGateway');
+
+        if ($configError == 0) {
+            $this->alert('success', __('messages.settingsUpdated'), [
+                'toast' => true,
+                'position' => 'top-end',
+                'showCancelButton' => false,
+                'cancelButtonText' => __('app.close')
+            ]);
+        }
+    }
+
+
+    public function submitFormFlutterwave()
+    {
+        $this->validate([
+            'flutterwaveSecret' => Rule::requiredIf($this->flutterwaveStatus == true && $this->selectFlutterwaveEnvironment == 'live'),
+            'flutterwaveKey' => Rule::requiredIf($this->flutterwaveStatus == true && $this->selectFlutterwaveEnvironment == 'live'),
+            'testFlutterwaveSecret' => Rule::requiredIf($this->flutterwaveStatus == true && $this->selectFlutterwaveEnvironment == 'test'),
+            'testFlutterwaveKey' => Rule::requiredIf($this->flutterwaveStatus == true && $this->selectFlutterwaveEnvironment == 'test'),
+        ]);
+
+        $configError = 0;
+
+        // Set Flutterwave credentials
+        $flutterwaveKey = $this->selectFlutterwaveEnvironment == 'live' ? $this->flutterwaveKey : $this->testFlutterwaveKey;
+        $flutterwaveSecret = $this->selectFlutterwaveEnvironment == 'live' ? $this->flutterwaveSecret : $this->testFlutterwaveSecret;
+
+        // Test Flutterwave credentials
+        if ($this->flutterwaveStatus) {
+            try {
+                $response = Http::withToken($flutterwaveSecret)
+            ->get('https://api.flutterwave.com/v3/transactions');
+
+                if ($response->successful()) {
+                    $this->paymentGateway->update([
+                        'flutterwave_type' => $this->selectFlutterwaveEnvironment,
+                        'live_flutterwave_key' => $this->flutterwaveKey,
+                        'live_flutterwave_secret' => $this->flutterwaveSecret,
+                        'live_flutterwave_hash' => $this->flutterwaveHash,
+                        'test_flutterwave_key' => $this->testFlutterwaveKey,
+                        'test_flutterwave_secret' => $this->testFlutterwaveSecret,
+                        'test_flutterwave_hash' => $this->testFlutterwaveHash,
+                        'flutterwave_live_webhook_key' => $this->flutterwaveWebhookKey,
+                        'flutterwave_test_webhook_key' => $this->testFlutterwaveWebhookKey,
+                    ]);
+                } else {
+                    $configError = 1;
+                    $this->addError('flutterwaveKey', 'Invalid Flutterwave key or secret.');
+                    $this->addError('testFlutterwaveKey', 'Invalid Flutterwave key or secret.');
+                }
+            } catch (\Exception $e) {
+                $this->addError('flutterwaveKey', 'Invalid Flutterwave key or secret.');
+                $this->addError('testFlutterwaveKey', 'Invalid Flutterwave key or secret.');
+            }
+        }
+
+        $this->paymentGateway->update([
+            'flutterwave_status' => $this->flutterwaveStatus
         ]);
 
         $this->paymentGateway->fresh();

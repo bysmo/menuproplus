@@ -22,22 +22,19 @@ class ReservationCard extends Component
         $this->tableReservation = Reservation::find($reservationId);
         $this->showTableModal = true;
     }
-    
-    public function setReservationStatus($status)
+
+    public function updatedReservationStatus($status)
     {
         $this->reservation->update(['reservation_status' => $status]);
 
-        if ($status == 'Cancelled' && $this->reservation->table_id) {
+        if ($status === 'Cancelled' && $this->reservation->table_id) {
             $this->reservation->table->update(['available_status' => 'available']);
             $this->reservation->update(['table_id' => null]);
         }
-
-        $this->redirect(route('reservations.index'), navigate: true);
     }
 
     public function render()
     {
         return view('livewire.reservations.reservation-card');
     }
-
 }

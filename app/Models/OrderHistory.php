@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class OrderHistory extends Model
+class OrderHistory extends BaseModel
 {
     //
 }

@@ -5,8 +5,9 @@ namespace App\Models;
 use App\Scopes\AvailableMenuItemScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\BaseModel;
 
-class ItemModifier extends Model
+class ItemModifier extends BaseModel
 {
     protected $guarded = ['id'];
 

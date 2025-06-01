@@ -5,7 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Module;
 use App\Models\Package;
 use App\Enums\PackageType;
+use App\Livewire\LandingSite\FooterSetting;
+use App\Models\Contact;
 use App\Models\CustomMenu;
+use App\Models\FrontDetail;
+use App\Models\FrontFaq;
+use App\Models\FrontFeature;
+use App\Models\FrontReviewSetting;
+use App\Models\LanguageSetting;
 use App\Models\Restaurant;
 use Froiden\Envato\Traits\AppBoot;
 use Illuminate\Support\Facades\File;
@@ -42,6 +49,7 @@ class HomeController extends Controller
             ->where('package_type', '!=', PackageType::DEFAULT)
             ->where('package_type', '!=', PackageType::TRIAL)
             ->where('is_private', false)
+            ->orderBy('sort_order', 'asc')
             ->get();
 
         $trialPackage = Package::where('package_type', PackageType::TRIAL)->first();
@@ -50,8 +58,24 @@ class HomeController extends Controller
         $monthlyPackages = Package::where('package_type', PackageType::STANDARD)->where('monthly_status', true)->where('is_private', false)->get();
         $annualPackages = Package::where('package_type', PackageType::STANDARD)->where('annual_status', true)->where('is_private', false)->get();
         $lifetimePackages = Package::where('package_type', PackageType::LIFETIME)->where('is_private', false)->get();
+        $language = request()->get('lang', app()->getLocale());
 
-        return view('landing.index', compact('packages', 'AllModulesWithFeature', 'trialPackage', 'monthlyPackages', 'annualPackages', 'lifetimePackages', 'customMenu'));
+        $languageSetting = LanguageSetting::where('language_code', $language)->first();
+        $languageId = $languageSetting ? $languageSetting->id : null;
+        $frontDetails = FrontDetail::where('language_setting_id', $languageId)->first();
+        $frontFeatures = FrontFeature::where('language_setting_id', $languageId)->get();
+        $frontReviews = FrontReviewSetting::where('language_setting_id', $languageId)->get();
+        $frontFaqs = FrontFaq::where('language_setting_id', $languageId)->get();
+        $frontContact = Contact::where('language_setting_id', $languageId)->first();
+
+        if($global->landing_type == 'static'){
+            return view('landing.index', compact('packages', 'AllModulesWithFeature', 'trialPackage', 'monthlyPackages', 'annualPackages', 'lifetimePackages'));
+
+        }else {
+            return view('landing.dynamic-index', compact('packages', 'AllModulesWithFeature', 'trialPackage', 'monthlyPackages', 'annualPackages', 'lifetimePackages', 'customMenu','frontDetails','frontFeatures','frontReviews','frontFaqs','frontContact'));
+
+        }
+
     }
 
     public function signup()
@@ -109,16 +133,6 @@ class HomeController extends Controller
                 ]
             ]
         ]);
-    }
-
-
-    public function terms()
-    {
-        return view('terms');
-    }
-    public function policy()
-    {
-        return view('policy');
     }
 
 }

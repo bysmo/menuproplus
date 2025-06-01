@@ -27,7 +27,11 @@ class SendReservationListener
     {
         $users = User::role('Admin_'.$event->reservation->branch->restaurant_id)->where('restaurant_id', $event->reservation->branch->restaurant->id)->get();
 
-        Notification::send($users, new NewReservationForRestaurant($event->reservation));
+        try {
+            Notification::send($users, new NewReservationForRestaurant($event->reservation));
+        } catch (\Exception $e) {
+            \Log::error('Error sending new reservation notification: ' . $e->getMessage());
+        }
 
         $pushNotification = new DashboardController();
         $pushUsersIds = [$users->pluck('id')->toArray()];

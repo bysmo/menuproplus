@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Restaurant;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\BaseModel;
 
-class ReceiptSetting extends Model
+class ReceiptSetting extends BaseModel
 {
     use HasRestaurant;
     use HasFactory;
@@ -29,5 +30,4 @@ class ReceiptSetting extends Model
             return $this->payment_qr_code ? asset_url_local_s3('payment_qr_code/' . $this->payment_qr_code) : '';
         });
     }
-
 }

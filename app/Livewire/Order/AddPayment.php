@@ -259,7 +259,8 @@ class AddPayment extends Component
             $this->order->split_type = 'custom';
             $this->order->saveQuietly();
 
-            foreach ($this->customSplits as $split) {
+            foreach ($this->customSplits as $index => $split) {
+                $lastIndex = $index === array_key_last($this->customSplits);
                 if (!empty($this->splits[$split]['amount'])) {
                     SplitOrder::create([
                         'order_id' => $this->order->id,
@@ -271,7 +272,8 @@ class AddPayment extends Component
                     Payment::create([
                         'order_id' => $this->order->id,
                         'payment_method' => $this->splits[$split]['paymentMethod'],
-                        'amount' => $this->splits[$split]['amount']
+                        'amount' => $this->splits[$split]['amount'],
+                        'balance' => $lastIndex && $this->returnAmount ? $this->returnAmount : 0
                     ]);
                 }
             }
@@ -322,7 +324,7 @@ class AddPayment extends Component
             $this->processSplitPayment();
 
         } else {
-            if ($this->paymentAmount > 0) {
+            if ($this->paymentAmount >= 0) {
                 Payment::create([
                 'order_id' => $this->order->id,
                 'payment_method' => $this->paymentMethod,
@@ -353,7 +355,11 @@ class AddPayment extends Component
         ]);
 
         if ($this->order->customer_id) {
-            $this->order->customer->notify(new SendOrderBill($this->order));
+            try {
+                $this->order->customer->notify(new SendOrderBill($this->order));
+            } catch (\Exception $e) {
+                \Log::error('Error sending notification: ' . $e->getMessage());
+            }
         }
 
         $this->dispatch('showOrderDetail', id: $this->order->id);
@@ -378,9 +384,11 @@ class AddPayment extends Component
 
     public function updateBalanceAmount()
     {
+
         if ($this->splitType === 'custom') {
-            $totalSplitAmount = collect($this->splits)->sum('amount');
-            $this->balanceAmount = $this->dueAmount - $totalSplitAmount;
+            $totalSplitAmount = collect($this->customSplits)->sum(fn($split) => floatval($this->splits[$split]['amount'] ?? 0));
+            $this->balanceAmount = max(0, $this->dueAmount - $totalSplitAmount);
+            $this->returnAmount = max(0, $totalSplitAmount - $this->dueAmount);
         }
     }
 
@@ -525,6 +533,7 @@ class AddPayment extends Component
             'paymentMethod' => 'cash',
             'amount' => 0
         ];
+        $this->updateBalanceAmount();
     }
 
     public function removeCustomSplit($splitNumber)
@@ -538,7 +547,7 @@ class AddPayment extends Component
             // Remove from splits array
             unset($this->splits[$splitNumber]);
 
-            $this->calculateBalanceAmount();
+            $this->updateBalanceAmount();
         }
     }
 

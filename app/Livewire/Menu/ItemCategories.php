@@ -37,6 +37,8 @@ class ItemCategories extends Component
         ItemCategory::destroy($id);
         $this->confirmDeleteCategory = false;
 
+        $this->itemCategory = null;
+
         $this->alert('success', __('messages.menuItemCategoryDeleted'), [
             'toast' => true,
             'position' => 'top-end',

@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\HasBranch;
-use Illuminate\Database\Eloquent\Model;
+
 use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\BaseModel;
 
-class Menu extends Model
+class Menu extends BaseModel
 {
     use HasFactory;
     use HasBranch;
@@ -21,5 +22,4 @@ class Menu extends Model
     {
         return $this->hasMany(MenuItem::class);
     }
-
 }

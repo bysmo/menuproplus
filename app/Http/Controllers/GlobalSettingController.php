@@ -35,7 +35,11 @@ class GlobalSettingController extends Controller
 
 
         try {
-            $serverOs = php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m');
+            if (function_exists('php_uname')) {
+                $serverOs = php_uname('s') . ' ' . php_uname('r') . ' ' . php_uname('m');
+            } else {
+                $serverOs = 'Unavailable (php_uname disabled)';
+            }
         } catch (\Exception $e) {
             $serverOs = 'Unknown';
         }

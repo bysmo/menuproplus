@@ -37,8 +37,9 @@ class TodayOrders extends Component
                 'position' => 'top-end'
             ]);
 
+            $this->dispatch('refreshOrders');
+
         }
-        $this->dispatch('refreshOrders');
 
         session(['today_order_count' => $todayKotCount]);
         return view('livewire.dashboard.today-orders', [

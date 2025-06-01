@@ -3,8 +3,6 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Models\Customer;
-use Illuminate\Support\Str;
 use Livewire\Attributes\On;
 
 class ShopDesktopNavigation extends Component
@@ -14,6 +12,7 @@ class ShopDesktopNavigation extends Component
     public $orderItemCount = 0;
     public $restaurant;
     public $shopBranch;
+    public $showWaiterButtonCheck = false;
 
     #[On('updateCartCount')]
     public function updateCartCount($count)
@@ -21,26 +20,22 @@ class ShopDesktopNavigation extends Component
         $this->orderItemCount = $count;
     }
 
-    public function getShouldShowWaiterButtonProperty()
+    public function mount()
+    {
+        $this->showWaiterButtonCheck = $this->checkWaiterButtonStatus();
+    }
+
+    public function checkWaiterButtonStatus()
     {
         $this->dispatch('refreshComponent');
 
-        if (!$this->restaurant->is_waiter_request_enabled) {
+        if (!$this->restaurant->is_waiter_request_enabled || !$this->restaurant->is_waiter_request_enabled_on_desktop) {
             return false;
         }
 
-        $isDesktop = true; // Adjust this based on actual device detection logic
-        $cameFromQR = request()->query('hash') == $this->restaurant->hash; // Check for restaurant hash in query params
+        $cameFromQR = request()->query('hash') === $this->restaurant->hash || request()->boolean('from_qr');
 
-        if ($isDesktop && !$this->restaurant->is_waiter_request_enabled_on_desktop) {
-            return false;
-        }
-
-        if (!$isDesktop && !$this->restaurant->is_waiter_request_enabled_on_mobile) {
-            return false;
-        }
-
-        if ($cameFromQR && !$this->restaurant->is_waiter_request_enabled_open_by_qr) {
+        if ($this->restaurant->is_waiter_request_enabled_open_by_qr && !$cameFromQR) {
             return false;
         }
 
@@ -62,7 +57,6 @@ class ShopDesktopNavigation extends Component
     public function render()
     {
         $modules = $this->getPackageModules($this->restaurant);
-
         return view('livewire.shop-desktop-navigation', ['modules' => $modules]);
     }
 

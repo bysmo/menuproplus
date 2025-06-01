@@ -21,17 +21,31 @@ class DashboardController extends Controller
 
     public function superadmin()
     {
+        $smtp = smtp_setting();
+        $global = global_setting();
+
+        $smtpConfigured = ($smtp && $smtp->mail_driver == 'smtp' && $smtp->verified) || ($global && $global->mail_driver != 'smtp');
+
+        // Check if onboarding steps are completed
+        //$smtpConfigured = (smtp_setting()->mail_driver == 'smtp' && smtp_setting()->verified) || global_setting()->mail_driver != 'smtp';
+        $cronConfigured = $global->hide_cron_job == 1;
+        $appNameChanged = $global->name != 'TableTrack'; // Assuming 'TableTrack' is the default name
+
+        // If any of the onboarding steps are not completed, redirect to the onboarding page
+        if (!$smtpConfigured || !$cronConfigured || !$appNameChanged) {
+            return view('dashboard.onboarding', compact('smtpConfigured', 'cronConfigured', 'appNameChanged'));
+        }
+
         return view('dashboard.superadmin');
     }
 
     public function beamAuth()
     {
-        $userID = Str::slug(global_setting()->name).'-'.auth()->id();
+        $userID = Str::slug(global_setting()->name) . '-' . auth()->id();
         $userIDInQueryParam = request()->user_id;
 
         if ($userID != $userIDInQueryParam) {
             return response('Inconsistent request', 401);
-
         } else {
             $beamsClient = new \Pusher\PushNotifications\PushNotifications([
                 'instanceId' => pusherSettings()->instance_id,
@@ -41,7 +55,6 @@ class DashboardController extends Controller
             $beamsToken = $beamsClient->generateToken($userID);
             return response()->json($beamsToken);
         }
-
     }
 
 
@@ -49,8 +62,8 @@ class DashboardController extends Controller
     {
         if (App::environment('codecanyon') && pusherSettings()->beamer_status && count($usersIDs) > 0) {
             $beamsClient = new \Pusher\PushNotifications\PushNotifications([
-            'instanceId' =>  pusherSettings()->instance_id,
-            'secretKey' =>  pusherSettings()->beam_secret,
+                'instanceId' =>  pusherSettings()->instance_id,
+                'secretKey' =>  pusherSettings()->beam_secret,
             ]);
 
 
@@ -61,17 +74,18 @@ class DashboardController extends Controller
             }
 
             $publishResponse = $beamsClient->publishToUsers(
-            $pushIDs,
-            array(
-              'web' => array(
-                'notification' => array(
-                  'title' => $title,
-                  'body' => $body,
-                  'deep_link' => $link,
-                  'icon' => global_setting()->logo_url
-                  )
-              )
-            ));
+                $pushIDs,
+                array(
+                    'web' => array(
+                        'notification' => array(
+                            'title' => $title,
+                            'body' => $body,
+                            'deep_link' => $link,
+                            'icon' => global_setting()->logo_url
+                        )
+                    )
+                )
+            );
         }
     }
 
@@ -79,5 +93,4 @@ class DashboardController extends Controller
     {
         return view('dashboard.padding-approval');
     }
-
 }

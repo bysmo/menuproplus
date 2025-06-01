@@ -6,18 +6,19 @@ use Error;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Order;
+use App\Models\Package;
 use App\Models\Payment;
 use App\Models\Restaurant;
+use App\Models\EmailSetting;
 use Illuminate\Http\Request;
 use App\Models\GlobalInvoice;
 use App\Models\StripePayment;
 use App\Models\RestaurantPayment;
 use App\Models\GlobalSubscription;
 use App\Events\SendNewOrderReceived;
-use App\Models\Package;
+use App\Notifications\SendOrderBill;
 use App\Models\SuperadminPaymentGateway;
 use App\Notifications\RestaurantUpdatedPlan;
-use App\Notifications\SendOrderBill;
 use Illuminate\Support\Facades\Notification;
 
 class StripeController extends Controller
@@ -265,14 +266,16 @@ class StripeController extends Controller
                 $invoice->save();
             }
 
+            $emailSetting = EmailSetting::first();
+            if ($emailSetting->mail_driver === 'smtp' && $emailSetting->verified) {
+                // Notify superadmin
+                $generatedBy = User::withoutGlobalScopes()->whereNull('branch_id')->whereNull('restaurant_id')->first();
+                Notification::send($generatedBy, new RestaurantUpdatedPlan($restaurant, $subscription->package_id));
 
-            // Notify superadmin
-            $generatedBy = User::withoutGlobalScopes()->whereNull('branch_id')->whereNull('restaurant_id')->first();
-            Notification::send($generatedBy, new RestaurantUpdatedPlan($restaurant, $subscription->package_id));
-
-            // Notify restaurant admin
-            $restaurantAdmin = $restaurant->restaurantAdmin($restaurant);
-            Notification::send($restaurantAdmin, new RestaurantUpdatedPlan($restaurant, $subscription->package_id));
+                // Notify restaurant admin
+                $restaurantAdmin = $restaurant->restaurantAdmin($restaurant);
+                Notification::send($restaurantAdmin, new RestaurantUpdatedPlan($restaurant, $subscription->package_id));
+            }
 
             session()->forget('restaurant');
             request()->session()->flash('flash.banner', __('messages.planUpgraded'));

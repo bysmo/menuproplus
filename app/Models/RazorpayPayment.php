@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\BaseModel;
 
-class RazorpayPayment extends Model
+class RazorpayPayment extends BaseModel
 {
     use HasFactory;
 
@@ -16,5 +16,4 @@ class RazorpayPayment extends Model
     {
         return $this->belongsTo(Order::class);
     }
-
 }

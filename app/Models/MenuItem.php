@@ -10,7 +10,6 @@ use App\Models\MenuItemVariation;
 use App\Models\MenuItemTranslation;
 use Illuminate\Support\Facades\Cache;
 use App\Scopes\AvailableMenuItemScope;
-use Illuminate\Database\Eloquent\Model;
 use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -18,8 +17,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\BaseModel;
 
-class MenuItem extends Model
+class MenuItem extends BaseModel
 {
     use HasFactory, HasBranch, HasTranslations;
 
@@ -29,6 +29,10 @@ class MenuItem extends Model
     const EGG = 'egg';
 
     protected $guarded = ['id'];
+
+    protected $casts = [
+        'show_on_customer_site' => 'boolean',
+    ];
 
     protected $appends = [
         'item_photo_url',

@@ -45,6 +45,7 @@ class DeliveryExecutiveTable extends Component
     public function deleteCustomer($id)
     {
         DeliveryExecutive::destroy($id);
+        $this->customer = null;
 
         $this->confirmDeleteCustomerModal = false;
 

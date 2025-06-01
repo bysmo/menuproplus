@@ -13,14 +13,24 @@ use Maatwebsite\Excel\Concerns\{FromCollection, ShouldAutoSize, WithHeadings, Wi
 
 class SalesReportExport implements WithMapping, FromCollection, WithHeadings, WithStyles, ShouldAutoSize
 {
-    protected string $startDate, $endDate, $currency;
+    protected string $startDateTime, $endDateTime;
+    protected string $startTime, $endTime, $timezone, $offset;
     protected array $charges, $taxes;
+    protected $headingDateTime, $headingEndDateTime, $headingStartTime, $headingEndTime;
 
-    public function __construct(string $startDate, string $endDate)
+    public function __construct(string $startDateTime, string $endDateTime, string $startTime, string $endTime, string $timezone, string $offset)
     {
-        $this->startDate = Carbon::createFromFormat('m/d/Y', $startDate)->toDateString();
-        $this->endDate = Carbon::createFromFormat('m/d/Y', $endDate)->toDateString();
-        $this->currency = session('currency', '$'); // Default to '$' if session value is not set
+        $this->startDateTime = $startDateTime;
+        $this->endDateTime = $endDateTime;
+        $this->startTime = $startTime;
+        $this->endTime = $endTime;
+        $this->timezone = $timezone;
+        $this->offset = $offset;
+
+        $this->headingDateTime = Carbon::parse($startDateTime)->setTimezone($timezone)->format('Y-m-d');
+        $this->headingEndDateTime = Carbon::parse($endDateTime)->setTimezone($timezone)->format('Y-m-d');
+        $this->headingStartTime = Carbon::parse($startTime)->setTimezone($timezone)->format('h:i A');
+        $this->headingEndTime = Carbon::parse($endTime)->setTimezone($timezone)->format('h:i A');
 
         $this->charges = RestaurantCharge::pluck('charge_name')->toArray();
         $this->taxes = Tax::select('tax_name', 'tax_percent')->get()->toArray();
@@ -30,9 +40,13 @@ class SalesReportExport implements WithMapping, FromCollection, WithHeadings, Wi
     {
         $taxHeadings = array_map(fn($tax) => "{$tax['tax_name']} ({$tax['tax_percent']}%)", $this->taxes);
 
+        $headingTitle = $this->headingDateTime === $this->headingEndDateTime
+            ? __('modules.report.salesDataFor') . " {$this->headingDateTime}, " . __('modules.report.timePeriod') . " {$this->headingStartTime} - {$this->headingEndTime}"
+            : __('modules.report.salesDataFrom') . " {$this->headingDateTime} " . __('app.to') . " {$this->headingEndDateTime}, " . __('modules.report.timePeriodEachDay') . " {$this->headingStartTime} - {$this->headingEndTime}";
+
         return [
-            [__('menu.salesReport') . ' ' . $this->startDate . ' - ' . $this->endDate],
-            array_merge(['Date', 'Total Orders'], $this->charges, $taxHeadings, ['Cash', 'UPI', 'Card','Tip' ,'Total Amount'])
+            [__('menu.salesReport') . ' ' . $headingTitle],
+            array_merge(['Date', 'Total Orders'], $this->charges, $taxHeadings, ['Cash', 'UPI', 'Card', 'Razorpay', 'Stripe', 'Flutterwave', 'Delivery Fee', 'Discount', 'Tip', 'Total Amount'])
         ];
     }
 
@@ -44,18 +58,24 @@ class SalesReportExport implements WithMapping, FromCollection, WithHeadings, Wi
         ];
 
         foreach ($this->charges as $charge) {
-            $mappedItem[] = $this->currency . number_format($item[$charge] ?? 0, 2);
+            $mappedItem[] = currency_format($item[$charge] ?? 0, restaurant()->currency_id);
         }
 
         foreach ($this->taxes as $tax) {
-            $mappedItem[] = $this->currency . number_format($item[$tax['tax_name']] ?? 0, 2);
+            $mappedItem[] = currency_format($item[$tax['tax_name']] ?? 0, restaurant()->currency_id);
         }
 
-        $mappedItem[] = $this->currency . number_format($item['cash_amount'], 2);
-        $mappedItem[] = $this->currency . number_format($item['upi_amount'], 2);
-        $mappedItem[] = $this->currency . number_format($item['card_amount'], 2);
-        $mappedItem[] = $this->currency . number_format($item['tip_amount'], 2);
-        $mappedItem[] = $this->currency . number_format($item['total_amount'], 2);
+        $mappedItem[] = currency_format($item['cash_amount'], restaurant()->currency_id);
+        $mappedItem[] = currency_format($item['upi_amount'], restaurant()->currency_id);
+        $mappedItem[] = currency_format($item['card_amount'], restaurant()->currency_id);
+        $mappedItem[] = currency_format($item['razorpay_amount'], restaurant()->currency_id);
+        $mappedItem[] = currency_format($item['stripe_amount'], restaurant()->currency_id);
+        $mappedItem[] = currency_format($item['flutterwave_amount'], restaurant()->currency_id);
+        $mappedItem[] = currency_format($item['delivery_fee'], restaurant()->currency_id);
+        $mappedItem[] = currency_format($item['discount_amount'], restaurant()->currency_id);
+        $mappedItem[] = currency_format($item['tip_amount'], restaurant()->currency_id);
+        $mappedItem[] = currency_format($item['total_amount'], restaurant()->currency_id);
+
 
         return $mappedItem;
     }
@@ -73,16 +93,31 @@ class SalesReportExport implements WithMapping, FromCollection, WithHeadings, Wi
         $taxes = Tax::all()->keyBy('id');
 
         $query = Order::join('payments', 'orders.id', '=', 'payments.order_id')
-            ->whereBetween('orders.date_time', [$this->startDate, $this->endDate])
+            ->whereBetween('orders.date_time', [$this->startDateTime, $this->endDateTime])
             ->where('orders.status', 'paid')
+            ->where(function ($q) {
+                if ($this->startTime < $this->endTime) {
+                    $q->whereRaw("TIME(orders.date_time) BETWEEN ? AND ?", [$this->startTime, $this->endTime]);
+                } else {
+                    $q->where(function ($sub) {
+                        $sub->whereRaw("TIME(orders.date_time) >= ?", [$this->startTime])
+                            ->orWhereRaw("TIME(orders.date_time) <= ?", [$this->endTime]);
+                    });
+                }
+            })
             ->select(
-                DB::raw('DATE(orders.date_time) as date'),
+                DB::raw("DATE(CONVERT_TZ(orders.date_time, '+00:00', '{$this->offset}')) as date"),
                 DB::raw('COUNT(DISTINCT orders.id) as total_orders'),
-                DB::raw('SUM(orders.amount_paid) as total_amount'),
+                DB::raw('SUM(payments.amount) as total_amount'),
                 DB::raw('SUM(orders.tip_amount) as tip_amount'),
-                DB::raw('SUM(CASE WHEN payments.payment_method = "cash" THEN orders.amount_paid ELSE 0 END) as cash_amount'),
-                DB::raw('SUM(CASE WHEN payments.payment_method = "card" THEN orders.amount_paid ELSE 0 END) as card_amount'),
-                DB::raw('SUM(CASE WHEN payments.payment_method = "upi" THEN orders.amount_paid ELSE 0 END) as upi_amount')
+                DB::raw('SUM(orders.delivery_fee) as delivery_fee'),
+                DB::raw('SUM(orders.discount_amount) as discount_amount'),
+                DB::raw('SUM(CASE WHEN payments.payment_method = "cash" THEN payments.amount ELSE 0 END) as cash_amount'),
+                DB::raw('SUM(CASE WHEN payments.payment_method = "card" THEN payments.amount ELSE 0 END) as card_amount'),
+                DB::raw('SUM(CASE WHEN payments.payment_method = "upi" THEN payments.amount ELSE 0 END) as upi_amount'),
+                DB::raw('SUM(CASE WHEN payments.payment_method = "razorpay" THEN payments.amount ELSE 0 END) as razorpay_amount'),
+                DB::raw('SUM(CASE WHEN payments.payment_method = "stripe" THEN payments.amount ELSE 0 END) as stripe_amount'),
+                DB::raw('SUM(CASE WHEN payments.payment_method = "flutterwave" THEN payments.amount ELSE 0 END) as flutterwave_amount'),
             )
             ->groupBy('date')
             ->orderBy('date')
@@ -93,10 +128,15 @@ class SalesReportExport implements WithMapping, FromCollection, WithHeadings, Wi
                 'date' => $item->date,
                 'total_orders' => $item->total_orders,
                 'total_amount' => $item->total_amount ?? 0,
+                'delivery_fee' => $item->delivery_fee ?? 0,
                 'tip_amount' => $item->tip_amount ?? 0,
                 'cash_amount' => $item->cash_amount ?? 0,
                 'card_amount' => $item->card_amount ?? 0,
                 'upi_amount' => $item->upi_amount ?? 0,
+                'discount_amount' => $item->discount_amount ?? 0,
+                'razorpay_amount' => $item->razorpay_amount ?? 0,
+                'stripe_amount' => $item->stripe_amount ?? 0,
+                'flutterwave_amount' => $item->flutterwave_amount ?? 0,
             ];
 
             foreach ($charges as $charge) {
