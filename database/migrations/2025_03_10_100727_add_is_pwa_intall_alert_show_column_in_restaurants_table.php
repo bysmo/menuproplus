@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('restaurants', function (Blueprint $table) {
-            $table->boolean('is_pwa_install_alert_show')->default(1);
+            $table->boolean('is_pwa_install_alert_show')->default(0);
         });
 
         Schema::table('global_settings', function (Blueprint $table) {
-            $table->string('is_pwa_install_alert_show')->default(1);
+            $table->string('is_pwa_install_alert_show')->default(0);
         });
     }
 

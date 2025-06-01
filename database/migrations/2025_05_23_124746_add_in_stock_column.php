@@ -6,14 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::table('global_settings', function (Blueprint $table) {
-            $table->string('timezone')->nullable()->default('Asia/Kolkata');
+        Schema::table('menu_items', function (Blueprint $table) {
+            $table->boolean('in_stock')->default(true);
         });
     }
 
@@ -22,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('global_settings', function (Blueprint $table) {
-            $table->dropColumn('timezone');
+        Schema::table('menu_items', function (Blueprint $table) {
+            $table->dropColumn('in_stock');
         });
     }
 };
