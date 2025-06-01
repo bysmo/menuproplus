@@ -1,0 +1,6 @@
+
+RewriteEngine on
+RewriteCond %{HTTP_HOST} ^menuproplus\.aladints\.com$ [OR]
+RewriteCond %{HTTP_HOST} ^www\.menuproplus\.aladints\.com$
+RewriteRule ^/?$ "https\:\/\/menuproplus\.aladints\.com\/public" [R=301,L]
+
