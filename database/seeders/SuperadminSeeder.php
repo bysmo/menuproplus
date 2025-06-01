@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Observers\LanguageSettingObserver;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -22,7 +23,7 @@ class SuperadminSeeder extends Seeder
             'email' => 'superadmin@example.com',
             'password' => bcrypt(123456)
         ]);
-        
+
         $user->assignRole('Super Admin');
 
     }

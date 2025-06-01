@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PermissionSeeder::class);
         $this->call(LanguageSettingSeeder::class);
         $this->call(RestaurantSettingSeeder::class);
+        $this->call(FrontDetailSeeder::class);
         $this->call(EmailSettingSeeder::class);
         $this->call(SuperadminPaymentGatewaySeeder::class);
         $this->call(PusherSettinSeeder::class);

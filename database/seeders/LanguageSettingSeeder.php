@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\LanguageSetting;
+use App\Observers\LanguageSettingObserver;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,6 +16,7 @@ class LanguageSettingSeeder extends Seeder
     public function run(): void
     {
         LanguageSetting::insert(LanguageSetting::LANGUAGES);
-    }
 
+        new LanguageSettingObserver();
+    }
 }
