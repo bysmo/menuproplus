@@ -173,4 +173,17 @@ return array (
   'categoryNameUnique' => 'The category name for the :language language has already been taken.',
   'alreadyAssociatedGroup' => 'The selected modifier group is already associated with this menu item.',
   'cannotRemoveTranslation' => 'Cannot remove the :language translation.',
+  'InvalidFlutterwaveKeyOrSecret' => 'Invalid Flutterwave key or secret.',
+  'flutterwaveStatusRequired' => 'Flutterwave status is required.',
+  'flutterwaveModeRequired' => 'Flutterwave mode is required.',
+  'liveFlutterwaveKeyRequired' => 'Live Flutterwave key is required.',
+  'liveFlutterwaveSecretRequired' => 'Live Flutterwave secret is required.',
+  'liveFlutterwaveHashRequired' => 'Live Flutterwave hash is required.',
+  'testFlutterwaveKeyRequired' => 'Test Flutterwave key is required.',
+  'testFlutterwaveSecretRequired' => 'Test Flutterwave secret is required.',
+  'testFlutterwaveHashRequired' => 'Test Flutterwave hash is required.',
+  'greaterThanPrevious' => 'This field must be greater than the previous tier\'s maximum distance.',
+  'tiers' => array(
+        'required' => 'The tiers field is required.',
+  ),
 );

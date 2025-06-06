@@ -48,5 +48,6 @@ return array(
   'vendor'=> 'Fournisseur',
   'expenseReports'=> 'Rapports de dépenses',
   'expensesCategory'=> 'Catégories de dépenses',
-  'openMainMenu'=> 'Menu principal'
+  'openMainMenu'=> 'Menu principal',
+  'myAddresses' => 'Mes adresses',
 );

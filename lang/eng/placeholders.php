@@ -60,4 +60,7 @@ return array (
   'addOrderNotesPlaceholder' => 'Add order notes here...',
   'enterExpenseCategoryName' => 'Enter Category Name',
   'enterExpenseCategoryDescription' => 'Enter Category Description',
+  'enterGoogleMapApiKey' => 'Enter Google Map API Key e.g., AIzaSyD-xxxxxxxxxxxxxxxxx',
+  'addressLabelPlaceholder' => 'e.g., home, office, etc.',
+  'addressPlaceholder' => 'e.g., 123 Main St, City, Country',
 );

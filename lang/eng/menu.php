@@ -49,4 +49,5 @@ return array(
     'expenseReports' => 'Expense Reports',
     'expensesCategory' => 'Expense Categories',
     'openMainMenu' => 'Open Main Menu',
+    'myAddresses' => 'My Addresses',
 );
