@@ -189,7 +189,7 @@
                             {{-- wire:click='showEditTable({{ $item->id }})' --}}
                             wire:key='table-{{ $item->id . microtime() }}'
                                 href="javascript:;">
-                                <div class="flex items-center gap-4 justify-between w-full cursor-pointer" wire:click='showTableOrder({{ $item->id }})'>
+                                <div class="flex items-center gap-4 justify-between w-full cursor-pointer" @if($item->activeOrder) wire:click='showTableOrderDetail({{ $item->id }})' @else wire:click='showTableOrder({{ $item->id }})' @endif>
                                     <div @class(['p-3 rounded-lg tracking-wide ',
                                     'bg-green-100 text-green-600' => ($item->available_status == 'available'),
                                     'bg-red-100 text-red-600' => ($item->available_status == 'reserved'),

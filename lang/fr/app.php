@@ -154,5 +154,7 @@ return array (
   'I agree to the :terms_of_service and :privacy_policy' => 'J’accepte les :terms_of_service et la :privacy_policy',
   'Terms of Service' => 'Conditions d’utilisation',
   'Privacy Policy' => 'Politique de confidentialité',
+  'terms_of_service' => 'Conditions d’utilisation',
+  'privacy_policy' => 'Politique de confidentialité',
 
 );

@@ -107,27 +107,6 @@
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
                     role="menuitem">@lang('menu.profile')</a>
                 </li>
-                <li>
-                    <a href="{{ route('superadmin.custom-modules.index') }}"
-                      class="flex justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-                      role="menuitem">
-                      @lang('modules.settings.customModules')
-
-
-                    </a>
-                  </li>
-
-                {{-- }} <li>
-                  <a href="{{ route('superadmin.app-update.index') }}"
-                    class="flex justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-                    role="menuitem">
-                    @lang('menu.appUpdate')
-
-                    <span class="bg-skin-base text-white text-xs font-medium px-1.5 py-0.5 rounded-full dark:bg-gray-500 dark:text-gray-300">v{{ \Illuminate\Support\Facades\File::get('version.txt') }}</span>
-                  </a>
-                </li>
-                 --}}
-
 
 
                 <li>

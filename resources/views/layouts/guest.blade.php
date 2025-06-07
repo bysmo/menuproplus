@@ -40,7 +40,8 @@
         <link href="{{ asset('css/app-custom.css') }}" rel="stylesheet">
     @endif
 
-
+    {{-- Include file for widgets if exist --}}
+    @includeIf('sections.custom_script_customer')
 
 </head>
 
@@ -63,7 +64,7 @@
     </div>
     @stack('modals')
 
-    <footer class="p-4 bg-white sm:p-6 dark:bg-gray-800 border-t ">
+    <footer class="p-4 bg-white sm:p-6 dark:bg-gray-800 border-t dark:border-gray-600">
         <div class="mx-auto max-w-screen-xl">
             <div class="sm:flex sm:items-center sm:justify-between">
                 <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">&copy; {{ now()->year }} <a
@@ -219,13 +220,22 @@
 
             // Handle iOS specific add to home screen prompt
             if (isIOS && !isInStandaloneMode) {
-                ['scroll', 'click'].forEach(evt => {
-                    window.addEventListener(evt, showIOSInstallInstructions, { once: true });
-                });
+                // Check if prompt was shown in last 24 hours
+                const lastPrompt = localStorage.getItem('iosPromptLastShown');
+                const now = new Date().getTime();
+
+                if (!lastPrompt || (now - parseInt(lastPrompt)) > 24 * 60 * 60 * 1000) {
+                    ['scroll', 'click'].forEach(evt => {
+                        window.addEventListener(evt, showIOSInstallInstructions, { once: true });
+                    });
+                }
             }
 
             function showIOSInstallInstructions() {
                 if (document.getElementById('iosInstallInstructions')) return;
+
+                // Store the current timestamp when showing the prompt
+                localStorage.setItem('iosPromptLastShown', new Date().getTime());
 
                 const instructions = document.createElement('div');
                 instructions.id = 'iosInstallInstructions';

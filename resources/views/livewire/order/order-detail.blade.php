@@ -4,6 +4,15 @@
             @if ($order)
                 <h2 class="text-lg flex justify-between">
                     <div>@lang('modules.order.orderNumber') #{{ $order->order_number }}</div>
+
+                    @if ($order->waiter)
+                    <div class="inline-flex items-center text-gray-600 text-sm gap-1 dark:text-gray-400">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 -2.89 122.88 122.88" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="enable-background:new 0 0 122.88 117.09" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <style type="text/css">.st0{fill-rule:evenodd;clip-rule:evenodd;}</style> <g> <path class="st0" d="M36.82,107.86L35.65,78.4l13.25-0.53c5.66,0.78,11.39,3.61,17.15,6.92l10.29-0.41c4.67,0.1,7.3,4.72,2.89,8 c-3.5,2.79-8.27,2.83-13.17,2.58c-3.37-0.03-3.34,4.5,0.17,4.37c1.22,0.05,2.54-0.29,3.69-0.34c6.09-0.25,11.06-1.61,13.94-6.55 l1.4-3.66l15.01-8.2c7.56-2.83,12.65,4.3,7.23,10.1c-10.77,8.51-21.2,16.27-32.62,22.09c-8.24,5.47-16.7,5.64-25.34,1.01 L36.82,107.86L36.82,107.86z M29.74,62.97h91.9c0.68,0,1.24,0.57,1.24,1.24v5.41c0,0.67-0.56,1.24-1.24,1.24h-91.9 c-0.68,0-1.24-0.56-1.24-1.24v-5.41C28.5,63.53,29.06,62.97,29.74,62.97L29.74,62.97z M79.26,11.23 c25.16,2.01,46.35,23.16,43.22,48.06l-93.57,0C25.82,34.23,47.09,13.05,72.43,11.2V7.14l-4,0c-0.7,0-1.28-0.58-1.28-1.28V1.28 c0-0.7,0.57-1.28,1.28-1.28h14.72c0.7,0,1.28,0.58,1.28,1.28v4.58c0,0.7-0.58,1.28-1.28,1.28h-3.89L79.26,11.23L79.26,11.23 L79.26,11.23z M0,77.39l31.55-1.66l1.4,35.25L1.4,112.63L0,77.39L0,77.39z"></path> </g> </g></svg>
+
+                        {{ $order->waiter->name ?? '--' }}
+                    </div>
+                    @endif
+
                     <div class="inline-flex gap-2 items-center">
                         @if ($order->order_type == 'pickup')
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -39,16 +48,16 @@
                     <div class="inline-flex gap-4">
                         @if ($order->order_type == 'dine_in')
                             @if (!is_null($order->table))
-                                <div wire:click="$toggle('showTableModal')" @class([
+                                <div @if(user_can('Update Order')) wire:click="$toggle('showTableModal')" @endif @class([
                                     'p-3 cursor-pointer rounded-lg tracking-wide bg-skin-base/[0.2] text-skin-base',
+                                    'cursor-not-allowed' => !user_can('Update Order'),
                                 ])>
                                     <h3 wire:loading.class.delay='opacity-50' @class(['font-semibold'])>
                                         {{ $order->table->table_code ?? '--' }}
                                     </h3>
                                 </div>
-                            @else
-                                <x-secondary-button
-                                    wire:click="$toggle('showTableModal')">@lang('modules.order.setTable')</x-secondary-button>
+                            @elseif(user_can('Update Order'))
+                                <x-secondary-button wire:click="$toggle('showTableModal')">@lang('modules.order.setTable')</x-secondary-button>
                             @endif
                         @endif
 
@@ -56,13 +65,14 @@
                             @if ($order->customer_id)
                                 <div class="font-semibold text-gray-700 dark:text-gray-300">{{ $order->customer->name }}
                                 </div>
-                            @else
+                            @elseif(user_can('Update Order'))
                                 <a href="javascript:;"
                                     wire:click="$dispatch('showAddCustomerModal', { id: {{ $order->id }} })"
                                     class="underline text-sm underline-offset-2">&plus; @lang('modules.order.addCustomerDetails')</a>
                             @endif
                             <div class="font-medium text-gray-600 text-xs dark:text-gray-400">
-                                {{ $order->date_time->translatedFormat('F d, Y H:i A') }}</div>
+                                {{ $order->date_time->timezone(timezone())->translatedFormat('F d, Y H:i A') }}
+                            </div>
                         </div>
 
                     </div>
@@ -106,7 +116,7 @@
                     @lang('modules.order.info_cancelled')
                 </span>
                 @else
-                <div class="mb-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                <div class="mb-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm py-4">
                     @php
                         $statuses = match($order->order_type) {
                             'delivery' => ['placed', 'confirmed', 'preparing', 'out_for_delivery', 'delivered'],
@@ -124,11 +134,12 @@
                             <h3 class="text-lg font-semibold">
                                 {{ __('modules.order.orderStatus') }}
                             </h3>
-                            <span class="px-3 py-1 text-sm font-medium rounded-full"
+                            <span
                                 @class([
-                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' => $orderProgressStatus === 'delivered' || $orderProgressStatus === 'served',
-                                    'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' => $orderProgressStatus === 'placed',
-                                    'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' => $orderProgressStatus !== 'delivered' && $orderProgressStatus !== 'served' && $orderProgressStatus !== 'placed',
+                                    'px-3 py-1 text-sm font-medium rounded-md',
+                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 border border-green-400' => $orderProgressStatus === 'delivered' || $orderProgressStatus === 'served',
+                                    'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border border-gray-400' => $orderProgressStatus === 'placed',
+                                    'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 border border-blue-400' => $orderProgressStatus !== 'delivered' && $orderProgressStatus !== 'served' && $orderProgressStatus !== 'placed',
                                 ])>
                                 {{ __('modules.order.' . App\Enums\OrderStatus::from($orderProgressStatus)->label()) }}
                             </span>
@@ -180,25 +191,27 @@
                             </div>
                         </div>
 
-                        <div class="flex justify-end items-center mt-4 space-x-2">
-                            @if($orderProgressStatus === 'placed')
-                                <x-danger-button class="inline-flex items-center gap-2 dark:text-gray-200" wire:click="cancelOrderStatus({{ $order->id }})">
-                                    <span>{{ __('modules.order.cancelOrder') }}</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </x-danger-button>
-                            @endif
+                        @if(user_can('Update Order'))
+                            <div class="flex justify-end items-center mt-4 space-x-2">
+                                @if($orderProgressStatus === 'placed')
+                                    <x-danger-button class="inline-flex items-center gap-2 dark:text-gray-200" wire:click="cancelOrderStatus({{ $order->id }})">
+                                        <span>{{ __('modules.order.cancelOrder') }}</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </x-danger-button>
+                                @endif
 
-                            @if($currentIndex < count($statuses) - 1)
-                                <x-secondary-button class="inline-flex items-center gap-2" wire:click="$set('orderProgressStatus', '{{ $statuses[$nextIndex] }}')">
-                                    <span>{{ __('modules.order.moveTo') }} {{ __('modules.order.' . App\Enums\OrderStatus::from($statuses[$nextIndex])->label()) }}</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                    </svg>
-                                </x-secondary-button>
-                            @endif
-                        </div>
+                                @if($currentIndex < count($statuses) - 1)
+                                    <x-secondary-button class="inline-flex items-center gap-2" wire:click="$set('orderProgressStatus', '{{ $statuses[$nextIndex] }}')">
+                                        <span>{{ __('modules.order.moveTo') }} {{ __('modules.order.' . App\Enums\OrderStatus::from($statuses[$nextIndex])->label()) }}</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                        </svg>
+                                    </x-secondary-button>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 </div>
                 @endif
@@ -245,7 +258,7 @@
                                     wire:key='menu-item-{{ $key . microtime() }}' wire:loading.class.delay='opacity-10'>
                                     <td class="flex flex-col p-2 mr-12 lg:min-w-28">
                                         <div class="text-xs text-gray-900 dark:text-white inline-flex items-center">
-                                            {{ $item->menuItem->item_name }}
+                                            {{ $item->menuItem ? $item->menuItem->item_name : '--' }}
                                         </div>
 
                                         <div class="text-xs text-gray-600 dark:text-white inline-flex items-center">
@@ -438,7 +451,7 @@
                                 </button>
                             @endif
 
-                            @if ($order->status == 'billed' || $order->status == 'payment_due')
+                            @if (($order->status == 'billed' || $order->status == 'payment_due') && user_can('Update Order'))
                                 <button
                                     class="min-h-[60px] col-span-2 rounded-xl bg-green-600 hover:bg-green-700 text-white p-4 inline-flex items-center justify-center gap-3 transition-colors shadow-sm text-lg font-medium"
                                     wire:click='showPayment({{ $order->id }})'>
@@ -584,10 +597,9 @@
                                         </td>
                                         <td
                                             class="p-2 text-base text-gray-900 whitespace-nowrap text-right text-sm dark:text-gray-400">
-                                            @if ($item->payment_method == 'due')
-                                                <x-secondary-button
-                                                    wire:click='showPayment({{ $order->id }})'>@lang('modules.order.addPayment')</x-secondary-button>
-                                            @elseif ($order->status == 'pending_verification')
+                                            @if ($item->payment_method == 'due' && user_can('Update Order'))
+                                                <x-secondary-button wire:click='showPayment({{ $order->id }})'>@lang('modules.order.addPayment')</x-secondary-button>
+                                            @elseif ($order->status == 'pending_verification' && user_can('Update Order'))
                                                 <x-secondary-button class="me-1" wire:click="paymentReceived({{ $order->id }}, 'received')">
                                                     @lang('modules.order.confirmPayment')
                                                 </x-secondary-button>
@@ -607,19 +619,27 @@
                     </div>
                 @endif
 
-                @if ($order->order_type == 'delivery')
-                    <div class="flex items-center gap-1 font-semibold text-sm my-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            class="bi bi-geo-alt" viewBox="0 0 16 16">
-                            <path
-                                d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10" />
-                            <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
-                        </svg>
-                        @lang('modules.customer.address')
-                    </div>
-                    <div
-                        class="flex text-sm">
-                        {!! nl2br($order->delivery_address) !!}
+                @if ($order->order_type == 'delivery' && $order->delivery_address)
+                    <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-1.5 font-semibold text-gray-800 dark:text-gray-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg>
+                                @lang('modules.customer.address')
+                            </div>
+
+                            @if($order->customer_lat && $order->customer_lng && branch()->lat && branch()->lng)
+                                <a href="https://www.google.com/maps/dir/?api=1&travelmode=two-wheeler&origin={{ branch()->lat }},{{ branch()->lng }}&destination={{ $order->customer_lat }},{{ $order->customer_lng }}"
+                                    target="_blank"
+                                    class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 text-sm transition-colors">
+                                    <span>@lang('modules.order.viewOnMap')</span>
+                                    <svg width="24" height="24" class="h-4 w-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4m-8-2 8-8m0 0v5m0-5h-5"/></svg>
+                                </a>
+                            @endif
+                        </div>
+
+                        <div class="text-sm text-gray-600 dark:text-gray-300 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
+                            {!! nl2br(e($order->delivery_address)) !!}
+                        </div>
                     </div>
                 @endif
 

@@ -135,4 +135,16 @@ class HomeController extends Controller
         ]);
     }
 
+    public function terms()
+    {
+        $terms = global_setting()->terms;
+        return view('terms', compact('terms'));
+    }
+
+    public function policy()
+    {
+        $policy = global_setting()->privacy_policy;
+        return view('policy', compact('policy'));
+    }
+
 }

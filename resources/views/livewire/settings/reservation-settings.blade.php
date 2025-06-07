@@ -28,7 +28,7 @@
         @if ($menuItems)
             <div class="w-full">
                 <div class="my-4 flex items-center gap-4">
-                    <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">{{ $weekDay}}</h1>
+                    <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">{{ __('app.' . $weekDay) }}</h1>
                 </div>
             </div>
 

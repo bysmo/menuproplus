@@ -84,13 +84,13 @@
                                 <tr class="bg-gray-100 dark:bg-gray-700">
 
                                     <th
-                                        class="py-2 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                        class="py-2 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                         @lang('modules.order.payment_due')</th>
                                     <th
-                                        class="py-2 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                        class="py-2 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                         @lang('modules.expenses.paymentDueDate')</th>
                                     <th
-                                        class="py-2 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                        class="py-2 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                         @lang('modules.expenses.paymentStatus')</th>
                                 </tr>
                             </thead>

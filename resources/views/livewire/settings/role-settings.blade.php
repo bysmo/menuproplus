@@ -1,7 +1,7 @@
 <div>
     
     <div class="overflow-hidden shadow mb-8">
-        <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
+        <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600" wire:key="role-settings-table">
         <thead class="bg-gray-100 dark:bg-gray-700">
             <tr>
                 <th scope="col"
@@ -21,8 +21,7 @@
 
         </thead>
 
-        <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700" wire:key='perms-list-{{ microtime() }}'>
-
+        <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
             @foreach ($permissions as $module)
                 <tr>
                     <td class="bg-gray-50 p-4 text-sm font-semibold ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400 dark:bg-gray-900" colspan="{{ (count($roles) + 1) }}">

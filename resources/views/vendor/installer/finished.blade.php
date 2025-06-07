@@ -1,15 +1,15 @@
 @extends('vendor.installer.layouts.master')
 
-@section('title', trans('installer_messages.final.title'))
+@section('title', 'Finished')
 @section('container')
     <p @class([
             'alert alert-success',
             'alert-danger'=> session()->has('message') && session('message')['status'] !=='success',
         ])
        style="text-align: center;">
-        {{ session()->has('message') ? session('message')['message']:trans('installer_messages.final.finished') }}
+        Application has been successfully installed
     </p>
-    @if(session()->has('message') && session('message')['status'] =='success')
+    @if(session()->has('message') && session('message')['status'] == 'success')
     <div @class([
             'alert alert-success',
             'alert-danger'=> session()->has('message') && session('message')['status'] !=='success',
@@ -29,6 +29,6 @@
     </div>
     @endif
     <div class="buttons">
-        <a href="{{ url('/') }}" class="button">{{ trans('installer_messages.final.exit') }}</a>
+        <a href="{{ url('/') }}" class="button">Click here to exit</a>
     </div>
 @stop

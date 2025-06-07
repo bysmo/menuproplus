@@ -11,42 +11,42 @@
                         <thead class="bg-gray-100 dark:bg-gray-700">
                             <tr>
                                 <th
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                 </th>
                                 <th
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                    @lang('modules.expenses.expense_title')
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
+                                    @lang('modules.expenses.expenseTitle')
                                 </th>
                                 <th
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.expenses.category')
                                 </th>
                                 <th
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.expenses.amount')
                                 </th>
                                 <th
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.expenses.expenseDate')
                                 </th>
                                 <th
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.expenses.paymentStatus')
                                 </th>
                                 <th
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.expenses.paymentDate')
                                 </th>
                                 <th
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.expenses.paymentDueDate')
                                 </th>
                                 <th
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.expenses.paymentMethod')
                                 </th>
                                 <th
-                                    class="py-2.5 px-4 text-xs font-medium text-gray-500 uppercase dark:text-gray-400 text-right">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('app.action')
                                 </th>
                             </tr>
@@ -58,7 +58,7 @@
                                         <td class="py-2.5 px-2 text-gray-900 dark:text-white">
                                             <button wire:click="showExpenseDetails({{ $expense->id }})"
                                                 wire:key="expense-detail-button-{{ $expense->id }}"
-                                                class="inline-flex items-center justify-center w-6 h-6 text-xs font-medium text-gray-800 bg-gray-100 rounded-full hover:bg-gray-50">
+                                                class="inline-flex items-center justify-center w-6 h-6 text-xs font-medium text-gray-800 bg-gray-100 rounded-full hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                                     class="w-4 h-4">

@@ -96,7 +96,7 @@
                 </div>
 
                 @foreach($packages as $package)
-                <div class="w-64"  x-show="(!isAnnual && {{ $package->monthly_status ? 'true' : 'false' }} || isAnnual && {{ $package->annual_status ? 'true' : 'false' }} || {{ $package->package_type == \App\Enums\PackageType::LIFETIME ? 'true' : 'false' }})">
+                <div class="w-64"  x-show="(!isAnnual && {{ $package->monthly_status ? 'true' : 'false' }} || isAnnual && {{ $package->annual_status ? 'true' : 'false' }} || {{ $package->package_type == \App\Enums\PackageType::LIFETIME ? 'true' : 'false' }} || {{ $package->package_type == \App\Enums\PackageType::FREE ? 'true' : 'false' }})">
                     <!-- Header -->
                     <div class="h-full p-6 flex flex-col justify-between bg-white border border-gray-200 rounded-xl dark:bg-neutral-900 dark:border-neutral-800 transition-all hover:shadow-lg" >
                         <div class="flex flex-col gap-3">
@@ -159,7 +159,7 @@
                             $package->additional_features ? json_decode($package->additional_features, true) : []
                         );
                     @endphp
-                    <li class="py-1.5 lg:py-3 px-4 lg:px-0 lg:text-center bg-gray-50 dark:bg-neutral-800 w-64" x-show="(!isAnnual && {{ $package->monthly_status ? 'true' : 'false' }} || isAnnual && {{ $package->annual_status ? 'true' : 'false' }} || {{ $package->package_type == \App\Enums\PackageType::LIFETIME ? 'true' : 'false' }})">
+                    <li class="py-1.5 lg:py-3 px-4 lg:px-0 lg:text-center bg-gray-50 dark:bg-neutral-800 w-64" x-show="(!isAnnual && {{ $package->monthly_status ? 'true' : 'false' }} || isAnnual && {{ $package->annual_status ? 'true' : 'false' }} || {{ $package->package_type == \App\Enums\PackageType::LIFETIME ? 'true' : 'false' }} || {{ $package->package_type == \App\Enums\PackageType::FREE ? 'true' : 'false' }})">
                         <div class="grid grid-cols-6 lg:block">
                             @if(in_array($moduleName,$packageAllModules))
                             <svg class="shrink-0 lg:mx-auto size-5 text-skin-base" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>

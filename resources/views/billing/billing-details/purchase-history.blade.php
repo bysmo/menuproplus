@@ -68,7 +68,7 @@
 
                             </div>
                             <td class="py-2.5 px-4 text-sm text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ ucfirst($invoice->package_type) }}
+                                {{ __('modules.billing.' . $invoice->package_type) }}
                             </td>
                             <td class="py-2.5 px-4 text-sm text-gray-900 whitespace-nowrap dark:text-white">
                                 {{ $invoice->pay_date ? $invoice->pay_date->translatedFormat('D, d M Y') : '--' }}

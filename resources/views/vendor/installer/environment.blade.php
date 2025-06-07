@@ -1,6 +1,6 @@
 @extends('vendor.installer.layouts.master')
 
-@section('title', trans('installer_messages.environment.title'))
+@section('title', 'Database Configuration')
 @section('style')
     <link href="{{ asset('installer/froiden-helper/helper.css') }}" rel="stylesheet"/>
     <style>
@@ -20,6 +20,9 @@
     </style>
 @endsection
 @section('container')
+
+<p class="text-center mb-2">Please enter your database connection details</p>
+
     <form method="post" action="{{ route('LaravelInstaller::environmentSave') }}" id="env-form">
         <div class="row">
             <div class="col-sm-12">
@@ -29,7 +32,6 @@
                 </div>
 
                 <div class="form-group">
-
                     <label class="control-label">Database username</label>
                     <input type="text" name="username" class="form-control">
                 </div>
@@ -48,7 +50,7 @@
                 <div class="modal-footer">
                     <div class="buttons">
                         <a class="button" onclick="checkEnv();return false">
-                            {{ trans('installer_messages.next') }}
+                            Next Step
                         </a>
                     </div>
                 </div>

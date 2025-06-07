@@ -69,6 +69,10 @@
                 @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'receipt'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'receipt')])>@lang('modules.settings.receiptSetting')</a>
             </li>
 
+            <li class="me-2">
+                <a href="{{ route('settings.index').'?tab=deliverySettings' }}" wire:navigate
+                @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'deliverySettings'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'deliverySettings')])>@lang('modules.settings.deliverySettings')</a>
+            </li>
 
         </ul>
     </div>
@@ -130,6 +134,10 @@
 
                 @case('receipt')
                 @livewire('settings.ReceiptSetting', ['settings' => $settings])
+                @break
+
+                @case('deliverySettings')
+                @livewire('settings.branchDeliverySettings', ['settings' => $settings])
                 @break
 
                 @default

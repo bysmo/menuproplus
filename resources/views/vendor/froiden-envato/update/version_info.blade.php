@@ -118,11 +118,7 @@
 
                     <div class="flex items-center gap-2">
                         <span class="font-medium dark:text-white">{{ $_SERVER['SERVER_SOFTWARE'] }}</span>
-                        @if(str_contains(strtolower($_SERVER['SERVER_SOFTWARE']), 'apache'))
-                            <span class="inline-flex items-center justify-center w-5 h-5 bg-red-600 text-white text-xs font-bold rounded" title="Apache">A</span>
-                        @elseif(str_contains(strtolower($_SERVER['SERVER_SOFTWARE']), 'nginx'))
-                            <span class="inline-flex items-center justify-center w-5 h-5 bg-green-600 text-white text-xs font-bold rounded" title="Nginx">N</span>
-                        @endif
+
                     </div>
                 </div>
 

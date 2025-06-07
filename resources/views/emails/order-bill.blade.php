@@ -28,6 +28,9 @@
 @if($order->tip_amount > 0)
 | **{{ __('modules.order.tip') }}** |     | **{{ currency_format($order->tip_amount, $settings->currency_id) }}** |
 @endif
+@if ($order->order_type === 'delivery')
+| **{{ __('modules.order.deliveryFee') }}** |     | @if($order->delivery_fee > 0) **{{ currency_format($order->delivery_fee, $settings->currency_id) }}** @else **<span style="color: #10B981">{{ __('modules.delivery.freeDelivery') }}</span>** @endif |
+@endif
 @foreach ($chargesWithAmount as $charge)
 | **{{ $charge['name'] }}** @if ($charge['type'] == 'percent') **({{ rtrim(rtrim($charge['rate'], '0'), '.') }}%)** @endif |     | **{{ currency_format($charge['amount'], $settings->currency_id) }}** |
 @endforeach

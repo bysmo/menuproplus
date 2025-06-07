@@ -1,7 +1,23 @@
-<div wire:poll.10s>
+<div>
     <div class="p-4 bg-white block  dark:bg-gray-800 dark:border-gray-700">
         <div class="flex mb-4">
             <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">@lang('menu.orders') ({{ $orders->count() }})</h1>
+            <div class="ml-auto flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" wire:model.live="pollingEnabled">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">@lang('app.autoRefresh')</span>
+                    </label>
+                    <x-select class="w-32 text-sm" wire:model.live="pollingInterval" :disabled="!$pollingEnabled">
+                        <option value="5">5 @lang('app.seconds')</option>
+                        <option value="10">10 @lang('app.seconds')</option>
+                        <option value="15">15 @lang('app.seconds')</option>
+                        <option value="30">30 @lang('app.seconds')</option>
+                        <option value="60">1 @lang('app.minute')</option>
+                    </x-select>
+                </div>
+            </div>
         </div>
 
         <div class="items-center justify-between block sm:flex ">
@@ -55,7 +71,15 @@
                         <option value="payment_due">@lang('modules.order.payment_due') ({{ $paymentDueCount }})</option>
                         <option value="delivered">@lang('modules.order.delivered') ({{ $deliveredOrdersCount }})</option>
                     </x-select>
+
+                    <x-select class="text-sm w-full" wire:model.live.debounce.250ms='filterWaiter'>
+                        <option value="">@lang('app.showAll') @lang('modules.order.waiter')</option>
+                        @foreach ($waiters as $waiter)
+                            <option value="{{ $waiter->id }}">{{ $waiter->name }}</option>
+                        @endforeach
+                    </x-select>
                 </div>
+                
             </div>
 
             @if(user_can('Create Order'))
@@ -69,8 +93,47 @@
 
         <!-- Card Section -->
         <div class="space-y-4">
-            <div class="text-lg" wire:loading> 
-                @lang('messages.loadingData')
+        
+            
+            <div wire:loading> 
+                <div class="grid sm:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4">
+                    @for ($i = 0; $i < 6; $i++)
+                        <div class="flex-col gap-3 items-center border bg-white shadow-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 p-3 animate-pulse">
+                            <div class="group flex flex-col gap-3 items-center">
+                                <div class="flex gap-4 justify-between w-full">
+                                    <div class="flex gap-3 space-y-1">
+                                        <!-- Table/Order Type Icon -->
+                                        <div class="p-3 rounded-lg bg-gray-200 dark:bg-gray-600 w-10 h-10"></div>
+                                        
+                                        <!-- Customer Info -->
+                                        <div>
+                                            <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded w-32 mb-1"></div>
+                                            <div class="h-3 bg-gray-200 dark:bg-gray-600 rounded w-24"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Status -->
+                                    <div class="ltr:text-right rtl:text-left">
+                                        <div class="h-5 bg-gray-200 dark:bg-gray-600 rounded w-20 mb-1"></div>
+                                        <div class="h-3 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Date and Items Count -->
+                                <div class="flex w-full justify-between items-center">
+                                    <div class="h-3 bg-gray-200 dark:bg-gray-600 rounded w-32"></div>
+                                    <div class="h-3 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
+                                </div>
+
+                                <!-- Footer -->
+                                <div class="flex w-full justify-between items-center border-t dark:border-gray-500 pt-3">
+                                    <div class="h-5 bg-gray-200 dark:bg-gray-600 rounded w-24"></div>
+                                    <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20"></div>
+                                </div>
+                            </div>
+                        </div>
+                    @endfor
+                </div>
             </div>
             
             <div class="grid sm:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4" wire:loading.remove>                
@@ -96,6 +159,55 @@
 
         datepickerEl2.addEventListener('changeDate', (event) => {
             $wire.dispatch('setEndDate', { end: datepickerEl2.value });
+        });
+
+        // Handle polling
+        let pollingInterval = null;
+
+        function startPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            const interval = $wire.get('pollingInterval') * 1000;
+            pollingInterval = setInterval(() => {
+                if ($wire.get('pollingEnabled')) {
+                    $wire.$refresh();
+                }
+            }, interval);
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        // Initialize polling
+        if ($wire.get('pollingEnabled')) {
+            startPolling();
+        }
+
+        // Watch for changes
+        $wire.watch('pollingEnabled', (value) => {
+            if (value) {
+                startPolling();
+            } else {
+                stopPolling();
+            }
+        });
+
+        $wire.watch('pollingInterval', (value) => {
+            if ($wire.get('pollingEnabled')) {
+                startPolling();
+            }
+        });
+
+        // Cleanup on component destroy
+        document.addEventListener('livewire:initialized', () => {
+            return () => {
+                stopPolling();
+            };
         });
     </script>
     @endscript

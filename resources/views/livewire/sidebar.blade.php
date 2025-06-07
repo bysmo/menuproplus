@@ -126,7 +126,7 @@
                         <x-sidebar-dropdown-menu :name='__("menu.payments")' icon='payments' :active='request()->routeIs(["payments.*"])'>
                             @livewire('sidebar-dropdown-menu', ['name' => __('menu.payments'), 'link' => route('payments.index'), 'active' => request()->routeIs('payments.index')])
                             @livewire('sidebar-dropdown-menu', ['name' => __('menu.duePayments'), 'link' => route('payments.due'), 'active' => request()->routeIs('payments.due')])
-                        @if ($this->hasModule('Expense'))
+                        @if ($this->hasModule('Expense') && user_can('Show Expense'))
                             @livewire('sidebar-dropdown-menu', ['name' => __('menu.expenses'), 'link' => route('payments.expenses'), 'active' => request()->routeIs('payments.expenses')])
                             @livewire('sidebar-dropdown-menu', ['name' => __('menu.expensesCategory'), 'link' => route('payments.expenseCategory'), 'active' => request()->routeIs('payments.expenseCategory')])
 

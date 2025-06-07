@@ -1,5 +1,4 @@
 <div>
-
     <section class="bg-white dark:bg-gray-900 hidden lg:block px-4">
         <div
             class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16 lg:px-12 bg-skin-base/[.1] dark:bg-gray-800 rounded-lg">
@@ -8,83 +7,64 @@
                 @lang('messages.frontHeroHeading')</h1>
         </div>
     </section>
-
     @if (!$showCart)
 
-        <div class="flex flex-col my-4 px-4">
-
-
-            <!-- Card Section -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-
-                <a @class([
-                    'group flex items-center border shadow-sm rounded-lg hover:shadow-md transition dark:bg-gray-700 dark:border-gray-600',
-                    'bg-skin-base' => is_null($menuId),
-                    'bg-white' => !is_null($menuId),
-                ]) wire:key='menu-{{ 'all-' . microtime() }}'
-                    wire:click='filterMenuItems(null)' href="javascript:;">
-                    <div class="p-2 sm:p-3">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-gray-100 p-2 rounded-md hidden sm:block">
-
-                                <svg class="flex-shrink-0 size-5 text-gray-800 dark:text-neutral-200" version="1.1"
-                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 409.221 409.221"
-                                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                                    enable-background="new 0 0 409.221 409.221">
-                                    <path
-                                        d="m387.059,389.218h-14.329v-18.114h14.327c5.523,0 10-4.477 10-10 0-55.795-42.81-101.781-97.305-106.843v-17.29c0-5.523-4.477-10-10-10s-10,4.477-10,10v17.29c-54.496,5.062-97.305,51.048-97.305,106.843 0,5.523 4.477,10 10,10h14.327v18.114h-14.327c-5.523,0-10,4.477-10,10s4.477,10 10,10h24.13c0.131,0.003 0.262,0.003 0.393,0h145.564c0.065,0.001 0.131,0.002 0.196,0.002s0.131,0 0.196-0.002h24.133c5.523,0 10-4.477 10-10s-4.478-10-10-10zm-34.33,0h-125.957v-18.114h125.957v18.114zm-149.714-38.113c4.978-43.447 41.978-77.305 86.736-77.305s81.758,33.858 86.736,77.305h-173.472zm-71.385-253.799c-29.383,1.42109e-14-52.4,16.809-52.4,38.267 0,21.457 23.017,38.265 52.4,38.265 29.383,0 52.399-16.808 52.399-38.265 0-21.459-23.016-38.267-52.399-38.267zm0,56.531c-19.094,0-32.4-9.625-32.4-18.265 0-8.64 13.306-18.267 32.4-18.267 19.093,0 32.399,9.627 32.399,18.267 0,8.639-13.306,18.265-32.399,18.265zm23.553,235.383h-123.021v-320.568h198.936v166.52c0,5.523 4.477,10 10,10s10-4.477 10-10v-176.52c0-5.523-4.477-10-10-10h-4.701v-38.652c0-2.858-1.223-5.58-3.36-7.478-2.137-1.897-4.984-2.789-7.822-2.452l-204.236,24.327c-5.03,0.599-8.817,4.864-8.817,9.93v364.893c0,5.523 4.477,10 10,10h133.021c5.523,0 10-4.477 10-10s-4.477-10-10-10zm-123.021-346.014l184.235-21.944v27.391h-184.235v-5.447zm82.627,317.362c-5.523,0-10-4.477-10-10s4.477-10 10-10h33.681c5.523,0 10,4.477 10,10s-4.477,10-10,10h-33.681z" />
-                                </svg>
-
-                            </div>
-
-                            <div class="grow">
-                                <h3 wire:loading.class.delay='opacity-50' @class([
-                                    'font-semibold dark:group-hover:text-neutral-400 dark:text-neutral-200 text-xs lg:text-base',
-                                    'text-gray-800 group-hover:text-skin-base' => !is_null($menuId),
-                                    'text-white group-hover:text-white' => is_null($menuId),
-                                ])>
-                                    @lang('app.showAll')
-                                </h3>
-
-                            </div>
+    <div class="flex flex-col my-4 px-4" x-data="{ showAll: false }">
+        <!-- Card Section -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    
+            <!-- All Menu Card -->
+            <a @class([
+                'group flex items-center border shadow-sm rounded-lg hover:shadow-md transition dark:bg-gray-700 dark:border-gray-600',
+                'bg-skin-base dark:bg-skin-base' => is_null($menuId),
+                'bg-white' => !is_null($menuId),
+            ]) wire:key='menu-{{ 'all-' . microtime() }}'
+                wire:click='filterMenuItems(null)' href="javascript:;">
+                <div class="p-2 sm:p-3">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-gray-100 p-2 rounded-md hidden sm:block">
+                            <svg class="flex-shrink-0 size-5 text-gray-800 dark:text-neutral-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 409.221 409.221"><path d="M387.059 389.218H372.73v-18.114h14.327c5.523 0 10-4.477 10-10 0-55.795-42.81-101.781-97.305-106.843v-17.29c0-5.523-4.477-10-10-10s-10 4.477-10 10v17.29c-54.496 5.062-97.305 51.048-97.305 106.843 0 5.523 4.477 10 10 10h14.327v18.114h-14.327c-5.523 0-10 4.477-10 10s4.477 10 10 10h24.13q.197.004.393 0h145.564l.196.002.196-.002h24.133c5.523 0 10-4.477 10-10s-4.478-10-10-10m-34.33 0H226.772v-18.114h125.957zm-149.714-38.113c4.978-43.447 41.978-77.305 86.736-77.305s81.758 33.858 86.736 77.305zM131.63 97.306c-29.383 0-52.4 16.809-52.4 38.267 0 21.457 23.017 38.265 52.4 38.265s52.399-16.808 52.399-38.265c0-21.459-23.016-38.267-52.399-38.267m0 56.531c-19.094 0-32.4-9.625-32.4-18.265s13.306-18.267 32.4-18.267c19.093 0 32.399 9.627 32.399 18.267s-13.306 18.265-32.399 18.265m23.553 235.383H32.162V68.652h198.936v166.52c0 5.523 4.477 10 10 10s10-4.477 10-10V58.652c0-5.523-4.477-10-10-10h-4.701V10A10.002 10.002 0 0 0 225.215.07L20.979 24.397a10 10 0 0 0-8.817 9.93V399.22c0 5.523 4.477 10 10 10h133.021c5.523 0 10-4.477 10-10s-4.477-10-10-10M32.162 43.206l184.235-21.944v27.391H32.162zm82.627 317.362c-5.523 0-10-4.477-10-10s4.477-10 10-10h33.681c5.523 0 10 4.477 10 10s-4.477 10-10 10z"/></svg>
+                        </div>
+                        <div class="grow">
+                            <h3 wire:loading.class.delay='opacity-50' @class([
+                                'font-semibold dark:group-hover:text-neutral-400 dark:text-neutral-200 text-xs lg:text-base',
+                                'text-gray-800 group-hover:text-skin-base' => !is_null($menuId),
+                                'text-white group-hover:text-white' => is_null($menuId),
+                            ])>
+                                @lang('app.showAll')
+                            </h3>
                         </div>
                     </div>
-                </a>
-
-                @forelse ($menuList as $item)
-                    <!-- Card -->
+                </div>
+            </a>
+    
+            <!-- Dynamic Menu Cards -->
+            @forelse ($menuList as $index => $item)
+                <div x-show="showAll || {{ $index }} < 7" x-transition>
                     <a @class([
-                        'group flex flex-col border shadow-sm rounded-lg hover:shadow-md transition dark:bg-gray-700 dark:border-gray-600',
-                        'bg-skin-base' => $menuId == $item->id,
+                        'group flex flex-col border shadow-sm rounded-lg hover:shadow-md transition dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600',
+                        'bg-skin-base dark:bg-skin-base' => $menuId == $item->id,
                         'bg-white' => $menuId != $item->id,
                     ]) wire:key='menu-{{ $item->id . microtime() }}'
                         wire:click='filterMenuItems({{ $item->id }})' href="javascript:;">
                         <div class="p-2 sm:p-3">
                             <div class="flex items-center gap-3">
                                 <div class="bg-gray-100 p-2 rounded-md hidden sm:block">
-
-                                    <svg class="flex-shrink-0 size-5 text-gray-800 dark:text-neutral-200" version="1.1"
-                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 409.221 409.221"
-                                        xmlns:xlink="http://www.w3.org/1999/xlink"
-                                        enable-background="new 0 0 409.221 409.221">
-                                        <path
-                                            d="m387.059,389.218h-14.329v-18.114h14.327c5.523,0 10-4.477 10-10 0-55.795-42.81-101.781-97.305-106.843v-17.29c0-5.523-4.477-10-10-10s-10,4.477-10,10v17.29c-54.496,5.062-97.305,51.048-97.305,106.843 0,5.523 4.477,10 10,10h14.327v18.114h-14.327c-5.523,0-10,4.477-10,10s4.477,10 10,10h24.13c0.131,0.003 0.262,0.003 0.393,0h145.564c0.065,0.001 0.131,0.002 0.196,0.002s0.131,0 0.196-0.002h24.133c5.523,0 10-4.477 10-10s-4.478-10-10-10zm-34.33,0h-125.957v-18.114h125.957v18.114zm-149.714-38.113c4.978-43.447 41.978-77.305 86.736-77.305s81.758,33.858 86.736,77.305h-173.472zm-71.385-253.799c-29.383,1.42109e-14-52.4,16.809-52.4,38.267 0,21.457 23.017,38.265 52.4,38.265 29.383,0 52.399-16.808 52.399-38.265 0-21.459-23.016-38.267-52.399-38.267zm0,56.531c-19.094,0-32.4-9.625-32.4-18.265 0-8.64 13.306-18.267 32.4-18.267 19.093,0 32.399,9.627 32.399,18.267 0,8.639-13.306,18.265-32.399,18.265zm23.553,235.383h-123.021v-320.568h198.936v166.52c0,5.523 4.477,10 10,10s10-4.477 10-10v-176.52c0-5.523-4.477-10-10-10h-4.701v-38.652c0-2.858-1.223-5.58-3.36-7.478-2.137-1.897-4.984-2.789-7.822-2.452l-204.236,24.327c-5.03,0.599-8.817,4.864-8.817,9.93v364.893c0,5.523 4.477,10 10,10h133.021c5.523,0 10-4.477 10-10s-4.477-10-10-10zm-123.021-346.014l184.235-21.944v27.391h-184.235v-5.447zm82.627,317.362c-5.523,0-10-4.477-10-10s4.477-10 10-10h33.681c5.523,0 10,4.477 10,10s-4.477,10-10,10h-33.681z" />
-                                    </svg>
-
+                                    <svg class="flex-shrink-0 size-5 text-gray-800 dark:text-neutral-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 409.221 409.221"><path d="M387.059 389.218H372.73v-18.114h14.327c5.523 0 10-4.477 10-10 0-55.795-42.81-101.781-97.305-106.843v-17.29c0-5.523-4.477-10-10-10s-10 4.477-10 10v17.29c-54.496 5.062-97.305 51.048-97.305 106.843 0 5.523 4.477 10 10 10h14.327v18.114h-14.327c-5.523 0-10 4.477-10 10s4.477 10 10 10h24.13q.197.004.393 0h145.564l.196.002.196-.002h24.133c5.523 0 10-4.477 10-10s-4.478-10-10-10m-34.33 0H226.772v-18.114h125.957zm-149.714-38.113c4.978-43.447 41.978-77.305 86.736-77.305s81.758 33.858 86.736 77.305zM131.63 97.306c-29.383 0-52.4 16.809-52.4 38.267 0 21.457 23.017 38.265 52.4 38.265s52.399-16.808 52.399-38.265c0-21.459-23.016-38.267-52.399-38.267m0 56.531c-19.094 0-32.4-9.625-32.4-18.265s13.306-18.267 32.4-18.267c19.093 0 32.399 9.627 32.399 18.267s-13.306 18.265-32.399 18.265m23.553 235.383H32.162V68.652h198.936v166.52c0 5.523 4.477 10 10 10s10-4.477 10-10V58.652c0-5.523-4.477-10-10-10h-4.701V10A10.002 10.002 0 0 0 225.215.07L20.979 24.397a10 10 0 0 0-8.817 9.93V399.22c0 5.523 4.477 10 10 10h133.021c5.523 0 10-4.477 10-10s-4.477-10-10-10M32.162 43.206l184.235-21.944v27.391H32.162zm82.627 317.362c-5.523 0-10-4.477-10-10s4.477-10 10-10h33.681c5.523 0 10 4.477 10 10s-4.477 10-10 10z"/></svg>
                                 </div>
 
                                 <div class="grow">
                                     <h3 wire:loading.class.delay='opacity-50' @class([
-                                        'font-semibold dark:group-hover:text-neutral-400 dark:text-neutral-200 text-xs lg:text-base',
-                                        'text-gray-800 group-hover:text-skin-base' => $menuId != $item->id,
+                                        'font-semibold group-hover:text-skin-base dark:group-hover:text-gray-100 dark:text-neutral-200 text-xs lg:text-base',
+                                        'text-gray-800 dark:text-gray-200' => $menuId != $item->id,
                                         'text-white group-hover:text-white' => $menuId == $item->id,
                                     ])>
                                         {{ $item->getTranslation('menu_name', session('locale', app()->getLocale())) }}
                                     </h3>
                                     <p @class([
                                         'text-sm dark:text-neutral-500 hidden sm:block',
-                                        'text-gray-500' => $menuId != $item->id,
-                                        'text-gray-100' => $menuId == $item->id,
+                                        'text-gray-500 dark:text-white' => $menuId != $item->id,
+                                        'text-gray-100 dark:text-white' => $menuId == $item->id,
                                     ])>
                                         {{ $item->items_count }} @lang('modules.menu.item')
                                     </p>
@@ -92,65 +72,118 @@
                             </div>
                         </div>
                     </a>
-                    <!-- End Card -->
-                @empty
-                    <div class="inline-flex items-center dark:text-gray-400">
-                        @lang('messages.noMenuAdded')
-                    </div>
-                @endforelse
-
+                </div>
+            @empty
+                <div class="inline-flex items-center dark:text-gray-400">
+                    @lang('messages.noMenuAdded')
+                </div>
+            @endforelse
+        </div>
+        <!-- End Card Section -->
+    
+        <!-- Toggle Button -->
+        @if (count($menuList) > 8)
+            <div class="mt-4 flex justify-center" x-cloak wire:key="show-more-button">
+                <button @click="showAll = !showAll" class="flex items-center gap-1 text-sm text-skin-base hover:underline">
+                    <span x-text="showAll ? '{{ __('modules.menu.showLess') }}' : '{{ __('modules.menu.showMore') }}'"></span>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': showAll}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
             </div>
-            <!-- End Card Section -->
-        </div>
+        @endif
+    </div>
+    
+        <div class="mt-6 mx-4">
+            <!-- Mobile Dropdown -->
+            <div class="lg:hidden relative" x-data="{ open: false }">
+                <button
+                    @click="open = !open"
+                    @click.away="open = false"
+                    class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg px-4 py-2.5 flex items-center justify-between shadow-sm hover:bg-gray-50 transition-colors duration-200"
+                >
+                    <span class="font-medium text-sm truncate">
+                        {{ is_null($filterCategories) ? __('app.showAll') : $categoryList->firstWhere('id', $filterCategories)?->getTranslation('category_name', session('locale', app()->getLocale())) }}
+                    </span>
+                    <svg class="w-4 h-4 transition-transform duration-200"
+                        :class="{'rotate-180': open}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
 
-        <div
-            class="text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700 justify-center mt-6 px-4 hidden lg:flex mx-4">
-            <ul class="flex flex-wrap -mb-px">
+                <!-- Dropdown menu -->
+                <div x-show="open" x-cloak
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 translate-y-1"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 translate-y-1"
+                    class="absolute left-0 right-0 mt-2 bg-white dark:bg-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
+                    <div class="max-h-80 overflow-y-auto">
+                        <button wire:click="filterMenu(null); $nextTick(() => { open = false })"
+                            class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors {{ is_null($filterCategories) ? 'bg-gray-50 dark:bg-gray-600 text-skin-base' : 'text-gray-700 dark:text-gray-200' }}">
+                            @lang('app.showAll')
+                        </button>
 
-                <li class="me-2">
-                    <a href="javascript:;" wire:click="filterMenu(null)" @class([
-                        'inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300',
-                        'text-skin-base border-skin-base active dark:text-skin-base dark:border-skin-base' => is_null(
-                            $filterCategories),
-                        'border-transparent' => !is_null($filterCategories),
-                    ])
-                        aria-current="page">
+                        @foreach ($categoryList as $item)
+                        @if($item->items->count() > 0)
+                        <button wire:click="filterMenu({{ $item->id }}); $nextTick(() => { open = false })"
+                            class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-between {{ $filterCategories == $item->id ? 'bg-gray-50 dark:bg-gray-600 text-skin-base' : 'text-gray-700 dark:text-gray-200' }}">
+                            <span>{{ $item->getTranslation('category_name', session('locale', app()->getLocale())) }}</span>
+                            <span class="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
+                                {{ $item->items->count() }}
+                            </span>
+                        </button>
+                        @endif
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desktop Tabs -->
+            <div class="hidden lg:block group p-2 bg-gray-50 rounded-md dark:bg-gray-800">
+                <nav class="flex gap-2 overflow-x-auto group-hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 dark:group-hover:[&::-webkit-scrollbar-thumb]:bg-gray-600 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:hidden [&::-webkit-scrollbar-thumb]:rounded-full py-2" aria-label="Categories">
+                    <button wire:click="filterMenu(null)"
+                        @class([
+                            'px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap',
+                            'bg-skin-base text-white shadow-sm' => is_null($filterCategories),
+                            'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' => !is_null($filterCategories),
+                        ])>
                         @lang('app.showAll')
-                    </a>
-                </li>
+                    </button>
 
-                @foreach ($categoryList as $key => $item)
-                    <li class="me-2">
-                        <a href="javascript:;" wire:click="filterMenu({{ $item->id }})"
+                    @foreach ($categoryList as $item)
+                        @if($item->items->count() > 0)
+                        <button wire:click="filterMenu({{ $item->id }})"
                             @class([
-                                'inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300',
-                                'text-skin-base border-skin-base active dark:text-skin-base dark:border-skin-base' =>
-                                    $filterCategories == $item->id,
-                                'border-transparent' => $filterCategories != $item->id,
+                                'px-4 py-2 text-sm font-medium rounded-lg transition-colors inline-flex items-center gap-2 whitespace-nowrap',
+                                'bg-skin-base text-white shadow-sm' => $filterCategories == $item->id,
+                                'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' => $filterCategories != $item->id,
                             ])>
-                            {{ $item->getTranslation('category_name', session('locale', app()->getLocale())) }} ({{ $item->items->count() }})
-                        </a>
-                    </li>
-                @endforeach
-
-            </ul>
+                            <span>{{ $item->getTranslation('category_name', session('locale', app()->getLocale())) }}</span>
+                            <span class="px-2 py-0.5 text-xs rounded-full {{ $filterCategories == $item->id ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300' }}">
+                                {{ $item->items->count() }}
+                            </span>
+                        </button>
+                        @endif
+                    @endforeach
+                </nav>
+            </div>
         </div>
 
-
-        <div class="grid grid-cols-3 my-4 lg:my-12 px-4">
+        <div class="grid grid-cols-3 my-6 mx-4">
             <div class="col-span-2">
-                <x-input id="menu_name" class="block mt-1 w-full" type="text"
+                <x-input id="menu_name" class="block w-full" type="text"
                     placeholder="{{ __('placeholders.searchMenuItems') }}" wire:model.live.debounce.500ms="search" />
             </div>
-            <div class="flex items-center justify-end">
-                <label class="inline-flex items-center cursor-pointer" id="veg_toggle">
+            <div class="flex items-center justify-end" wire:key="veg_button">
+                <label class="inline-grid w-12 h-6 bg-gray-300 peer-checked:bg-green-500 shadow rounded-full cursor-pointer" id="veg_toggle">
                     <input type="checkbox" value="1" wire:model.live='showVeg' class="sr-only peer">
-                    <div
-                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600">
-                    </div>
-                    <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">@lang('modules.menu.typeVeg')</span>
+                    <span class="w-6 h-6 bg-white rounded-full peer-checked:bg-green-500 transition-transform shadow duration-300 peer-checked:translate-x-full"></span>
                 </label>
+                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">@lang('modules.menu.typeVeg')</span>
             </div>
+
         </div>
     @endif
 
@@ -161,7 +194,11 @@
                 <h3 class="lg:text-xl text-base font-semibold text-gray-900 dark:text-white my-4">{{ $key }}</h3>
                 <div class="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-8">
                     @foreach ($itemCat as $item)
-                    <div class="flex items-center justify-between gap-6 border shadow-sm rounded-lg hover:shadow-md transition dark:border-gray-600 dark:lg:bg-gray-900 dark:shadow-sm lg:bg-white lg:rounded-md"
+                    <div @class([
+                        "flex items-center justify-between gap-6 border shadow-sm rounded-lg hover:shadow-md transition dark:border-gray-600 dark:lg:bg-gray-900 dark:shadow-sm lg:rounded-md",
+                        "bg-gray-100 dark:bg-gray-800" => !$item->in_stock,
+                        "bg-white dark:bg-gray-900" => $item->in_stock,
+                    ])
                         wire:key='menu-item-{{ $item->id . microtime() }}'>
                         <div class="flex space-x-4 w-full p-3">
                             <img class="w-16 h-16 lg:w-24 lg:h-24 rounded-md object-cover cursor-pointer" wire:click="showItemDetail({{ $item->id }})"
@@ -176,7 +213,7 @@
                                 </div>
                                 @if ($item->description)
                                     <div class="text-xs lg:text-sm font-normal text-gray-500 dark:text-gray-400 w-full cursor-pointer" wire:click="showItemDetail({{ $item->id }})">
-                                        {{ str($item->getTranslatedValue('item_name', session('locale')) )->limit(50) }}</div>
+                                        {{ str($item->getTranslatedValue('description', session('locale')) )->limit(50) }}</div>
                                 @endif
 
                                 @if ($item->preparation_time)
@@ -194,7 +231,9 @@
                                     </div>
 
                                     @if ($canCreateOrder)
-                                        @if ($restaurant->allow_customer_orders)
+                                        @if(!$item->in_stock)
+                                            <div class="text-red-500">Out of stock</div>
+                                        @elseif ($restaurant->allow_customer_orders)
                                             @if (isset($cartItemQty[$item->id]) && $cartItemQty[$item->id] > 0)
                                             <div class="relative flex items-center max-w-24 justify-start me-2" wire:key='orderItemQty-{{ $item->id }}-counter'>
                                                 <button type="button"
@@ -225,7 +264,7 @@
                                                         @endif
                                                     "
                                                     class="bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 border
-                                                    border-gray-300 rounded-e-md p-3 h-8 ">
+                                                    border-gray-300 rounded-e-md p-3 h-8">
                                                     <svg class="w-2 h-2 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                                         fill="none" viewBox="0 0 18 18">
                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -252,41 +291,20 @@
 
                             </div>
                         </div>
-
                     </div>
                     @endforeach
                 </div>
             @empty
-                @lang('messages.noItemAdded')
+            <div class="flex flex-col items-center justify-center p-6 text-center text-gray-500 dark:text-gray-400">
+                <svg width="100" height="100" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M4 14a8 8 0 0 1 16 0z" fill="#e5e7eb"/><rect x="3" y="14" width="18" height="2.5" rx=".5" fill="#d1d5db"/><circle cx="12" cy="4.5" r=".8" fill="#9ca3af"/><circle cx="9.5" cy="10" r=".5" fill="#4b5563"/><circle cx="14.5" cy="10" r=".5" fill="#4b5563"/></svg>
+                <span class="text-lg">
+                    @lang('messages.noItemAdded')
+                </span>
+            </div>
             @endforelse
 
             <div class="w-full max-w-lg flex justify-center gap-6 bottom-24 fixed -ml-4 lg:hidden">
-                <x-button class="inline-flex items-center gap-2" wire:click="$toggle('showMenuModal')">
-                    <svg class="w-4 h-4 transition duration-75 group-hover:text-gray-900 dark:text-white dark:group-hover:text-white"
-                        fill="currentColor" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
-                        xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.005 512.005"
-                        xml:space="preserve">
-                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                        <g id="SVGRepo_iconCarrier">
-                            <g>
-                                <g>
-                                    <rect y="389.705" width="512.005" height="66.607"></rect>
-                                </g>
-                            </g>
-                            <g>
-                                <g>
-                                    <path
-                                        d="M297.643,131.433c4.862-7.641,7.693-16.696,7.693-26.404c0-27.204-22.132-49.336-49.336-49.336 c-27.204,0-49.336,22.132-49.336,49.337c0,9.708,2.831,18.763,7.693,26.404C102.739,149.772,15.208,240.563,1.801,353.747h508.398 C496.792,240.563,409.261,149.772,297.643,131.433z M256,118.415c-7.38,0-13.384-6.005-13.384-13.385S248.62,91.646,256,91.646 s13.384,6.004,13.384,13.384S263.38,118.415,256,118.415z">
-                                    </path>
-                                </g>
-                            </g>
-                        </g>
-                    </svg>
-                    @lang('app.menu')
-                </x-button>
-
-                @if ($restaurant->is_waiter_request_enabled && $restaurant->is_waiter_request_enabled_on_mobile && $this->shouldShowWaiterButton )
+                @if ($this->shouldShowWaiterButtonMobile)
                     @livewire('forms.callWaiterButton', ['tableNumber' => $table->id ?? null, 'shopBranch' => $shopBranch])
                 @endif
             </div>
@@ -535,6 +553,21 @@
                                 </div>
                             </div>
                         @endforeach
+
+                        @if ($orderType === 'delivery' && !is_null($deliveryFee))
+                            <div class="flex justify-between text-gray-500 dark:text-gray-400 text-sm">
+                                <div>
+                                    @lang('modules.delivery.deliveryFee')
+                                </div>
+                                <div>
+                                    @if($deliveryFee > 0)
+                                        {{ currency_format($deliveryFee, $restaurant->currency_id) }}
+                                    @else
+                                        <span class="text-green-500 font-medium">@lang('modules.delivery.freeDelivery')</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                         <div class="flex justify-between font-medium text-gray-900 dark:text-white">
                             <div>
                                 @lang('modules.order.total')
@@ -544,6 +577,34 @@
                             </div>
                         </div>
                     </div>
+
+                    @if ($orderType === 'delivery' && !empty($deliveryAddress))
+                        <div class="h-auto p-4 mt-3 select-none w-full bg-gray-50 rounded dark:bg-gray-700">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-medium text-gray-900 dark:text-white text-base">@lang('modules.delivery.deliveryAddress')</h3>
+
+                                @if (!empty($deliveryAddress))
+                                    <x-secondary-button class="text-xs" wire:click="$toggle('showDeliveryAddressModal')">
+                                        @lang('modules.delivery.changeDeliveryAddress')
+                                    </x-secondary-button>
+                                @endif
+                            </div>
+
+                            @if (!empty($deliveryAddress))
+                                <div class="bg-white dark:bg-gray-800 rounded-md p-3 border border-gray-200 dark:border-gray-700">
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-5 h-5 mt-0.5 text-gray-500 dark:text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        <div class="text-sm text-gray-700 dark:text-gray-300">
+                                            <p class="font-medium">{{ $deliveryAddress }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
 
                     <div class="h-auto pb-4 pt-3 select-none text-center w-full" wire:key='order-{{ microtime() }}'>
                         <div class="flex gap-2">
@@ -562,6 +623,7 @@
                                         $showPayNow = $paymentGateway->is_qr_payment_enabled ||
                                             $paymentGateway->stripe_status ||
                                             $paymentGateway->razorpay_status ||
+                                            $paymentGateway->flutterwave_status ||
                                             $paymentGateway->is_offline_payment_enabled;
 
                                         $loadingSpinner = '
@@ -822,35 +884,6 @@
         </x-slot>
     </x-dialog-modal>
 
-    <x-dialog-modal wire:model.live="showMenuModal" maxWidth="sm">
-        <x-slot name="title">
-            @lang('app.menu')
-        </x-slot>
-
-        <x-slot name="content">
-            <div class="justify-between items-center w-full bg-gray-50 mt-4 rounded-md dark:bg-gray-800">
-                <ul class="flex flex-col font-medium ">
-                    <li wire:key='item-cat-{{ 'all' . microtime() }}'>
-                        <a href="javascript:;" wire:click="filterMenu(null)"
-                            class="block py-2 pr-4 pl-3 text-gray-700 rounded bg-primary-700   dark:text-white"
-                            aria-current="page">@lang('app.showAll')</a>
-                    </li>
-
-                    @foreach ($categoryList as $key => $item)
-                        <li wire:key='item-cat-{{ $item->id . microtime() }}'>
-                            <a href="javascript:;" wire:click="filterMenu({{ $item->id }})"
-                                class="block py-2 pr-4 pl-3 text-gray-700 rounded  dark:text-white"
-                                aria-current="page">{{ $item->getTranslation('category_name', session('locale', app()->getLocale())) }} ({{ $item->items->count() }})</a>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </x-slot>
-
-        <x-slot name="footer">
-            <x-button-cancel wire:click="$toggle('showMenuModal')" wire:loading.attr="disabled" />
-        </x-slot>
-    </x-dialog-modal>
 
     @if ($paymentOrder)
         <x-dialog-modal wire:model.live="showPaymentModal" maxWidth="md">
@@ -922,6 +955,7 @@
                             c-3.2,1.3-19,5.9-19-8.9V90.6h19V69.3h-19L146.9,47.6z" />
                                                 <path class="ststr0" d="M79.3,94.7c0-3.9,3.2-5.4,8.5-5.4c7.6,0,17.2,2.3,24.8,6.4V72.2c-8.3-3.3-16.5-4.6-24.8-4.6
                             C67.5,67.6,54,78.2,54,95.9c0,27.6,38,23.2,38,35.1c0,4.6-4,6.1-9.6,6.1c-8.3,0-18.9-3.4-27.3-8v23.8c9.3,4,18.7,5.7,27.3,5.7
+
                             c20.8,0,35.1-10.3,35.1-28.2C117.4,100.6,79.3,105.9,79.3,94.7z" />
                                             </g>
                                         </svg>
@@ -959,6 +993,14 @@
                                         </svg>
                                     </span>
                                 </x-secondary-button>
+                            @endif
+
+                            @if ($paymentGateway->flutterwave_status)
+                            <x-secondary-button wire:click="initiateFlutterwavePayment({{ $paymentOrder->id }})">
+                                <span class="inline-flex items-center">
+                                    <svg class="h-5 dark:mix-blend-plus-lighter" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 916.7 144.7"><path d="M280.5 33.8h16.1v82.9h-16.1zM359 87.3c0 11.4-7.4 16.6-17.2 16.6s-16.4-5.1-16.4-16V58.3h-16.1v33.3c0 16.6 10.4 26.3 27.7 26.3 10.9 0 16.9-4 21-8.5h.9l1.4 7.4h14.8V58.3H359zm158 17.9c-11.8 0-18.4-5.4-19.5-13.2h51.1c.2-1.6.4-3.3.3-4.9-.1-21-16-29.9-33-29.9-19.7 0-34.6 11.8-34.6 30.8 0 18.1 14.2 29.9 35.6 29.9 17.9 0 29.8-7.9 32.2-20.1h-15.9c-1.8 4.8-7.5 7.4-16.2 7.4m-1-35.3c10.3 0 16.2 4.6 17.2 11h-35.3c1.5-6.2 7.5-11 18.1-11m60.4-3.2h-1l-1.5-8.4h-14.6v58.4h16.1V91.6c0-11.3 6.5-17.6 18.7-17.6q3.3 0 6.6.6V58.3h-2.2c-10.9 0-17.5 2.3-22.1 8.4m103.3 31.8h-.9L665 62h-16.6l-13.5 36.4h-1.1L621 58.3h-16l19.7 58.4h17.5l14-37.2h1l13.8 37.2h17.6l19.7-58.4h-16zm92.7 1.2V80.2c0-15.9-13.4-23-30.1-23-17.7 0-28.8 8.4-30.3 21h16.1c1.2-5.5 5.8-8.5 14.2-8.5s14 3.2 14 9.6v1.5l-26.3 2c-12.1.9-21 6.3-21 17.8 0 11.8 10.2 17.4 25.1 17.4 12.1 0 19.4-3.4 23.9-8.4h.8c2.5 5.7 7.7 7.3 13.2 7.3h6.8V105h-1.5c-3.3-.2-4.9-1.8-4.9-5.3m-16.1-6.2c0 9.2-11 12.3-20.4 12.3-6.4 0-10.6-1.6-10.6-6.1 0-4 3.6-5.9 9-6.4l22.1-1.6zM832 58.3l-18.8 42.3h-1l-19.1-42.3h-17.4l27.2 58.4h19.3l27.1-58.4zm68.8 39.5c-2 4.8-7.7 7.4-16.3 7.4-11.8 0-18.4-5.4-19.5-13.2h51.1c.2-1.6.4-3.3.3-4.9-.1-21-16-29.9-33-29.9-19.7 0-34.5 11.8-34.5 30.8 0 18.1 14.2 29.9 35.6 29.9 17.9 0 29.8-7.9 32.2-20.1zm-17.4-27.9c10.3 0 16.2 4.6 17.2 11h-35.3c1.5-6.2 7.4-11 18.1-11M254.4 54c0-5.1 3.6-7.3 8.3-7.3 2.2 0 4.3.3 6.4.9l2.7-11.7c-3.9-1.4-8-2.1-12.1-2.1-11.9 0-21.5 6.3-21.5 19.4v5.1h-13.9v12.8h13.9v45.6h16.2V71.1h18.2V58.3h-18.2zm156.4-12.1h-15l-.8 16.5h-12.7v12.8h12.4V100c0 9.8 5 18 20 18 3.9 0 7.8-.4 11.6-1.3v-12.3c-2.2.5-4.4.8-6.7.8-8 0-8.8-4.6-8.8-8.1v-26h16V58.3h-16zm50.6 0h-14.9l-.8 16.5H433v12.8h12.4V100c0 9.8 5 18 20 18 3.9 0 7.7-.5 11.5-1.3v-12.3c-2.2.5-4.4.8-6.7.8-8 0-8.8-4.6-8.8-8.1v-26h16V58.3h-16.1V41.9z" style="fill:#2a3362"/><path d="M0 31.6c0-9.4 2.7-17.4 8.5-23.1l10 10C7.4 29.6 17.1 64.1 48.8 95.8s66.2 41.4 77.3 30.3l10 10c-18.8 18.8-61.5 5.4-97.3-30.3C14 80.9 0 52.8 0 31.6" style="fill:#009a46"/><path d="M63.1 144.7c-9.4 0-17.4-2.7-23.1-8.5l10-10c11.1 11.1 45.6 1.4 77.3-30.3s41.4-66.2 30.3-77.3l10-10c18.8 18.8 5.4 61.5-30.3 97.3-24.9 24.8-53.1 38.8-74.2 38.8" style="fill:#ff5805"/><path d="M140.5 91.6C134.4 74.1 122 55.4 105.6 39 69.8 3.2 27.1-10.1 8.3 8.6 7 10 8.2 13.3 10.9 16s6.1 3.9 7.4 2.6c11.1-11.1 45.6-1.4 77.3 30.3 15 15 26.2 31.8 31.6 47.3 4.7 13.6 4.3 24.6-1.2 30.1-1.3 1.3-.2 4.6 2.6 7.4s6.1 3.9 7.4 2.6c9.6-9.7 11.2-25.6 4.5-44.7" style="fill:#f5afcb"/><path d="M167.5 8.6C157.9-1 142-2.6 122.9 4c-17.5 6.1-36.2 18.5-52.6 34.9-35.8 35.8-49.1 78.5-30.3 97.3 1.3 1.3 4.7.2 7.4-2.6s3.9-6.1 2.6-7.4c-11.1-11.1-1.4-45.6 30.3-77.3 15-15 31.8-26.2 47.2-31.6 13.6-4.7 24.6-4.3 30.1 1.2 1.3 1.3 4.6.2 7.4-2.6s3.9-5.9 2.5-7.3" style="fill:#ff9b00"/></svg>
+                                </span>
+                            </x-secondary-button>
                             @endif
 
                             @if ($paymentGateway->is_qr_payment_enabled && $paymentGateway->qr_code_image_url)
@@ -1097,6 +1139,16 @@
 
         <x-slot name="footer">
             <x-button-cancel wire:click="$toggle('showItemVariationsModal')" wire:loading.attr="disabled" />
+        </x-slot>
+    </x-dialog-modal>
+
+    <x-dialog-modal wire:model.live="showDeliveryAddressModal" maxWidth="4xl">
+        <x-slot name="title"></x-slot>
+
+        <x-slot name="content">
+            @if($shopBranch?->deliverySetting)
+            @livewire('customer.location-selector', ['shopBranch' => $shopBranch, 'customer' => $customer , 'orderGrandTotal' => $total, 'maxPreparationTime' => $maxPreparationTime, 'currencyId' => $restaurant->currency_id] , key(str()->random(50)))
+            @endif
         </x-slot>
     </x-dialog-modal>
 

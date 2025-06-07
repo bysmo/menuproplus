@@ -223,6 +223,15 @@
                                             <x-input-error for="razorpayMonthlyPlanId" class="mt-2" />
                                         </div>
                                     @endif
+
+                                    @if($paymentKey->flutterwave_status == 1)
+                                        <div>
+                                            <x-label for="flutterwaveMonthlyPlanId"
+                                                value="{{ __('modules.package.monthlyFlutterwaveId') }}" required="true" />
+                                            <x-input id="flutterwaveMonthlyPlanId" class="block w-full mt-1" type="text" min="0" wire:model="flutterwaveMonthlyPlanId" />
+                                            <x-input-error for="flutterwaveMonthlyPlanId" class="mt-2" />
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
 
@@ -248,6 +257,14 @@
                                                 value="{{ __('modules.package.annualRazorpayId') }}" required="true" />
                                             <x-input id="razorpayAnnualPlanId" class="block w-full mt-1" type="text" min="0" wire:model="razorpayAnnualPlanId" />
                                             <x-input-error for="razorpayAnnualPlanId" class="mt-2" />
+                                        </div>
+                                    @endif
+                                    @if($paymentKey->flutterwave_status == 1)
+                                        <div>
+                                            <x-label for="flutterwaveAnnualPlanId"
+                                                value="{{ __('modules.package.annualFlutterwaveId') }}" required="true" />
+                                            <x-input id="flutterwaveAnnualPlanId" class="block w-full mt-1" type="text" min="0" wire:model="flutterwaveAnnualPlanId" />
+                                            <x-input-error for="flutterwaveAnnualPlanId" class="mt-2" />
                                         </div>
                                     @endif
                                 </div>

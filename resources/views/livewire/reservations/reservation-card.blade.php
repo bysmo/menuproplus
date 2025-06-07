@@ -1,4 +1,4 @@
-<div class="flex flex-col bg-white border shadow-sm rounded-xl dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70 p-3 space-y-3">
+<div class="flex flex-col bg-white border shadow-sm rounded-xl dark:bg-gray-900 dark:border-gray-700 dark:shadow-gray-700/70 p-3 space-y-3">
     <div class="flex justify-between">
         <div class="text-base font-semibold text-gray-800 dark:text-white flex items-center gap-2">
             @if (!is_null($reservation->table_id))
@@ -18,7 +18,7 @@
             </x-secondary-button>
         @endif
 
-            
+
         <span @class(['inline-flex items-center text-xs font-medium px-2 py-1 rounded uppercase tracking-wide whitespace-nowrap ',
             'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400 border border-gray-400' => ($reservation->reservation_status == 'No_Show'),
             'bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-400 border border-blue-400' => ($reservation->reservation_status == 'Checked_In'),
@@ -27,11 +27,11 @@
             'bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-400 border border-yellow-400' => ($reservation->reservation_status == 'Pending'),
             ])>
             @lang('modules.reservation.' . $reservation->reservation_status)
-        
+
         </span>
 
         </div>
-        <div class=" text-gray-700 dark:text-neutral-400 flex flex-col space-y-2">
+        <div class=" text-gray-700 dark:text-gray-400 flex flex-col space-y-2">
             <div class="flex gap-2 justify-end text-sm font-medium">
                 {{ $reservation->party_size }} @lang('modules.reservation.guests')
             </div>
@@ -89,15 +89,14 @@
 
         @if (user_can('Update Reservation'))
 
-            <select wire:model.live='reservationStatus' class="w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" wire:change="setReservationStatus($event.target.value)">
+            <x-select wire:model.live='reservationStatus' class="w-full">
                 <option value="Confirmed">@lang('modules.reservation.Confirmed')</option>
                 <option value="Checked_In">@lang('modules.reservation.Checked_In')</option>
                 <option value="Cancelled">@lang('modules.reservation.Cancelled')</option>
                 <option value="No_Show">@lang('modules.reservation.No_Show')</option>
                 <option value="Pending">@lang('modules.reservation.Pending')</option>
-            </select>
+            </x-select>
 
-        
         @endif
     </div>
 

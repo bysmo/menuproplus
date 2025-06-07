@@ -3,7 +3,18 @@
     <div class="p-4 bg-white dark:bg-gray-800">
         <div class="mb-4">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">@lang('menu.categoryReport')</h1>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">@lang('modules.report.categoryReportMessage')</p>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                @lang('modules.report.categoryReportMessage')
+                @php
+                    $formattedStartTime = \Carbon\Carbon::parse($startTime)->format('H:i');
+                    $formattedEndTime = \Carbon\Carbon::parse($endTime)->format('H:i');
+                @endphp
+                <strong>
+                    ({{ $startDate === $endDate
+                        ? __('modules.report.salesDataFor') . " $startDate, " . __('modules.report.timePeriod') . " $formattedStartTime - $formattedEndTime"
+                        : __('modules.report.salesDataFrom') . " $startDate " . __('app.to') . " $endDate, " . __('modules.report.timePeriodEachDay') . " $formattedStartTime - $formattedEndTime" }})
+                </strong>
+            </p>
         </div>
 
         <!-- Filter Section -->
@@ -42,6 +53,27 @@
                                     wire:model.live='endDate' placeholder="@lang('app.selectEndDate')">
                             </div>
                         </div>
+                        <div class="lg:flex items-center justify-between gap-x-2 ms-2">
+                            <div class="w-full max-w-[7rem]">
+                                <label for="start-time" class="sr-only">@lang('modules.reservation.timeStart'):</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
+                                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" width="24" height="24" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0 7.5a7.5 7.5 0 1 1 15 0 7.5 7.5 0 0 1-15 0m7 0V3h1v4.293l2.854 2.853-.708.708-3-3A.5.5 0 0 1 7 7.5" fill="currentColor"/></svg>
+                                    </div>
+                                    <x-input id="start-time" type="time" wire:model.live.debounce.500ms="startTime" />
+                                </div>
+                            </div>
+                            <span class="mx-2 text-gray-500 dark:text-gray-100">@lang('app.to')</span>
+                            <div class="w-full max-w-[7rem]">
+                                <label for="end-time" class="sr-only">@lang('modules.reservation.timeEnd'):</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
+                                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" width="24" height="24" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0 7.5a7.5 7.5 0 1 1 15 0 7.5 7.5 0 0 1-15 0m7 0V3h1v4.293l2.854 2.853-.708.708-3-3A.5.5 0 0 1 7 7.5" fill="currentColor"/></svg>
+                                    </div>
+                                    <x-input id="end-time" type="time" wire:model.live.debounce.500ms="endTime" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -59,7 +91,7 @@
         <table class="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
             <thead class="bg-gray-100 dark:bg-gray-700">
                 <tr>
-                    <th class="p-4 text-xs font-medium tracking-wider text-left text-gray-600 uppercase dark:text-gray-300">
+                    <th class="p-4 text-xs font-medium tracking-wider ltr:text-left rtl:text-right text-gray-600 uppercase dark:text-gray-300">
                         @lang('modules.menu.itemCategory')
                     </th>
                     <th class="p-4 text-xs font-medium tracking-wider text-center text-gray-600 uppercase dark:text-gray-300">

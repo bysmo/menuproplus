@@ -261,7 +261,7 @@
                                         </tr>
                                         @empty
                                         <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 text-center text-gray-500 dark:text-gray-400">
-                                            <td class="py-2.5 px-4 space-x-6" colspan="5">
+                                            <td class="py-2.5 px-4 space-x-6" colspan="6">
                                                 @lang('messages.noChargeFound')
                                             </td>
                                         </tr>

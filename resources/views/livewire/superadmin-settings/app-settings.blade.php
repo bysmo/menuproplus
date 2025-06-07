@@ -4,7 +4,6 @@
     <x-cron-message :modal="false" :showModal="false" />
 
     <h3 class="mb-4 text-xl font-semibold dark:text-white">@lang('modules.settings.appSettings')</h3>
-
     <form wire:submit.prevent="submitForm">
         <div class="grid gap-6">
             <div class="grid lg:grid-cols-3 gap-6">
@@ -39,19 +38,37 @@
                 </div>
             </div>
 
+            <div>
+                <x-label for="mapApiKey" :value="__('modules.delivery.mapApiKey')" />
+                <x-input id="mapApiKey" class="block mt-1 w-full" type="text" wire:model='mapApiKey' placeholder="{{ __('placeholders.enterGoogleMapApiKey')}}" />
+                <x-input-error for="mapApiKey" class="mt-2" />
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    @lang('modules.settings.getGoogleMapApiKeyHelp') 
+                    <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" class="text-skin-base hover:text-skin-base/[.8] dark:text-skin-base dark:hover:text-skin-base/[.8]">
+                        @lang('modules.settings.learnMore')
+                    </a>
+                </p>
+            </div>
 
-           <div>
+            <div >
                 <x-label for="requiresApproval">
-                    <div class="flex items-start gap-3">
-                        <x-checkbox class="mt-1" name="requiresApproval" id="requiresApproval" wire:model='requiresApproval' />
-
-                        <div class="flex flex-col">
-                            <span class="text-sm font-semibold text-gray-900 dark:text-white">
+                    <div class="flex items-start space-x-4 p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200 dark:border-gray-700 dark:hover:bg-gray-700/50">
+                        <div class="flex-shrink-0">
+                            <x-checkbox 
+                                class="mt-1 h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700" 
+                                name="requiresApproval" 
+                                id="requiresApproval" 
+                                wire:model='requiresApproval' 
+                            />
+                        </div>
+                        
+                        <div class="flex-1">
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
                                 @lang('modules.settings.restaurantRequiresApproval')
-                            </span>
-                            <span class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                 @lang('modules.settings.restaurantRequiresApprovalInfo')
-                            </span>
+                            </p>
                         </div>
                     </div>
                 </x-label>

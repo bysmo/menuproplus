@@ -4,7 +4,6 @@
 
 <div class="p-4 bg-white block  dark:bg-gray-800 dark:border-gray-700">
 
-
     <x-cron-message  :showModal="false" :modal="true"/>
 
     @if(smtp_setting()->mail_driver == 'smtp' && !smtp_setting()->verified)

@@ -12,27 +12,31 @@
                         <thead class="bg-gray-100 dark:bg-gray-700">
                             <tr>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.menu.itemName')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.menu.setPrice')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.menu.itemCategory')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.menu.menuName')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.menu.isAvailable')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-gray-500 uppercase dark:text-gray-400 text-right">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
+                                    @lang('modules.menu.showOnCustomerSite')
+                                </th>
+                                <th scope="col"
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-end rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('app.action')
                                 </th>
                             </tr>
@@ -69,6 +73,9 @@
                                     $item->menu->menu_name }}</td>
                                 <td class="py-2.5 px-4 text-center text-gray-900 whitespace-nowrap dark:text-white">
                                     <x-checkbox name="isRecommended" id="isRecommended" wire:click="toggleAvailability({{ $item->id }})" wire:key="itemAvailability-{{ $item->id }}" :checked="(bool) $item->is_available" />
+                                </td>
+                                <td class="py-2.5 px-4 text-center text-gray-900 whitespace-nowrap dark:text-white">
+                                    <x-checkbox name="showOnCustomerSite" id="showOnCustomerSite" wire:click="toggleShowOnCustomerSite({{ $item->id }})" wire:key="itemCustomerSite-{{ $item->id }}" :checked="(bool) $item->show_on_customer_site" />
                                 </td>
                                 <td class="py-2.5 px-4 space-x-2 whitespace-nowrap text-right rtl:space-x-reverse">
                                     @if ($item->variations_count > 0)
@@ -113,7 +120,7 @@
                             </tr>
                             @empty
                             <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                                <td class="py-2.5 px-4 space-x-6" colspan="6">
+                                <td class="py-2.5 px-4 space-x-6" colspan="7">
                                     @lang('messages.noItemAdded')
                                 </td>
                             </tr>

@@ -49,7 +49,7 @@
         <!-- End Card Section -->
 
 
-        <div class="col-span-1 space-y-3 bg-gray-50 rounded-md p-3">
+        <div class="col-span-1 space-y-3 bg-gray-50 dark:bg-neutral-900/30 rounded-md p-3">
             <h4 class="text-xs font-semibold">@lang('modules.reservation.reservedTables'): {{ $reservation->reservation_date_time->translatedFormat('d F') }}</h4>
 
             @forelse ($reservations as $item)

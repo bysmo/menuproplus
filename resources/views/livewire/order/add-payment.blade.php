@@ -328,7 +328,7 @@
                                         <div class="flex-1 flex justify-between items-center gap-3">
                                             <span>Split {{ $splitNumber }}</span>
                                             <input type="number"
-                                                wire:model.live="splits.{{ $splitNumber }}.amount"
+                                                wire:model.live="splits.{{ $splitNumber }}.amount" wire:keyup="updateBalanceAmount"
                                                 class="w-32 rounded-lg border-gray-300 text-right"
                                                 placeholder="0.00">
                                         </div>
@@ -482,6 +482,17 @@
                                     <span>{{ __('modules.order.splitAmount') }}</span>
                                     <span class="font-medium">{{ currency_format(collect($splits)->sum('total')) }}</span>
                                 </div>
+
+                                @if(($balanceAmount > 0 || $returnAmount > 0) && $splitType === 'custom')
+                                    <div @class([
+                                        'flex justify-between',
+                                        'text-red-600' => $balanceAmount > 0,
+                                        'text-green-600' => $returnAmount > 0
+                                    ])>
+                                        <span>{{ $balanceAmount > 0 ? __('modules.order.dueAmount') : __('modules.order.returnAmount') }}</span>
+                                        <span class="font-medium">{{ currency_format($balanceAmount > 0 ? $balanceAmount : $returnAmount) }}</span>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -574,7 +585,7 @@
                             id="tipAmount"
                             type="number"
                             step="0.01"
-                            class="block w-full pl-8 pr-12 rounded-xl"
+                            class="block w-full {{ strlen(currency()) > 2 ? 'pl-12' : 'pl-8' }} pr-12 rounded-xl"
                             wire:model.live="tipAmount"
                             placeholder="{{__('placeholders.enterCustomAmountPlaceholder')}}"
 

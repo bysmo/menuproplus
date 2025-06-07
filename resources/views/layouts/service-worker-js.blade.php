@@ -59,6 +59,7 @@
 
         function showIOSInstallInstructions() {
             if (document.getElementById('iosInstallInstructions')) return;
+            localStorage.setItem('iosPromptLastShown', new Date().getTime());
 
             const instructions = document.createElement('div');
             instructions.id = 'iosInstallInstructions';

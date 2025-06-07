@@ -1,5 +1,6 @@
 <?php
 
+
 use App\Exports\PaymentExport;
 use App\Http\Middleware\SuperAdmin;
 use Maatwebsite\Excel\Facades\Excel;
@@ -19,9 +20,9 @@ use App\Http\Controllers\StripeController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\CustomMenuController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CustomMenuController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\LandingSiteController;
 use App\Http\Controllers\ReservationController;
@@ -32,14 +33,15 @@ use App\Http\Controllers\GlobalSettingController;
 use App\Http\Controllers\ModifierGroupController;
 use App\Http\Controllers\WaiterRequestController;
 use App\Http\Controllers\OnboardingStepController;
+use App\Http\Controllers\FlutterwavePaymentController;
 use App\Http\Controllers\DeliveryExecutiveController;
 use App\Http\Controllers\RestaurantPaymentController;
-use App\Http\Controllers\SuperAdmin\StripeWebhookController;
-use App\Http\Controllers\SuperAdmin\RazorpayWebhookController;
 use App\Http\Controllers\RestaurantSettingController;
 use App\Http\Controllers\SuperadminSettingController;
-use App\Models\CustomMenu;
-use App\Http\Controllers\SuperAdmin\PaymentController;
+use App\Http\Controllers\SuperAdmin\FlutterwaveController;
+use App\Http\Controllers\SuperAdmin\StripeWebhookController;
+use App\Http\Controllers\SuperAdmin\RazorpayWebhookController;
+use App\Http\Controllers\SuperAdmin\FlutterwaveWebhookController;
 
 Route::get('/manifest.json', [HomeController::class, 'manifest'])->name('manifest');
 
@@ -47,10 +49,10 @@ Route::middleware([LocaleMiddleware::class])->group(function () {
 
     Route::get('/', [HomeController::class, 'landing'])->name('home')->middleware(DisableFrontend::class);
     Route::get('/restaurant-signup', [HomeController::class, 'signup'])->name('restaurant_signup');
-    Route::post('/terms', [HomeController::class, 'terms'])->name('terms.show');
-    Route::post('/policy', [HomeController::class, 'policy'])->name('policy.show');
     Route::get('/customer-logout', [HomeController::class, 'customerLogout'])->name('customer_logout');
     Route::get('page/{slug}', [CustomMenuController::class, 'index'])->name('customMenu');
+    Route::get('terms', [HomeController::class, 'terms'])->name('terms.show');
+    Route::get('policy', [HomeController::class, 'policy'])->name('policy.show');
 
 
 
@@ -58,6 +60,7 @@ Route::middleware([LocaleMiddleware::class])->group(function () {
         Route::get('/table/{hash}', [ShopController::class, 'tableOrder'])->name('table_order')->where('id', '.*');
         Route::get('/my-orders/{hash}', [ShopController::class, 'myOrders'])->name('my_orders');
         Route::get('/my-bookings/{hash}', [ShopController::class, 'myBookings'])->name('my_bookings');
+        Route::get('/my-addresses/{hash}',  [ShopController::class, 'myAddresses'])->name('my_addresses');
         Route::get('/book-a-table/{hash}', [ShopController::class, 'bookTable'])->name('book_a_table');
         Route::get('/contact/{hash}', [ShopController::class, 'contact'])->name('contact');
         Route::get('/about-us/{hash}', [ShopController::class, 'about'])->name('about');
@@ -73,6 +76,8 @@ Route::middleware([LocaleMiddleware::class])->group(function () {
 
     Route::post('stripe/license-payment', [StripeController::class, 'licensePayment'])->name('stripe.license_payment');
     Route::get('/stripe/license-success-callback', [StripeController::class, 'licenseSuccess'])->name('stripe.license_success');
+    Route::post('/flutterwave/initiate-payment', [FlutterwaveController::class, 'initiatePayment'])->name('flutterwave.initiate-payment');
+    Route::get('/flutterwave/callback', [FlutterwaveController::class, 'paymentCallback'])->name('flutterwave.callback');
 });
 
 
@@ -122,7 +127,6 @@ Route::middleware(['auth', config('jetstream.auth_session'), 'verified', LocaleM
         Route::view('expense-report', 'reports.expense-reports')->name('reports.expenseReports');
         Route::view('outstanding-payment-report', 'reports.outstanding-payment')->name('reports.outstandingPayment');
         Route::view('expense-summary-report', 'reports.expense-summary')->name('reports.expensesummaryreport');
-
     });
 
     Route::resource('staff', StaffController::class);
@@ -133,7 +137,6 @@ Route::middleware(['auth', config('jetstream.auth_session'), 'verified', LocaleM
     Route::get('/pusher/beams-auth', [DashboardController::class, 'beamAuth'])->name('beam_auth');
 
     Route::resource('waiter-requests', WaiterRequestController::class);
-
 });
 
 Route::middleware(['auth', config('jetstream.auth_session'), 'verified', SuperAdmin::class, LocaleMiddleware::class])->group(function () {
@@ -167,4 +170,8 @@ Route::middleware(['auth', config('jetstream.auth_session'), 'verified', SuperAd
 
 Route::post('/webhook/billing-verify-webhook/{hash?}', [StripeWebhookController::class, 'verifyStripeWebhook'])->name('billing.verify-webhook');
 Route::post('/webhook/save-razorpay-webhook/{hash?}', [RazorpayWebhookController::class, 'saveInvoices'])->name('billing.save_razorpay-webhook');
+Route::post('/webhook/flutter-webhook/{hash}', [FlutterwavePaymentController::class, 'handleGatewayWebhook'])->name('flutterwave.webhook');
+Route::match(['get', 'post'], '/success', [FlutterwavePaymentController::class, 'paymentMainSuccess'])->name('flutterwave.success');
+Route::match(['get', 'post'], '/failed', [FlutterwavePaymentController::class, 'paymentFailed'])->name('flutterwave.failed');
+Route::post('/webhook/save-flutterwave-webhook/{hash}', [FlutterwaveWebhookController::class, 'handleWebhook'])->name('billing.save-flutterwave-webhook');
 Route::view('offline', 'offline');

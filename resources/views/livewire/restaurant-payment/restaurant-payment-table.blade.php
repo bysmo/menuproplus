@@ -7,28 +7,28 @@
                         <thead class="bg-gray-100 dark:bg-gray-700">
                             <tr>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('app.id')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.settings.restaurantName')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.order.amount')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.settings.paymentSource')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.order.transactionId')
                                 </th>
 
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-gray-500 uppercase dark:text-gray-400 text-right">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('app.dateTime')
                                 </th>
                             </tr>
@@ -50,7 +50,7 @@
                                 <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white flex items-center gap-1">
 
                                     @if ($item->payment_source == 'official_site')
-                                        Aladin MenuPro
+                                        Tabletrack
                                     @else
                                         App Sumo
                                     @endif

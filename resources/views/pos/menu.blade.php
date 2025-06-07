@@ -17,7 +17,7 @@
             </form>
         </div>
 
-        <x-secondary-link href="{{ route('pos.index') }}" wire:navigate 
+        <x-secondary-link href="{{ route('pos.index') }}" wire:navigate
             class="inline-flex items-center px-3 py-2 gap-1 text-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                 class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
@@ -57,13 +57,17 @@
                         wire:click='addCartItems({{ $item->id }}, {{ $item->variations_count }}, {{ $item->modifier_groups_count }})'
                         wire:key='item-input-{{ $item->id . microtime() }}' class="hidden peer">
                     <label for="item-{{ $item->id }}"
-                        class="block w-full bg-white rounded-lg shadow-sm transition-all duration-200 cursor-pointer 
-                        hover:shadow-md dark:bg-gray-800 dark:border-gray-700 
+                        @class([
+                            "block w-full rounded-lg shadow-sm transition-all duration-200 dark:shadow-gray-700 dark:hover:bg-gray-700/30 cursor-pointer",
+                            "bg-gray-100 dark:bg-gray-800" => !$item->in_stock,
+                            "bg-white dark:bg-gray-900" => $item->in_stock,
+                        ])
+                        hover:shadow-md dark:bg-gray-800 dark:border-gray-700
                         peer-checked:ring-2 peer-checked:ring-skin-base">
                         {{-- Image Section --}}
                         <div class="relative aspect-square">
                             <img class="w-full h-full object-cover rounded-t-lg"
-                                src="{{ $item->item_photo_url }}" 
+                                src="{{ $item->item_photo_url }}"
                                 alt="{{ $item->item_name }}" />
                             <span class="absolute top-1 right-1 bg-white/90 dark:bg-gray-800/90 rounded-full p-1 shadow-sm">
                                 <img src="{{ asset('img/' . $item->type . '.svg') }}"
@@ -77,7 +81,10 @@
                             <h5 class="text-sm font-medium text-gray-900 dark:text-white min-h-[2.5rem]">
                                 {{ $item->item_name }}
                             </h5>
-                            
+                            @if (!$item->in_stock)
+                                <div class="text-red-500">Out of stock</div>
+                            @else
+
                             <div class="mt-1 flex items-center justify-between gap-2">
                                 @if ($item->variations_count == 0)
                                     <span class="text-base font-semibold text-gray-900 dark:text-white">
@@ -93,6 +100,7 @@
                                 @endif
                             </div>
                         </div>
+                        @endif
                     </label>
                 </li>
             @empty

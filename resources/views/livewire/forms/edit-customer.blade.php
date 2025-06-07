@@ -1,5 +1,5 @@
 <div>
-    <form wire:submit="submitForm">
+    <form wire:submit="editFrontFeature">
         @csrf
         <div class="space-y-4">
 

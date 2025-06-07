@@ -97,6 +97,8 @@
         }
     </script>
 
+    {{-- Include file for widgets if exist --}}
+    @includeIf('sections.custom_script_admin')
 </head>
 
 
@@ -184,6 +186,19 @@
                     currency: '{{ strtolower(restaurant()->currency->currency_code) }}',
                 });
             </script>
+        @endif
+
+        @if (superadminPaymentGateway()->flutterwave_status)
+            <script src="https://checkout.flutterwave.com/v3.js"></script>
+            <form action="{{ route('flutterwave.initiate-payment') }}" method="POST" id="flutterwavePaymentformNew" class="hidden">
+                @csrf
+                <input type="hidden" name="payment_id">
+                <input type="hidden" name="amount">
+                <input type="hidden" name="currency">
+                <input type="hidden" name="restaurant_id">
+                <input type="hidden" name="package_id">
+                <input type="hidden" name="package_type">
+            </form>
         @endif
 
     @endif

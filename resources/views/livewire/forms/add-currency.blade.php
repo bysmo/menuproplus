@@ -60,7 +60,7 @@
 
         </div>
 
-        <div class="mt-4 bg-gray-100 p-4 rounded-md font-medium">
+        <div class="mt-4 bg-gray-100 dark:bg-gray-700 p-4 rounded-md font-medium">
             @lang('app.example') : {{ $sampleFormat }}
         </div>
            

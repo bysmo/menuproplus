@@ -45,6 +45,23 @@
                         </span>
                     </li>
 
+                    <li wire:click="activeSetting('flutterwave')" class="me-2">
+                        <span @class([
+                            'inline-flex items-center gap-x-1 cursor-pointer select-none p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300',
+                            'border-transparent' => $activePaymentSetting != 'flutterwave',
+                            'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' =>
+                                $activePaymentSetting == 'flutterwave',
+                        ])>
+                            <svg class="w-4 h-4" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 176 144.7" xml:space="preserve"><path d="M0 31.6c0-9.4 2.7-17.4 8.5-23.1l10 10C7.4 29.6 17.1 64.1 48.8 95.8s66.2 41.4 77.3 30.3l10 10c-18.8 18.8-61.5 5.4-97.3-30.3C14 80.9 0 52.8 0 31.6" style="fill:#009a46"/><path d="M63.1 144.7c-9.4 0-17.4-2.7-23.1-8.5l10-10c11.1 11.1 45.6 1.4 77.3-30.3s41.4-66.2 30.3-77.3l10-10c18.8 18.8 5.4 61.5-30.3 97.3-24.9 24.8-53.1 38.8-74.2 38.8" style="fill:#ff5805"/><path d="M140.5 91.6C134.4 74.1 122 55.4 105.6 39 69.8 3.2 27.1-10.1 8.3 8.6 7 10 8.2 13.3 10.9 16s6.1 3.9 7.4 2.6c11.1-11.1 45.6-1.4 77.3 30.3 15 15 26.2 31.8 31.6 47.3 4.7 13.6 4.3 24.6-1.2 30.1-1.3 1.3-.2 4.6 2.6 7.4s6.1 3.9 7.4 2.6c9.6-9.7 11.2-25.6 4.5-44.7" style="fill:#f5afcb"/><path d="M167.5 8.6C157.9-1 142-2.6 122.9 4c-17.5 6.1-36.2 18.5-52.6 34.9-35.8 35.8-49.1 78.5-30.3 97.3 1.3 1.3 4.7.2 7.4-2.6s3.9-6.1 2.6-7.4c-11.1-11.1-1.4-45.6 30.3-77.3 15-15 31.8-26.2 47.2-31.6 13.6-4.7 24.6-4.3 30.1 1.2 1.3 1.3 4.6.2 7.4-2.6s3.9-5.9 2.5-7.3" style="fill:#ff9b00"/></svg>
+                            @lang('modules.billing.flutterwave')
+                            <span @class([
+                                'flex w-3 h-3 me-3 rounded-full',
+                                'bg-green-500' => $isFlutterwaveEnabled,
+                                'bg-red-500' => !$isFlutterwaveEnabled,
+                            ])></span>
+                        </span>
+                    </li>
+
                     <li class="me-2">
                         <span wire:click="activeSetting('offline')" @class([
                             'inline-flex items-center gap-x-1 cursor-pointer select-none p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300',
@@ -181,19 +198,124 @@
                     </div>
                 </form>
             @endif
+
+            <!-- Flutterwave Form -->
+            @if($activePaymentSetting == 'flutterwave')
+            <form wire:submit="submitFlutterwaveForm">
+                <div class="grid gap-6">
+
+                    <div class="my-3">
+                        <x-label for="flutterwaveStatus">
+                            <div class="flex items-center cursor-pointer">
+                                <x-checkbox name="flutterwaveStatus" id="flutterwaveStatus" wire:model.live='flutterwaveStatus'/>
+
+                                <div class="ms-2">
+                                    @lang('modules.settings.enableFlutterwave')
+                                </div>
+                            </div>
+                        </x-label>
+                    </div>
+
+                    @if ($flutterwaveStatus)
+                        <div>
+                            <x-label for="flutterwaveMode" :value="__('modules.settings.selectEnvironment')" required/>
+                            <x-select id="flutterwaveMode" class="mt-1 block w-full" wire:model.live="flutterwaveMode">
+                                <option value="test">@lang('app.test')</option>
+                                <option value="live">@lang('app.live')</option>
+                            </x-select>
+                            <x-input-error for="flutterwaveMode" class="mt-2"/>
+                        </div>
+
+                        @if ($flutterwaveMode == 'live')
+                            <div class="grid grid-cols-2 gap-x-4">
+                                <div>
+                                    <x-label for="liveFlutterwaveKey" :value="__('modules.settings.flutterwaveKey')" required/>
+                                    <x-input id="liveFlutterwaveKey" class="block mt-1 w-full" type="text" wire:model='liveFlutterwaveKey'/>
+                                    <x-input-error for="liveFlutterwaveKey" class="mt-2"/>
+                                </div>
+
+                                <div>
+                                    <x-label for="liveFlutterwaveSecret" :value="__('modules.settings.flutterwaveSecret')" required/>
+                                    <x-input-password id="liveFlutterwaveSecret" class="block mt-1 w-full" type="text" wire:model='liveFlutterwaveSecret'/>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-x-4">
+                                <div>
+                                    <x-label for="liveFlutterwaveHash" :value="__('modules.settings.flutterwaveEncryptionKey')" required/>
+                                    <x-input-password id="liveFlutterwaveHash" class="block mt-1 w-full" type="text" wire:model='liveFlutterwaveHash'/>
+                                    <x-input-error for="liveFlutterwaveHash" class="mt-2"/>
+                                </div>
+
+                                <div>
+                                    <x-label for="testFlutterwaveWebhookKey" :value="__('modules.settings.flutterwaveWebhookHash')"/>
+                                    <x-input id="testFlutterwaveWebhookKey" class="block mt-1 w-full" type="text" wire:model='testFlutterwaveWebhookKey'/>
+                                    <x-input-error for="testFlutterwaveWebhookKey" class="mt-2"/>
+                                </div>
+                            </div>
+                        @else
+                            <div class="grid grid-cols-2 gap-x-4">
+                                <div>
+                                    <x-label for="testFlutterwaveKey" :value="__('modules.settings.testFlutterwaveKey')" required/>
+                                    <x-input id="testFlutterwaveKey" class="block mt-1 w-full" type="text" wire:model='testFlutterwaveKey'/>
+                                    <x-input-error for="testFlutterwaveKey" class="mt-2"/>
+                                </div>
+
+                                <div>
+                                    <x-label for="testFlutterwaveSecret" :value="__('modules.settings.testFlutterwaveSecret')" required/>
+                                    <x-input-password id="testFlutterwaveSecret" class="block mt-1 w-full" type="text" wire:model='testFlutterwaveSecret'/>
+                                    <x-input-error for="testFlutterwaveSecret" class="mt-2"/>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-x-4">
+                                <div>
+                                    <x-label for="testFlutterwaveHash" :value="__('modules.settings.testFlutterwaveEncryptionKey')" required/>
+                                    <x-input-password id="testFlutterwaveHash" class="block mt-1 w-full" type="text" wire:model='testFlutterwaveHash'/>
+                                    <x-input-error for="testFlutterwaveHash" class="mt-2"/>
+                                </div>
+
+                                <div>
+                                    <x-label for="testFlutterwaveWebhookKey" :value="__('modules.settings.testFlutterwaveWebhookHash')"/>
+                                    <x-input id="testFlutterwaveWebhookKey" class="block mt-1 w-full" type="text" wire:model='testFlutterwaveWebhookKey'/>
+                                    <x-input-error for="testFlutterwaveWebhookKey" class="mt-2"/>
+                                </div>
+                            </div>
+
+                        @endif
+                        <div class="mt-4">
+                            <x-label :value="__('modules.settings.webhookUrl')" class="mb-1"/>
+                            <div class="flex items-center">
+                                <!-- Webhook URL Input -->
+                                <x-input id="webhook-url" class="block w-full" type="text" value="{{ $webhookUrl }}" readonly/>
+                                <button id="copy-button" type="button" onclick="copyWebhookUrl()" class="ml-2 px-3 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700">
+                                    @lang('modules.settings.copyWebhookUrl')
+                                </button>
+                            </div>
+                        </div>
+
+                    @endif
+
+                    <div>
+                        <x-button>@lang('app.save')</x-button>
+                    </div>
+                </div>
+            </form>
+            @endif
+
             <!-- Offline Form -->
             @if ($activePaymentSetting == 'offline')
                 <form wire:submit="submitFormOffline" class="mt-4">
                     <div class="space-y-6">
                         {{-- Offline Payment Method Toggle --}}
                         <div class="flex items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <div class="flex items-center space-x-2">
+                            <label for="enableOfflinePayment" class="flex items-center space-x-2">
                                 <x-checkbox name="enableOfflinePayment" id="enableOfflinePayment" value="offline" wire:model.live="enableOfflinePayment" />
-                                <div>
-                                    <div class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.enableOfflinePayment')</div>
+                                <span>
+                                    <span class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.enableOfflinePayment')</span>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">@lang('modules.settings.offlinePaymentDescription')</p>
-                                </div>
-                            </div>
+                                </span>
+                            </label>
                         </div>
 
                         @if ($enableOfflinePayment)
@@ -221,15 +343,14 @@
 
                         {{-- Cash Payment Toggle --}}
                         <div class="flex items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <div class="flex items-center space-x-2">
+                            <label for="enablePayViaCash" class="flex items-center space-x-2">
                                 <x-checkbox name="enablePayViaCash" id="enablePayViaCash" value="cash" wire:model.live="enablePayViaCash" />
-                                <div>
-                                    <div class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.enablePayViaCash')</div>
+                                <span>
+                                    <span class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.enablePayViaCash')</span>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">@lang('modules.settings.cashPaymentDescription')</p>
-                                </div>
-                            </div>
+                                </span>
+                            </label>
                         </div>
-
                         {{-- Save Button --}}
                         <div class="flex justify-start">
                             <x-button class="gap-x-2">
@@ -246,16 +367,13 @@
                     <div class="space-y-6">
                         {{-- Enable QR Payment Toggle --}}
                         <div class="flex items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <div class="flex items-center space-x-2">
+                            <label for="offlinePaymentMethodQr" class="flex items-center space-x-2">
                                 <x-checkbox name="offlinePaymentMethodQr" id="offlinePaymentMethodQr" value="qrcode" wire:model.live="enableQrPayment" />
-                                <div class="flex items-center space-x-2">
-
-                                    <div>
-                                        <div class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.enableQrPayment')</div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">@lang('modules.settings.qrPaymentDescription')</p>
-                                    </div>
-                                </div>
-                            </div>
+                                <span>
+                                    <span class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.enableQrPayment')</span>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">@lang('modules.settings.qrPaymentDescription')</p>
+                                </span>
+                            </label>
                         </div>
 
                         @if ($enableQrPayment)
@@ -330,7 +448,7 @@
             @endif
             <!-- general Form -->
             @if ($activePaymentSetting == 'serviceSpecific')
-                @if ($isRazorpayEnabled || $isStripeEnabled || $enableOfflinePayment || $enableQrPayment)
+                @if ($isRazorpayEnabled || $isStripeEnabled || $enableOfflinePayment || $enableQrPayment || $isFlutterwaveEnabled)
                     <div class="space-y-6 mt-4">
                         <x-alert type="info" class="flex items-center">
                             <svg class="flex-shrink-0 w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -393,4 +511,31 @@
         @endif
     </div>
 
+    <script>
+        function copyWebhookUrl() {
+                let webhookUrl = document.getElementById("webhook-url").value;
+                let copyButton = document.getElementById("copy-button");
+
+                // Create a temporary textarea element
+                let tempTextArea = document.createElement("textarea");
+                tempTextArea.value = webhookUrl;
+                document.body.appendChild(tempTextArea);
+
+                // Select and copy the text
+                tempTextArea.select();
+                tempTextArea.setSelectionRange(0, 99999); // For mobile devices
+                document.execCommand("copy");
+
+                // Remove the temporary textarea
+                document.body.removeChild(tempTextArea);
+
+                // Change button text to "Copied!"
+                copyButton.innerText = "Copied!";
+
+                // Revert text back to original after 2 seconds
+                setTimeout(() => {
+                    copyButton.innerText = "Copy";
+                }, 2000);
+            }
+    </script>
 </div>

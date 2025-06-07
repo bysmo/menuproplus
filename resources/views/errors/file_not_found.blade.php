@@ -28,7 +28,7 @@
                     </div>
                 </div>
                 <div class="mt-4 text-sm text-center text-gray-500 uppercase">
-                    <a href="{{ url('/') }}">Retour à la page d'accueil</a>
+                    <a href="{{ url('/') }}">Back To Home</a>
                 </div>
         </div>
         </div>

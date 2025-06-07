@@ -1,16 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ isRtl() ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ restaurant()->name }} - Order #{{ $order->order_number }}</title>
+    <title>{{ restaurant()->name }} - @lang('modules.order.order') #{{ $order->order_number }}</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Arial', sans-serif;
+        }
+
+        [dir="rtl"] {
+            text-align: right;
+        }
+
+        [dir="ltr"] {
+            text-align: left;
         }
 
         .receipt {
@@ -65,9 +73,16 @@
         }
 
         .items-table th {
-            text-align: left;
             padding: 1mm;
             border-bottom: 1px solid #000;
+        }
+
+        [dir="rtl"] .items-table th {
+            text-align: right;
+        }
+
+        [dir="ltr"] .items-table th {
+            text-align: left;
         }
 
         .items-table td {
@@ -88,14 +103,22 @@
             width: 28%;
         }
 
+        [dir="rtl"] .price,
+        [dir="rtl"] .amount {
+            text-align: left;
+        }
+
+        [dir="ltr"] .price,
+        [dir="ltr"] .amount {
+            text-align: right;
+        }
+
         .price {
             width: 20%;
-            text-align: right;
         }
 
         .amount {
             width: 20%;
-            text-align: right;
         }
 
         .summary {
@@ -115,7 +138,6 @@
             justify-content: space-between;
             gap: 5px 55px;
             margin-bottom: 1mm;
-
         }
 
         .total {
@@ -129,7 +151,6 @@
         .footer {
             text-align: center;
             margin-top: 3mm;
-
             font-size: 9pt;
             padding-top: 2mm;
             border-top: 1px dashed #000;
@@ -163,8 +184,6 @@
                         <img src="{{ restaurant()->logo_url }}" alt="{{ restaurant()->name }}" class="restaurant-logo">
                     @endif
                 </span>
-
-                </span>
                 <span>{{ restaurant()->name }}</span>
             </div>
 
@@ -184,8 +203,7 @@
             <div class="">
                 <div class="summary-row">
                     <span>@lang('modules.order.orderNumber') #<span class="order-number">{{ $order->order_number }}</span></span>
-                    <span
-                        class="space_left">{{ $order->date_time->timezone(timezone())->translatedFormat('d M Y H:i') }}</span>
+                    <span class="space_left">{{ $order->date_time->timezone(timezone())->translatedFormat('d M Y H:i') }}</span>
                 </div>
                 <div class="summary-grid">
 
@@ -204,16 +222,14 @@
                 </div>
                 <div class="summary-row">
                     @if ($receiptSettings->show_customer_name && $order->customer && $order->customer->name)
-                        <span class="showData">@lang('modules.customer.customer') :<span
-                                class="">{{ $order->customer->name }}</span></span>
+                        <span class="showData">@lang('modules.customer.customer') :<span class="">{{ $order->customer->name }}</span></span>
                     @endif
                 </div>
 
 
                 @if ($receiptSettings->show_customer_address && $order->customer && $order->customer->delivery_address)
                     <div class="summary-row">
-                        <span>@lang('modules.customer.customerAddress') :<span
-                                class="">{{ $order->customer->delivery_address }}</span></span>
+                        <span>@lang('modules.customer.customerAddress') :<span class="">{{ $order->customer->delivery_address }}</span></span>
                     </div>
                 @endif
             </div>
@@ -314,6 +330,8 @@
 
         <div class="footer">
             <p>@lang('messages.thankYouVisit')</p>
+
+            @if ($order->status != 'paid')                
             <div>
                 @if ($receiptSettings->show_payment_qr_code)
                     <p class="qr_code">@lang('modules.settings.payFromYourPhone')</p>
@@ -321,6 +339,8 @@
                     <p class="">@lang('modules.settings.scanQrCode')</p>
                 @endif
             </div>
+            @endif
+
             @if ($receiptSettings->show_payment_details && $order->payments->count())
                 <div class="summary">
                     <table class="items-table">

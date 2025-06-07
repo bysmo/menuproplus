@@ -39,7 +39,7 @@
                                         {{ $item->seating_capacity }} @lang('modules.table.seats')
                                         </p>
 
-                                    <div wire:loading.flex wire:target="setOrderTable({{ $item }})" 
+                                    <div wire:loading.flex wire:target="setOrderTable({{ $item }})"
                                         class="absolute inset-0 items-center justify-center bg-white/50 dark:bg-gray-800/50 rounded-lg">
                                         <svg class="animate-spin h-5 w-5 text-skin-base" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"/>

@@ -24,7 +24,7 @@
             @error('description') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
 
-        <div class="mt-4 flex justify-end space-x-2">
+        <div class="mt-4 space-x-2">
             <x-button type="submit" wire:loading.attr="disabled">
                 @lang('app.save')
             </x-button>

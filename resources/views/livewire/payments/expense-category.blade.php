@@ -16,12 +16,10 @@
                                 wire:model.live.debounce.500ms="search" />
                         </div>
                     </form>
-
-
                 </div>
 
                 @if (user_can('Create Expense'))
-                    <x-button type='button' wire:click="$set('showAddExpenseCategoryModal', true)">
+                    <x-button type='button' wire:click="showAddExpenseCategory">
                         @lang('modules.expenses.addExpense')
                     </x-button>
                 @endif
@@ -39,16 +37,16 @@
                         <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
                             <thead class="bg-gray-100 dark:bg-gray-700">
                                 <tr>
-                                     <th
-                                        class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    <th
+                                        class="py-2.5 px-4 text-xs font-medium text-start text-gray-500 uppercase dark:text-gray-400">
                                         @lang('modules.expenses.category')
                                     </th>
                                     <th
-                                        class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                        class="py-2.5 px-4 text-xs font-medium text-gray-500 uppercase dark:text-gray-400">
                                         @lang('modules.expenses.description')
                                     </th>
                                     <th
-                                        class="py-2.5 px-4 text-xs font-medium text-gray-500 uppercase dark:text-gray-400 text-right">
+                                        class="py-2.5 px-4 text-xs font-medium text-end text-gray-500 uppercase dark:text-gray-400">
                                         @lang('app.action')
                                     </th>
                                 </tr>
@@ -58,11 +56,11 @@
                                     @foreach ($expenseCategories as $expenseCategory)
                                         <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
 
-                                            <td class="py-2.5 px-4 text-gray-900 dark:text-white">
+                                            <td class="py-2.5 px-4 text-gray-900 text-start dark:text-white text-center">
                                                 {{ $expenseCategory->name }}</td>
-                                            <td class="py-2.5 px-4 text-gray-900 dark:text-white">
+                                            <td class="py-2.5 px-4 text-gray-900 dark:text-white text-center">
                                                 {{ $expenseCategory->description }}</td>
-                                            <td class="py-2.5 px-4 space-x-2 text-right">
+                                            <td class="py-2.5 px-4 space-x-2 text-end">
                                                 {{-- Action buttons --}}
                                                 @if (user_can('Update Expense Category'))
                                                     <x-secondary-button-table
@@ -143,7 +141,21 @@
 
     </div>
 
+    <x-right-modal wire:model.live="showEditExpenseCategoryModal">
+        <x-slot name="title">
+            {{ __('modules.expenses.editExpenseCategory') }}
+        </x-slot>
 
+        <x-slot name="content">
+            @if ($selectedExpenseCategory)
+                @livewire('forms.edit-expense-category', ['expenseCategory' => $selectedExpenseCategory], key(str()->random(50)))
+            @endif
+        </x-slot>
+
+        <x-slot name="footer">
+
+        </x-slot>
+    </x-right-modal>
     <!-- Product Drawer -->
     <x-right-modal wire:model.live="showAddExpenseCategoryModal">
         <x-slot name="title">

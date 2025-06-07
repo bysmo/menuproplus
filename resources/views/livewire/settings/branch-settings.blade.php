@@ -1,4 +1,39 @@
 <div>
+    @if ($isEditing)
+        <div class="px-4">
+            <form wire:submit="saveBranch">
+                @csrf
+                <div class="space-y-4">
+                    <div>
+                        <x-label for="branchName" value="{{ __('modules.settings.branchName') }}" />
+                        <x-input id="branchName" class="block mt-1 w-full" type="text" wire:model='branchName' />
+                        <x-input-error for="branchName" class="mt-2" />
+                    </div>
+
+                    <div>
+                        <x-label for="branchAddress" value="{{ __('modules.settings.branchAddress') }}" />
+                        <x-textarea id="branchAddress" class="block mt-1 w-full" rows="3" wire:model='branchAddress' />
+                        <x-input-error for="branchAddress" class="mt-2" />
+                    </div>
+
+                    <!-- Search Box -->
+                    <div id="place-autocomplete-card" class="mb-2" wire:ignore>
+                        <p id="location-search"> </p>
+                    </div>
+
+                    <div class="mb-4">
+                        <section id="branch-address-map" class="h-96 rounded-lg shadow-md border border-gray-200 mb-2" wire:ignore></section>
+                        <x-input-error for="lat" custom-message="{{ __('modules.delivery.pleaseSelectLocation') }}" />
+                    </div>
+                </div>
+
+                <div class="flex w-full pb-4 space-x-4 mt-6">
+                    <x-button>@lang('app.save')</x-button>
+                    <x-button-cancel wire:click="cancelEdit" wire:loading.attr="disabled">@lang('app.cancel')</x-button-cancel>
+                </div>
+            </form>
+        </div>
+    @else
     <div class="px-4 mb-4">
 
         @if (!in_array('Change Branch', restaurant_modules()))
@@ -17,7 +52,7 @@
                 </svg>
             </button>
         @else
-        <x-button type='button' wire:click="showAddBranch" >@lang('modules.settings.addBranch')</x-button>
+        <x-button type='button' wire:click="createMode" >@lang('modules.settings.addBranch')</x-button>
         @endif
     </div>
 
@@ -58,7 +93,7 @@
                                 </td>
 
                                 <td class="py-2.5 px-4 space-x-2 whitespace-nowrap text-right">
-                                    <x-secondary-button-table wire:click='showEditBranch({{ $item->id }})' wire:key='member-edit-{{ $item->id . microtime() }}'
+                                    <x-secondary-button-table wire:click='editMode({{ $item->id }})' wire:key='member-edit-{{ $item->id . microtime() }}'
                                         wire:key='editmenu-item-button-{{ $item->id }}'>
                                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"
                                             xmlns="http://www.w3.org/2000/svg">
@@ -96,40 +131,7 @@
             </div>
         </div>
     </div>
-
-    <x-right-modal wire:model.live="showEditBranchModal">
-        <x-slot name="title">
-            {{ __("modules.settings.editBranch") }}
-        </x-slot>
-
-        <x-slot name="content">
-            @if ($activeBranch)
-            @livewire('forms.editBranch', ['branch' => $activeBranch], key(str()->random(50)))
-            @endif
-        </x-slot>
-
-        <x-slot name="footer">
-            <x-secondary-button wire:click="$set('showEditBranchModal', false)" wire:loading.attr="disabled">
-                {{ __('app.close') }}
-            </x-secondary-button>
-        </x-slot>
-    </x-right-modal>
-
-    <x-right-modal wire:model.live="showAddBranchModal">
-        <x-slot name="title">
-            {{ __("modules.settings.addBranch") }}
-        </x-slot>
-
-        <x-slot name="content">
-            @livewire('forms.addBranch')
-        </x-slot>
-
-        <x-slot name="footer">
-            <x-secondary-button wire:click="$set('showAddBranchModal', false)" wire:loading.attr="disabled">
-                {{ __('app.close') }}
-            </x-secondary-button>
-        </x-slot>
-    </x-right-modal>
+    @endif
 
     <x-confirmation-modal wire:model="confirmDeleteBranchModal">
         <x-slot name="title">
@@ -153,5 +155,164 @@
          </x-slot>
     </x-confirmation-modal>
 
+    @pushOnce('scripts')
+    @script
+    <script>
+
+        const MAP_API_KEY = atob('{{ base64_encode($mapApiKey) }}');
+        const STRINGS = {
+            shopLocation: "@lang('modules.delivery.shopLocation')",
+            dragToAdjust: "@lang('modules.delivery.dragMarkerToAdjust')",
+        };
+
+        // Load Google Maps JS if not already loaded
+        if (!window.google || !google.maps) {
+            const script = document.createElement('script');
+            script.src = MAP_API_KEY
+                ? `https://maps.googleapis.com/maps/api/js?key=${MAP_API_KEY}&loading=async&libraries=places,geocoding,marker&callback=setupAddressMap`
+                : `https://maps.googleapis.com/maps/api/js?&loading=async&libraries=places,geocoding,marker&callback=setupAddressMap`;
+            document.head.appendChild(script);
+        } else {
+            setupAddressMap();
+        }
+
+        document.addEventListener('livewire:navigated', () => {
+            Livewire.on('initAddressMap', (params) => {
+                setTimeout(() => setupAddressMap(params), 300);
+            });
+        });
+
+        if (document.getElementById('branch-address-map')) {
+            setTimeout(() => setupAddressMap(), 300);
+        }
+
+        let map, addressMarker;
+
+        function setupAddressMap() {
+            const mapElement = document.getElementById('branch-address-map');
+
+            if (!mapElement) {
+                return;
+            }
+
+            const lat = parseFloat(@this.get('branchLat')) || 26.9125;
+            const lng = parseFloat(@this.get('branchLng')) || 75.7875;
+
+            map = new google.maps.Map(mapElement, {
+                center: { lat, lng },
+                zoom: 15,
+                gestureHandling: 'greedy',
+                zoomControl: false,
+                streetViewControl: false,
+                mapId: 'DEMO_MAP_ID',
+            });
+
+            const container = document.createElement("div");
+            container.style.position = "relative";
+            container.style.width = "35px";
+            container.style.height = "45px";
+            const markerSvg = `<svg viewBox="0 0 512 512" style="position:absolute;left:0;bottom:0">
+                <path d="M256 0C150 0 64 86 64 192c0 133.1 174.9 307.7 181.6 314.4a16 16 0 0022.8 0C273.1 499.7 448 325.1 448 192 448 86 362 0 256 0z" fill="#f44336"/>
+                <circle cx="256" cy="192" r="140" fill="#ffffff"/>
+                <image href="{{ restaurant()->logo_url }}" x="136" y="72" width="240" height="240" clip-path="circle(120px at center)"/>
+            </svg>`;
+
+            container.innerHTML = markerSvg;
+
+            addressMarker = new google.maps.marker.AdvancedMarkerElement({
+                position: { lat, lng },
+                map: map,
+                content: container,
+                gmpDraggable: true,
+                title: STRINGS.shopLocation
+            });
+
+            google.maps.event.addListener(addressMarker, 'dragend', (e) => {
+                updateLatLng(e.latLng.lat(), e.latLng.lng());
+            });
+
+            google.maps.event.addListener(map, 'click', (e) => {
+                updateLatLng(e.latLng.lat(), e.latLng.lng());
+            });
+
+            // Ensure proper map rendering
+            setTimeout(() => {
+                google.maps.event.trigger(map, 'resize');
+                map.setCenter(new google.maps.LatLng(lat, lng));
+            }, 100);
+
+            addAutocomplete();
+
+            addCurrentLocationButton();
+        }
+
+        function addCurrentLocationButton() {
+            const button = document.createElement("button-current-location");
+            button.className = "bg-white p-2 rounded-lg shadow-md m-3";
+            button.title = "Use Current Location";
+            button.setAttribute("type", "button-current-location");
+
+            const defaultSvg = `<svg class="w-5 h-5 text-current" width="20" height="20" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3"/><path d="M13 4.069V2h-2v2.069A8.01 8.01 0 0 0 4.069 11H2v2h2.069A8.01 8.01 0 0 0 11 19.931V22h2v-2.069A8.01 8.01 0 0 0 19.931 13H22v-2h-2.069A8.01 8.01 0 0 0 13 4.069M12 18c-3.309 0-6-2.691-6-6s2.691-6 6-6 6 2.691 6 6-2.691 6-6 6"/></svg>`;
+            const loadingSvg = `<svg class="animate-spin w-5 h-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4z"/></svg>`;
+
+            button.innerHTML = defaultSvg;
+
+            button.addEventListener("click", () => {
+            if (!navigator.geolocation) return;
+
+            button.innerHTML = loadingSvg;
+
+            navigator.geolocation.getCurrentPosition(
+                ({ coords: { latitude: lat, longitude: lng } }) => {
+                const position = { lat, lng };
+                updateLatLng(lat, lng);
+                button.innerHTML = defaultSvg;
+                },
+                (error) => {
+                console.error("Geolocation error:", error);
+                button.innerHTML = defaultSvg;
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
+            });
+
+            map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(button);
+        }
+
+        function updateLatLng(lat, lng) {
+            if (lat && lng) {
+                addressMarker.position = { lat, lng };
+                map.setCenter({ lat, lng });
+                @this.set('branchLat', lat);
+                @this.set('branchLng', lng);
+            }
+        }
+
+        function addAutocomplete() {
+            if (!window.placeAutocomplete) {
+                const locationSearchInput = document.getElementById('location-search');
+
+                window.placeAutocomplete = new google.maps.places.PlaceAutocompleteElement({
+                    inputElement: locationSearchInput,
+                });
+            }
+
+            const card = document.getElementById('place-autocomplete-card');
+            card.appendChild(placeAutocomplete);
+
+
+            placeAutocomplete.addEventListener('gmp-select', async ({ placePrediction }) => {
+                const place = placePrediction.toPlace();
+                await place.fetchFields({ fields: ['location'] });
+                const { location } = place;
+
+                if (location) {
+                    updateLatLng(location.lat(), location.lng());
+                }
+            });
+        }
+    </script>
+    @endscript
+    @endpushOnce
 
 </div>

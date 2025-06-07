@@ -36,6 +36,13 @@
         'baseColor' => global_setting()->theme_rgb,
         'baseColorHex' => global_setting()->theme_hex,
     ])
+
+    @if (File::exists(public_path() . '/css/app-custom.css'))
+    <link href="{{ asset('css/app-custom.css') }}" rel="stylesheet">
+    @endif
+
+    {{-- Include file for widgets if exist --}}
+    @includeIf('sections.custom_script_landing')
 </head>
 
 <body class="font-sans antialiased dark:bg-gray-900">
@@ -74,17 +81,17 @@
                         id="mobile-menu-2">
                         <ul class="flex flex-col font-medium ">
                             <li>
-                                <a href="{{ url('/') }}" wire:navigate
+                                <a href="{{ url('/') }}"
                                     class="block py-2 pr-4 pl-3 text-gray-700 rounded dark:text-white">@lang('menu.home')</a>
                             </li>
 
                             <li>
-                                <a href="{{ url('/') }}#icon-features" wire:navigate
+                                <a href="{{ url('/') }}#icon-features"
                                     class="block py-2 pr-4 pl-3 text-gray-700 rounded dark:text-white">@lang('landing.features')</a>
                             </li>
 
                             <li>
-                                <a href="{{ url('/') }}#simple-pricing" wire:navigate
+                                <a href="{{ url('/') }}#simple-pricing"
                                     class="block py-2 pr-4 pl-3 text-gray-700 rounded dark:text-white">@lang('landing.pricing')</a>
                             </li>
 
@@ -251,13 +258,12 @@
             </div>
         </div>
     </div>
-
     @stack('modals')
-
-    <footer class="p-4 bg-white sm:p-6 dark:bg-gray-800 border-t ">
+    <footer class="p-4 bg-white sm:p-6 dark:bg-gray-800 border-t dark:border-gray-600">
         <div class="mx-auto max-w-screen-xl">
             <div class="sm:flex sm:items-center sm:justify-between">
-                <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400"> Aladin Technologies Solutions (ALTES) © {{ now()->year }} <a
+
+                <span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">© {{ now()->year }} <a
                         href="" class="hover:underline">{{ global_setting()->name }}</a>. @lang('landing.rightsReserved')
                 </span>
                 <div class="flex mt-4 space-x-6 sm:justify-center sm:mt-0 rtl:space-x-reverse">

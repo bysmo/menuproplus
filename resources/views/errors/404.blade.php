@@ -1,14 +1,14 @@
 @extends('errors::minimal')
 
-@section('title', __('Page non trouvvée'))
+@section('title', __('Not Found'))
 @section('code', '404')
-@section('message', __('Ooooops...!!!'))
-@section('description', __('La page que vous demandez semble ne pas exister, a dû avoir été déplacée ou supprimée, ou est temporairement indisponible.'))
+@section('message', __('Page Not Found'))
+@section('description', __('The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.'))
 
-@section('help_title', __("Options possibles :"))
-@section('help_item_1', __('Vérifier encore le lien'))
-@section('help_item_2', __('Retourner à la page d’accueil'))
-@section('help_item_3', __('Retourner à la page précédente'))
+@section('help_title', __("Here's what you can try:"))
+@section('help_item_1', __('Double check the URL'))
+@section('help_item_2', __('Return to homepage'))
+@section('help_item_3', __('Go back to previous page'))
 
 @section('help_icon_1')
 <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -187,10 +187,11 @@
 
     @if(!$free)
 
-    @if($stripeSettings->razorpay_status == 1 || $stripeSettings->stripe_status == 1)
+    @if($stripeSettings->razorpay_status == 1 || $stripeSettings->stripe_status == 1 || $stripeSettings->flutterwave_status == 1)
     @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://checkout.flutterwave.com/v3.js"></script>
     @script
     <script>
         document.addEventListener('livewire:navigated', () => {
@@ -243,6 +244,34 @@
                 document.getElementById('package_id').value = payment.payment.package_id;
                 document.getElementById('currency_id').value = payment.payment.currency_id;
                 document.getElementById('license-payment-form').submit();
+            });
+
+            $wire.on('redirectToFlutterwave', (params) => {
+                const form = document.getElementById('flutterwavePaymentformNew');
+                const paramsData = params[0].params;
+
+                // Clear existing inputs (in case of multiple submissions)
+                form.innerHTML = '@csrf'; // Reset form with just CSRF token
+
+                const addHiddenInput = (name, value) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = name;
+                    input.value = value;
+                    form.appendChild(input);
+                };
+
+                console.log('Flutterwave Params:', paramsData);
+
+                addHiddenInput('payment_id', paramsData.payment_id);
+                addHiddenInput('amount', paramsData.amount);
+                addHiddenInput('currency', paramsData.currency);
+                addHiddenInput('restaurant_id', paramsData.restaurant_id);
+                addHiddenInput('package_id', paramsData.package_id);
+                addHiddenInput('package_type', paramsData.package_type);
+
+                // Submit the form
+                form.submit();
             });
         });
     </script>

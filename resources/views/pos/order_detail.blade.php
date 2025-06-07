@@ -16,7 +16,7 @@
                      <a href="javascript:;" wire:click="$dispatch('showAddCustomerModal', { id: {{ $orderDetail->id }} })"
                       class="underline text-sm dark:text-gray-300 underline-offset-2">&plus; @lang('modules.order.addCustomerDetails')</a>
                     @endif
-                    <div class="font-medium text-gray-600 text-xs dark:text-gray-400">{{ $orderDetail->date_time->translatedFormat('F d, Y H:i A') }}</div>
+                    <div class="font-medium text-gray-600 text-xs dark:text-gray-400">{{ $orderDetail->date_time->timezone(timezone())->translatedFormat('F d, Y H:i A') }}</div>
                 </div>
 
             </div>
@@ -120,25 +120,27 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-end items-center mt-4 space-x-2">
-                        @if($orderDetail->order_status->value === 'placed')
-                            <x-danger-button class="inline-flex items-center gap-2 dark:text-gray-200" wire:click="cancelOrder">
-                                <span>{{ __('modules.order.cancelOrder') }}</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </x-danger-button>
-                        @endif
+                    @if(user_can('Update Order'))
+                        <div class="flex justify-end items-center mt-4 space-x-2">
+                            @if($orderDetail->order_status->value === 'placed')
+                                <x-danger-button class="inline-flex items-center gap-2 dark:text-gray-200" wire:click="cancelOrder">
+                                    <span>{{ __('modules.order.cancelOrder') }}</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </x-danger-button>
+                            @endif
 
-                        @if($currentIndex < count($statuses) - 1)
-                            <x-secondary-button class="inline-flex items-center gap-2" wire:click="$set('orderStatus', '{{ $statuses[$nextIndex] }}')">
-                                <span>{{ __('modules.order.moveTo') }} {{ __('modules.order.' . App\Enums\OrderStatus::from($statuses[$nextIndex])->label()) }}</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                </svg>
-                            </x-secondary-button>
-                        @endif
-                    </div>
+                            @if($currentIndex < count($statuses) - 1)
+                                <x-secondary-button class="inline-flex items-center gap-2" wire:click="$set('orderStatus', '{{ $statuses[$nextIndex] }}')">
+                                    <span>{{ __('modules.order.moveTo') }} {{ __('modules.order.' . App\Enums\OrderStatus::from($statuses[$nextIndex])->label()) }}</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    </svg>
+                                </x-secondary-button>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             @endif
         </div>
@@ -268,7 +270,7 @@
                         @if ($charge->charge_type == 'percent')
                             ({{ $charge->charge_value }}%)
                         @endif
-                        @if($orderDetail->status !== 'paid')
+                        @if($orderDetail->status !== 'paid' && user_can('Update Order'))
                         <span class="text-red-500 hover:scale-110 active:scale-100 cursor-pointer"
                             wire:click="removeExtraCharge('{{ $charge->id }}', '{{ $orderType }}')">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
@@ -297,6 +299,21 @@
                 </div>
                 @endif
 
+                @if ($orderType === 'delivery' && !is_null($deliveryFee))
+                    <div class="flex justify-between text-gray-500 dark:text-neutral-400 text-sm">
+                        <div>
+                            @lang('modules.delivery.deliveryFee')
+                        </div>
+                        <div>
+                            @if($deliveryFee > 0)
+                                {{ currency_format($deliveryFee, restaurant()->currency_id) }}
+                            @else
+                                <span class="text-green-500 font-medium">@lang('modules.delivery.freeDelivery')</span>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
                 @foreach ($orderDetail->taxes as $item)
                 <div class="flex justify-between text-gray-500 text-sm dark:text-neutral-400">
                     <div>
@@ -321,7 +338,7 @@
             <div class="h-auto pb-4 pt-3 select-none text-center w-full">
                 <div class="flex gap-2">
 
-                    @if ($orderDetail->status == 'billed')
+                    @if ($orderDetail->status == 'billed' && user_can('Update Order'))
                     <button class="rounded bg-green-600 text-white  w-full p-2" wire:click='showPayment({{ $orderDetail->id }})'>
                         @lang('modules.order.addPayment')
                     </button>

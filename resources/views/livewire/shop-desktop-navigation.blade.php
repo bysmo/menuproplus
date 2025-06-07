@@ -61,11 +61,7 @@
             </div>
             <div class="flex items-center lg:order-2 gap-3">
 
-                {{-- @if ($restaurant->is_waiter_request_enabled)
-                    @livewire('forms.callWaiterButton', ['tableNumber' => $table->id ?? null, 'shopBranch' => $shopBranch])
-                @endif --}}
-
-                @if ($this->shouldShowWaiterButton)
+                @if ($showWaiterButtonCheck)
                     @livewire('forms.callWaiterButton', ['tableNumber' => $table->id ?? null, 'shopBranch' => $shopBranch])
                 @endif
 
@@ -124,6 +120,10 @@
                             <li>
                                 <a href="{{ route('profile', [$restaurant->hash]) }}" wire:navigate
                                     class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">@lang('menu.profile')</a>
+                            </li>
+                            <li>
+                                <a href="{{ route('my_addresses', [$restaurant->hash]) }}" wire:navigate
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">@lang('menu.myAddresses')</a>
                             </li>
                             <li>
                                 <a href="{{ route('my_orders', [$restaurant->hash]) }}" wire:navigate

@@ -159,7 +159,7 @@
                   role="menuitem">@lang('menu.profile')</a>
               </li>
 
-              @if (user_can('Manage Settings'))
+              @if (user_can('Manage Settings') && in_array('Settings', restaurant_modules()))
               <li>
                 <a href="{{ route('settings.index') }}" wire:navigate
                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"

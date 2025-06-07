@@ -7,7 +7,7 @@
                     class="w-full border-b border-gray-200 sm:border-b-0 sm:border-r dark:border-gray-600 cursor-pointer">
                     <div class="flex items-center ps-3">
                         <input id="horizontal-list-radio-dine_in" wire:model.live='orderType' type="radio" value="dine_in"
-                            name="list-radio"
+                            name="list-radio" @if(!user_can('Update Order')) disabled @endif
                             class="w-4 h-4 text-skin-base bg-gray-100 border-gray-300 focus:ring-skin-base dark:focus:ring-skin-base dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
                         <label for="horizontal-list-radio-dine_in"
                             class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">@lang('modules.order.dine_in')</label>
@@ -19,7 +19,7 @@
                     class="w-full border-b border-gray-200 sm:border-b-0 sm:border-r dark:border-gray-600 cursor-pointer">
                     <div class="flex items-center ps-3 ">
                         <input id="horizontal-list-radio-delivery" wire:model.live='orderType' type="radio"
-                            value="delivery" name="list-radio"
+                            value="delivery" name="list-radio" @if(!user_can('Update Order')) disabled @endif
                             class="w-4 h-4 text-skin-base bg-gray-100 border-gray-300 focus:ring-skin-base dark:focus:ring-skin-base dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
                         <label for="horizontal-list-radio-delivery"
                             class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">@lang('modules.order.delivery')</label>
@@ -30,7 +30,7 @@
                 <li class="w-full border-b border-gray-200 sm:border-b-0 dark:border-gray-600">
                     <div class="flex items-center ps-3 ">
                         <input id="horizontal-list-radio-pickup" wire:model.live='orderType' type="radio"
-                            value="pickup" name="list-radio"
+                            value="pickup" name="list-radio" @if(!user_can('Update Order')) disabled @endif
                             class="w-4 h-4 text-skin-base bg-gray-100 border-gray-300 focus:ring-skin-base dark:focus:ring-skin-base dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
                         <label for="horizontal-list-radio-pickup"
                             class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">@lang('modules.order.pickup')</label>
@@ -50,39 +50,43 @@
                 @lang('modules.order.orderNumber') #{{ $orderNumber }}
             </div>
 
+
             <div class="inline-flex items-center gap-2 dark:text-gray-300">
                 @if (!is_null($tableNo))
                 <svg  fill="currentColor" class="w-5 h-5 transition duration-75 group-hover:text-gray-900 dark:text-gray-200  dark:group-hover:text-white" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 44.999 44.999" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M42.558,23.378l2.406-10.92c0.18-0.816-0.336-1.624-1.152-1.803c-0.816-0.182-1.623,0.335-1.802,1.151l-2.145,9.733 h-9.647c-0.835,0-1.512,0.677-1.512,1.513c0,0.836,0.677,1.513,1.512,1.513h0.573l-3.258,7.713 c-0.325,0.771,0.034,1.657,0.805,1.982c0.19,0.081,0.392,0.12,0.588,0.12c0.59,0,1.15-0.348,1.394-0.925l2.974-7.038l4.717,0.001 l2.971,7.037c0.327,0.77,1.215,1.127,1.982,0.805c0.77-0.325,1.13-1.212,0.805-1.982l-3.257-7.713h0.573 C41.791,24.564,42.403,24.072,42.558,23.378z"></path> <path d="M14.208,24.564h0.573c0.835,0,1.512-0.677,1.512-1.513c0-0.836-0.677-1.513-1.512-1.513H5.134L2.99,11.806 C2.809,10.99,2,10.472,1.188,10.655c-0.815,0.179-1.332,0.987-1.152,1.803l2.406,10.92c0.153,0.693,0.767,1.187,1.477,1.187h0.573 L1.234,32.28c-0.325,0.77,0.035,1.655,0.805,1.98c0.768,0.324,1.656-0.036,1.982-0.805l2.971-7.037l4.717-0.001l2.972,7.038 c0.244,0.577,0.804,0.925,1.394,0.925c0.196,0,0.396-0.039,0.588-0.12c0.77-0.325,1.13-1.212,0.805-1.98L14.208,24.564z"></path> <path d="M24.862,31.353h-0.852V18.308h8.13c0.835,0,1.513-0.677,1.513-1.512s-0.678-1.513-1.513-1.513H12.856 c-0.835,0-1.513,0.678-1.513,1.513c0,0.834,0.678,1.512,1.513,1.512h8.13v13.045h-0.852c-0.835,0-1.512,0.679-1.512,1.514 s0.677,1.513,1.512,1.513h4.728c0.837,0,1.514-0.678,1.514-1.513S25.699,31.353,24.862,31.353z"></path> </g> </g> </g></svg>
                 {{ $tableNo }}
-
+                @if(user_can('Update Order'))
                 <x-secondary-button wire:click="$toggle('showTableModal')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
                         <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/>
                         <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"/>
                     </svg>
                 </x-secondary-button>
-                @else
+                @endif
+                @elseif(user_can('Update Order'))
                 <x-secondary-button wire:click="$toggle('showTableModal')">@lang('modules.order.setTable')</x-secondary-button>
                 @endif
             </div>
         </div>
         <div class="flex justify-between mb-2 items-center gap-2">
             @if ($orderType == 'dine_in')
-            <div class="py-2 inline-flex items-center gap-1 text-sm dark:text-gray-300">
-                @lang('modules.order.noOfPax') <x-input type="number" step='1' min='1' class="w-16 text-sm" wire:model='noOfPax' />
-            </div>
+                <div class="py-2 inline-flex items-center gap-1 text-sm dark:text-gray-300">
+                    @lang('modules.order.noOfPax') <x-input type="number" step='1' min='1' class="w-16 text-sm" wire:model='noOfPax' />
+                </div>
 
-            <div class="gap-2 inline-flex items-center">
-                <x-select class="text-sm w-36 xl:w-fit" wire:model.live='selectWaiter'>
-                    <option value="">@lang('modules.order.selectWaiter')</option>
-                    @foreach ($users as $item)
-                        <option value="{{ $item->id }}">{{ $item->name }}</option>
-                    @endforeach
-                </x-select>
-            </div>
+                @if(user_can('Update Order'))
+                    <div class="gap-2 inline-flex items-center">
+                        <x-select class="text-sm w-36 xl:w-fit" wire:model.live='selectWaiter'>
+                            <option value="">@lang('modules.order.selectWaiter')</option>
+                            @foreach ($users as $item)
+                                <option value="{{ $item->id }}">{{ $item->name }}</option>
+                            @endforeach
+                        </x-select>
+                    </div>
+                @endif
             @endif
 
-            @if ($orderType == 'delivery')
+            @if ($orderType == 'delivery' && user_can('Update Order'))
                 <div class="gap-2 flex justify-between items-center">
                     <div class="inline-flex items-center gap-2">
                         <svg class="w-6 h-6 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
@@ -184,6 +188,7 @@
                     </div>
                 </div>
 
+                @if(user_can('Update Order'))
                 <div class="flex justify-end items-center mt-4 space-x-2">
                     @if($orderStatus->value === 'placed')
                         <x-danger-button class="inline-flex items-center gap-2 dark:text-gray-200" wire:click="cancelOrder">
@@ -203,6 +208,7 @@
                         </x-secondary-button>
                     @endif
                 </div>
+                @endif
             </div>
         </div>
         @endif
@@ -338,7 +344,7 @@
 
     <div>
         <div class="h-auto p-4 mt-3 select-none text-center w-full bg-gray-50 rounded space-y-4 dark:bg-gray-700">
-            @if (count($orderItemList) > 0)
+            @if (count($orderItemList) > 0 && user_can('Update Order'))
             <div class="text-left">
                 <x-secondary-button wire:click="showAddDiscount">
                     <svg class="h-5 w-5 text-current me-1" width="24" height="24" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="m7.25 14.25-5.5-5.5 7-7h5.5v5.5z"/><circle cx="11" cy="5" r=".5" fill="#000"/></svg>
@@ -384,6 +390,7 @@
                         @if ($charge->charge_type == 'percent')
                             ({{ $charge->charge_value }}%)
                         @endif
+                        @if(user_can('Update Order'))
                         <span class="text-red-500 hover:scale-110 active:scale-100 cursor-pointer"
                             wire:click="removeExtraCharge('{{ $charge->id }}', '{{ $orderType }}')">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
@@ -393,6 +400,7 @@
                                     clip-rule="evenodd" />
                             </svg>
                         </span>
+                        @endif
                     </div>
                     <div>
                         {{ currency_format($charge->getAmount($subTotal - ($discountAmount ?? 0)), restaurant()->currency_id) }}
@@ -409,6 +417,21 @@
                     {{ currency_format($tipAmount, restaurant()->currency_id) }}
                 </div>
             </div>
+            @endif
+
+            @if ($orderType === 'delivery' && !is_null($deliveryFee))
+                <div class="flex justify-between text-gray-500 dark:text-neutral-400 text-sm">
+                    <div>
+                        @lang('modules.delivery.deliveryFee')
+                    </div>
+                    <div>
+                        @if($deliveryFee > 0)
+                            {{ currency_format($deliveryFee, restaurant()->currency_id) }}
+                        @else
+                            <span class="text-green-500 font-medium">@lang('modules.delivery.freeDelivery')</span>
+                        @endif
+                    </div>
+                </div>
             @endif
 
             @foreach ($taxes as $item)
@@ -432,8 +455,8 @@
             </div>
         </div>
 
-        <div class="h-auto pb-4 pt-3 select-none text-center w-full">
-            @if ($orderDetail->status == 'kot')
+        <div class="h-auto pb-4 pt-3 select-none w-full">
+            @if ($orderDetail->status == 'kot' && user_can('Update Order'))
                 <div class="grid grid-cols-2 gap-4">
                     <button class="rounded bg-skin-base text-white w-full p-2" wire:click="saveOrder('bill')">
                         @lang('modules.order.bill')
@@ -446,7 +469,7 @@
                         @lang('modules.order.createBillAndPrintReceipt')
                     </button>
 
-                    <a href="{{ route('pos.kot', ['id' => $orderDetail->id]) }}" class="rounded bg-white text-skin-base border border-skin-base w-full p-2">
+                    <a href="{{ route('pos.kot', ['id' => $orderDetail->id]) }}" class="rounded bg-white text-skin-base border border-skin-base w-full p-2 text-center">
                         @lang('modules.order.newKot')
                     </a>
 
@@ -458,13 +481,46 @@
                 </div>
             @endif
 
-            @if ($orderDetail->status == 'billed')
+            @if ($orderDetail->status == 'billed' && user_can('Update Order'))
                 <div class="flex gap-2">
                     <button class="rounded bg-skin-base text-white w-full p-2" wire:click="saveOrder('bill')">
                         @lang('modules.order.addPayment')
                     </button>
                 </div>
             @endif
+
+            @if ($orderDetail->order_type == 'delivery' && $orderDetail->delivery_address)
+            <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg flex flex-col gap-2">
+                @if ($orderDetail->customer)
+                <div class="flex items-center gap-1.5  text-gray-800 dark:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16"><path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/></svg>
+                    <span class="text-gray-800 dark:text-gray-200">
+                        {{ $orderDetail->customer->name }}
+                    </span>
+                </div>
+                @endif
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-1.5  text-gray-800 dark:text-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6"/></svg>
+                        @lang('modules.customer.address')
+                    </div>
+
+                    @if($orderDetail->customer_lat && $orderDetail->customer_lng && branch()->lat && branch()->lng)
+                        <a href="https://www.google.com/maps/dir/?api=1&travelmode=two-wheeler&origin={{ branch()->lat }},{{ branch()->lng }}&destination={{ $orderDetail->customer_lat }},{{ $orderDetail->customer_lng }}"
+                            target="_blank"
+                            class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 text-sm transition-colors">
+                            <span>@lang('modules.order.viewOnMap')</span>
+                            <svg width="24" height="24" class="h-4 w-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4m-8-2 8-8m0 0v5m0-5h-5"/></svg>
+                        </a>
+                    @endif
+                </div>
+
+                <div class="text-sm text-gray-600 dark:text-gray-300 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
+                    {!! nl2br(e($orderDetail->delivery_address)) !!}
+                </div>
+            </div>
+        @endif
+
 
 
         </div>

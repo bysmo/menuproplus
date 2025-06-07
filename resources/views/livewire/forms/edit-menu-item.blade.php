@@ -207,7 +207,16 @@
             </div>
 
             <div>
-                <x-label for="itemImage" value="{{ __('modules.menu.itemImage') }}"/>
+                <x-label for="showOnCustomerSite" :value="__('modules.menu.showOnCustomerSite')" />
+                <x-select id="showOnCustomerSite" class="mt-1 block w-full" wire:model="showOnCustomerSite">
+                    <option value="1">@lang('app.yes')</option>
+                    <option value="0">@lang('app.no')</option>
+                </x-select>
+                <x-input-error for="showOnCustomerSite" class="mt-2" />
+            </div>
+
+            <div>
+                <x-label for="itemImage" :value="__('modules.menu.itemImage')"/>
 
                 <input
                     class="block w-full text-sm border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 text-slate-500 my-1"
@@ -238,9 +247,15 @@
                 <div wire:transition.out.opacity.duration.200ms>
                     <x-label for="itemPrice" :value="__('modules.menu.setPrice')"/>
                     <div class="relative rounded-md mt-1">
+                        @if (restaurant()->currency->currency_position == 'left' || restaurant()->currency->currency_position == 'left_space')
                         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <span class="text-gray-500">{{ restaurant()->currency->currency_symbol }}</span>
                         </div>
+                        @elseif (restaurant()->currency->currency_position == 'right' || restaurant()->currency->currency_position == 'right_space')
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                            <span class="text-gray-500">{{ restaurant()->currency->currency_symbol }}</span>
+                        </div>
+                        @endif
                         <x-input id="itemPrice" type="number" step="0.001" wire:model="itemPrice"
                                  class="block w-full rounded pl-10 text-gray-900 placeholder:text-gray-400"
                                  placeholder="0.00"/>

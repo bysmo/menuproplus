@@ -1,6 +1,6 @@
 <div class="flex flex-col items-center space-y-4">
     <!-- Call Waiter Button -->
-    <x-button 
+    <x-button
         wire:click="callWaiter" class="inline-flex items-center gap-1 "
     >
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
@@ -10,43 +10,44 @@
     </x-button>
 
     @if ($showTableSelection)
-    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md p-6 text-center space-y-4">
-            <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300">@lang('modules.table.selectTable')</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                @foreach ($tables as $table)
-                    <button 
-                        wire:click="selectTable({{ $table->id }})"
-                        class="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-skin-base hover:text-white hover:border-skin-base transition-colors duration-200 dark:bg-gray-800 dark:text-gray-300"
-                    >
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 !m-0">
+        <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md p-6 text-center relative flex flex-col mx-2 md:m-0 max-h-[40rem] w-full max-w-lg">
+            <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">@lang('modules.table.selectTable')</h2>
+
+            <div class="overflow-y-auto flex-grow">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    @foreach ($tables as $table)
+                    <button wire:click="selectTable({{ $table->id }})"
+                        class="flex items-center justify-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-skin-base hover:text-white hover:border-skin-base transition-colors duration-200 dark:bg-gray-800 dark:text-gray-300">
                         <span class="text-lg font-semibold">{{ $table->table_code }}</span>
                     </button>
-                @endforeach
+                    @endforeach
+                </div>
             </div>
-            <button 
-                wire:click="cancelCall"
-                class="mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
-            >
-                @lang('app.cancel')
-            </button>
+
+            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                <button wire:click="cancelCall"
+                    class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded">
+                    @lang('app.cancel')
+                </button>
             </div>
         </div>
     </div>
     @endif
     <!-- Confirmation Popup -->
     @if ($showConfirmation)
-    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 !m-0">
         <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md p-6 text-center space-y-4">
             <p class="text-gray-700 dark:text-gray-300 text-sm font-semibold">@lang('app.callWaiterConfirmation') (@lang('modules.table.table') {{ $table->table_code ?? ''  }})</p>
             <div class="flex space-x-4 justify-center">
-                <button 
-                    wire:click="confirmCall" 
+                <button
+                    wire:click="confirmCall"
                     class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded"
                 >
                     @lang('app.yes')
                 </button>
-                <button 
-                    wire:click="cancelCall" 
+                <button
+                    wire:click="cancelCall"
                     class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
                 >
                     @lang('app.no')
@@ -58,13 +59,13 @@
 
     <!-- Notification Message -->
     @if ($notificationSent)
-    <div 
-    x-data="{ show: true }" 
-    x-init="setTimeout(() => show = false, 3000)" 
-    x-show="show" 
-    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+    <div
+    x-data="{ show: true }"
+    x-init="setTimeout(() => show = false, 3000)"
+    x-show="show"
+    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 !m-0"
 >
-    <div 
+    <div
         class="bg-green-100 dark:bg-green-900 border border-green-400 text-green-700 dark:text-green-300 px-6 py-4 rounded-lg shadow-lg text-center"
     >
             @lang('app.callWaiterNotification')

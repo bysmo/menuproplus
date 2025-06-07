@@ -182,6 +182,7 @@
                 </x-secondary-button>
             @endif
 
+            @if (user_can('Delete Order'))                
             <x-danger-button wire:click="$toggle('confirmDeleteKotModal')">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd"
@@ -190,6 +191,7 @@
                 </svg>
                 @lang('app.cancel')
             </x-danger-button>
+            @endif
 
         </div>
 

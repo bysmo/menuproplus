@@ -6,6 +6,7 @@
         <x-secondary-link href="{{ url('/translations') }}" target="_blank" >
             @lang('modules.settings.manageTranslations')
         </x-secondary-link>
+        @includeIf('languagepack::publish-all-button')
     </div>
 
     <form wire:submit="submitForm">
@@ -19,19 +20,20 @@
                                 <tr>
                                     <th scope="col"
                                         class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
-                                        @lang('modules.language.languageCode')
-                                    </th>
-                                    <th scope="col"
-                                        class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                         @lang('modules.language.languageName')
                                     </th>
                                     <th scope="col"
                                         class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
-                                        @lang('modules.language.active')
+                                        @lang('modules.language.languageCode')
                                     </th>
+
                                     <th scope="col"
                                         class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                         @lang('modules.language.rtl')
+                                    </th>
+                                    <th scope="col"
+                                        class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
+                                        @lang('modules.language.active')
                                     </th>
                                     <th scope="col"
                                         class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
@@ -48,32 +50,39 @@
                                     wire:loading.class.delay='opacity-10'>
                                     <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white flex items-center gap-2 ltr:text-left rtl:text-right">
                                         <img class="h-4 w-4 rounded-full border border-gray-200" src="{{ $item->flagUrl }}" alt="">
-                                        {{ $item->language_code }}
-                                    </td>
-                                    <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white ltr:text-left rtl:text-right">
                                         {{ $item->language_name }}
                                     </td>
-
-                                    @if ($item->language_code != global_setting()->locale)  
                                     <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white ltr:text-left rtl:text-right">
-                                        <x-checkbox name="languageActive.{{ $key }}"
-                                            id="languageActive.{{ $key }}"
-                                            wire:model='languageActive.{{ $key }}' />
+                                        {{ $item->language_code }}
                                     </td>
+
+                                    <td class="py-2.5 px-4 space-x-2 whitespace-nowrap ltr:text-left rtl:text-right">
+                                        @if ($item->is_rtl)
+                                        <span class="bg-green-100 uppercase text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                                            @lang('app.yes')
+                                        </span>
+                                        @else
+                                        <span class="bg-gray-100 uppercase text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-900 dark:text-gray-300">
+                                            @lang('app.no')
+                                        </span>
+                                        @endif
+
+                                    </td>
+                                    @if ($item->language_code != global_setting()->locale)
+                                        <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white ltr:text-left rtl:text-right">
+                                            <x-checkbox name="languageActive.{{ $key }}"
+                                                id="languageActive.{{ $key }}"
+                                                wire:model='languageActive.{{ $key }}' />
+                                        </td>
                                     @else
-                                    <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white ltr:text-left rtl:text-right text-sm">
-                                        @lang('modules.language.defaultLanguage')
-                                    </td>
+                                        <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white ltr:text-left rtl:text-right text-sm">
+                                            @lang('modules.language.defaultLanguage')
+                                        </td>
                                     @endif
-
+                                    @if ($item->language_code != global_setting()->locale)
                                     <td class="py-2.5 px-4 space-x-2 whitespace-nowrap ltr:text-left rtl:text-right">
-                                        <x-checkbox name="languageRtl.{{ $key }}"
-                                            id="languageRtl.{{ $key }}"
-                                            wire:model='languageRtl.{{ $key }}' />
-                                    </td>
+                                        @includeIf('languagepack::publish', ['language' => $item])
 
-                                    @if ($item->language_code != global_setting()->locale)  
-                                    <td class="py-2.5 px-4 space-x-2 whitespace-nowrap ltr:text-left rtl:text-right">
                                         <x-secondary-button-table wire:click='showEditLanguage({{ $item->id }})' wire:key='member-edit-{{ $item->id . microtime() }}'
                                             wire:key='editmenu-item-button-{{ $item->id }}'>
                                             <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"
@@ -87,7 +96,7 @@
                                             </svg>
                                             @lang('app.update')
                                         </x-secondary-button-table>
-    
+
                                         <x-danger-button-table wire:click="showDeleteLanguage({{ $item->id }})"  wire:key='member-del-{{ $item->id . microtime() }}'>
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
                                                 xmlns="http://www.w3.org/2000/svg">
@@ -96,7 +105,7 @@
                                                     clip-rule="evenodd"></path>
                                             </svg>
                                         </x-danger-button-table>
-    
+
                                     </td>
                                     @else
                                     <td class="py-2.5 px-4 space-x-2 whitespace-nowrap ltr:text-left rtl:text-right text-sm">
@@ -130,7 +139,7 @@
         </x-slot>
     </x-right-modal>
 
-    @if ($showEditLanguageModal)        
+    @if ($showEditLanguageModal)
     <x-right-modal wire:model.live="showEditLanguageModal">
         <x-slot name="title">
             {{ __("modules.language.editLanguage") }}
@@ -164,5 +173,7 @@
          </x-slot>
     </x-confirmation-modal>
 
-
+    @push('scripts')
+    @includeIf('languagepack::script')
+    @endpush
 </div>

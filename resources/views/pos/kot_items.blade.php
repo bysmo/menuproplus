@@ -112,7 +112,7 @@
                 </div>
 
                 <div class="gap-2 inline-flex items-center">
-                    <x-secondary-button class="relative" wire:click="$toggle('showKotNote')">
+                    <x-secondary-button class="relative" wire:click="$toggle('showKotNote')" title="@lang('modules.order.addNote')" data-tooltip-target="tooltip-note">
                         @if ($this->orderNote)
                             <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" fill="currentColor"
                                 class="absolute bi bi-circle-fill top-1 right-1 text-skin-base" viewBox="0 0 16 16">
@@ -121,21 +121,32 @@
                         @endif
 
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            class="bi bi-pencil-square" viewBox="0 0 16 16">
+                            class="bi bi-pencil-square" viewBox="0 0 16 16" >
                             <path
                                 d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
                             <path fill-rule="evenodd"
                                 d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
                         </svg>
+
                     </x-secondary-button>
 
-                    <x-select class="text-sm w-36" wire:model.live='selectWaiter'>
-                        <option value="">@lang('modules.order.selectWaiter')</option>
-                        @foreach ($users as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach
-                    </x-select>
+                    <div id="tooltip-note" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                        @lang('modules.order.addNote')
+                        <div class="tooltip-arrow" data-popper-arrow></div>
+                    </div>
 
+                    <div class="inline-flex items-center gap-2">
+                        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                        <span class="text-sm text-gray-600 dark:text-gray-300">@lang('modules.order.waiter'):</span>
+                        <x-select class="text-sm w-36" wire:model.live='selectWaiter'>
+                            <option value="">@lang('modules.order.selectWaiter')</option>
+                            @foreach ($users as $item)
+                                <option value="{{ $item->id }}">{{ $item->name }}</option>
+                            @endforeach
+                        </x-select>
+                    </div>
 
                 </div>
             @endif

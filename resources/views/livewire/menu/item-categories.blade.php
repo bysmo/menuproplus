@@ -31,15 +31,15 @@
                         <thead class="bg-gray-100 dark:bg-gray-700">
                             <tr>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.menu.itemCategory')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.menu.allMenuItems')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium text-gray-500 uppercase dark:text-gray-400 text-right">
+                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('app.action')
                                 </th>
                             </tr>

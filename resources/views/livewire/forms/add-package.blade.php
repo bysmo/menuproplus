@@ -201,6 +201,14 @@
                                                     <x-input-error for="razorpayMonthlyPlanId" class="mt-2"/>
                                                 </div>
                                             @endif
+
+                                            @if($paymentKey->flutterwave_status == 1)
+                                                <div>
+                                                    <x-label for="flutterwaveMonthlyPlanId" value="{{ __('modules.package.monthlyFlutterwaveId') }}" required="true"/>
+                                                    <x-input id="flutterwaveMonthlyPlanId" type="text" wire:model="flutterwaveMonthlyPlanId" class="mt-1 block w-full"/>
+                                                    <x-input-error for="flutterwaveMonthlyPlanId" class="mt-2"/>
+                                                </div>
+                                            @endif
                                         </div>
                                     @endif
 
@@ -224,6 +232,13 @@
                                                     <x-input id="razorpayAnnualPlanId" type="text" wire:model="razorpayAnnualPlanId" class="mt-1 block w-full"/>
                                                     <x-input-error for="razorpayAnnualPlanId" class="mt-2"/>
                                                 </div>
+                                            @endif
+                                            @if($paymentKey->flutterwave_status == 1)
+                                            <div>
+                                                <x-label for="flutterwaveAnnualPlanId" value="{{ __('modules.package.annualFlutterwaveId') }}" required="true" />
+                                                <x-input id="flutterwaveAnnualPlanId" type="text" wire:model="flutterwaveAnnualPlanId" class="mt-1 block w-full" />
+                                                <x-input-error for="flutterwaveAnnualPlanId" class="mt-2" />
+                                            </div>
                                             @endif
                                         </div>
                                     @endif

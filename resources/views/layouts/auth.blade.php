@@ -46,6 +46,9 @@
             document.documentElement.classList.remove('dark')
         }
     </script>
+
+    {{-- Include file for widgets if exist --}}
+    @includeIf('sections.custom_script_admin')
 </head>
 
 <body>
@@ -133,13 +136,19 @@
 
             // Handle iOS PWA Install Instruction
             if ((isIOS && !isInStandaloneMode) || deferredPrompt) {
-                ['scroll', 'click'].forEach(event => {
-                    window.addEventListener(event, showIOSInstallInstructions, { once: true });
-                });
+                const lastPrompt = localStorage.getItem('iosPromptLastShown');
+                const now = new Date().getTime();
+                
+                if (!lastPrompt || (now - parseInt(lastPrompt)) > 24 * 60 * 60 * 1000) {
+                    ['scroll', 'click'].forEach(event => {
+                        window.addEventListener(event, showIOSInstallInstructions, { once: true });
+                    });
+                }
             }
 
             function showIOSInstallInstructions() {
                 if (document.getElementById('iosInstallInstructions')) return;
+                localStorage.setItem('iosPromptLastShown', new Date().getTime());
 
                 const instructions = document.createElement('div');
                 instructions.id = 'iosInstallInstructions';

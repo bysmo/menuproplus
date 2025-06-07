@@ -148,17 +148,20 @@
     </div>
 
     {{-- Favicons Inputs --}}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         @foreach (['upload_fav_icon_android_chrome_192', 'upload_fav_icon_android_chrome_512', 'upload_fav_icon_apple_touch_icon', 'upload_favicon_16', 'upload_favicon_32', 'favicon'] as $index => $name)
-            <div class="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-2">
-                <div class="flex items-center space-x-2">
-                    <div class="flex-shrink-0">
-                        <div id="filePreview{{ $name }}"
-                            class="h-8 w-8 rounded bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden"
-                            style="background-image: url('{{ ${$name} ? ${$name}->temporaryUrl() :  $settings->{$name."_url"} }}'); background-size: contain; background-repeat: no-repeat;">
-                        </div>
+            <div class="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow transition-shadow duration-300 border border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col items-center space-y-2">
+                    <div id="filePreview{{ $name }}"
+                        class="h-10 w-10 rounded-lg bg-gray-50 dark:bg-gray-700 flex items-center justify-center overflow-hidden"
+                        style="background-image: url('{{ ${$name} ? ${$name}->temporaryUrl() :  $settings->{$name."_url"} }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
                     </div>
-                    <div class="flex-grow space-y-1">
+
+                    <div class="text-center w-full">
+                        <p class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 line-clamp-2 h-8" title="{{ __('modules.settings.' . $name) }}">
+                            {{ __('modules.settings.' . $name) }}
+                        </p>
+
                         <input type="file" id="{{ $name }}" class="hidden"
                             accept="image/png, image/gif, image/jpeg, image/webp, image/svg+xml, image/x-icon"
                             wire:model="{{ $name }}" x-ref="{{ $name }}"
@@ -170,25 +173,21 @@
                                 reader.readAsDataURL($refs.{{ $name }}.files[0]);
                             " />
 
-                        <div class="flex flex-wrap gap-1">
-                            <x-secondary-button type="button"
-                                x-on:click.prevent="$refs.{{ $name }}.click()"
-                                class="flex items-center text-xs px-2 py-1">
-                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                </svg>
-                                {{ __('modules.settings.' . $name) }}
-                            </x-secondary-button>
-                        </div>
+                        <x-secondary-button type="button"
+                            x-on:click.prevent="$refs.{{ $name }}.click()"
+                            class="w-full flex items-center justify-center text-xs py-1 px-1">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            {{ __('app.upload') }}
+                        </x-secondary-button>
 
                         <x-input-error for="{{ $name }}" class="mt-1 text-xs" />
                     </div>
                 </div>
             </div>
         @endforeach
-
-
     </div>
 </div>
 

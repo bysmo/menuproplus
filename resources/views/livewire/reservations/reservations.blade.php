@@ -10,13 +10,14 @@
             <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">@lang('menu.reservations')</h1>
         </div>
 
-        <div class="items-center justify-between block sm:flex ">
+        <div class="items-center justify-between block sm:flex bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-4">
             <div class="lg:flex items-center mb-4 sm:mb-0">
                 <form class="sm:pr-3" action="#" method="GET">
                     <div class="lg:flex gap-2 items-center">
                         <x-select id="dateRangeType" class="block w-fit" wire:model="dateRangeType"
                             wire:change="setDateRange">
                             <option value="today">@lang('app.today')</option>
+                            <option value="nextWeek">@lang('app.nextWeek')</option>
                             <option value="currentWeek">@lang('app.currentWeek')</option>
                             <option value="lastWeek">@lang('app.lastWeek')</option>
                             <option value="last7Days">@lang('app.last7Days')</option>
@@ -24,10 +25,9 @@
                             <option value="lastMonth">@lang('app.lastMonth')</option>
                             <option value="currentYear">@lang('app.currentYear')</option>
                             <option value="lastYear">@lang('app.lastYear')</option>
-                            <option value="nextWeek">@lang('app.nextWeek')</option>
                         </x-select>
 
-                        <div id="date-range-picker" date-rangepicker class="flex items-center w-full">
+                        <div id="date-range-picker" date-rangepicker class="flex items-center mt-2 md:mt-0 w-full">
                             <div class="relative">
                                 <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                                     <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
@@ -56,6 +56,8 @@
                         </div>
                     </div>
                 </form>
+
+                <x-input class="block w-full md:w-1/3 mt-2 md:mt-0" type="text" wire:model.live.debounce.400ms="search" placeholder="{{ __('placeholders.searchCustomers') }}" />
             </div>
 
             @if(user_can('Create Reservation') && in_array('Table Reservation', restaurant_modules()))
@@ -69,10 +71,19 @@
             <!-- Card Section -->
             <div class="space-y-4">
                 <div class="grid sm:grid-cols-3 gap-3 sm:gap-4">
-                    @foreach ($reservations as $item)
+                    @forelse ($reservations as $item)
                     @livewire('reservations.reservation-card', ['reservation' => $item], key('reservation-' . $item->id
                     . microtime()))
-                    @endforeach
+                    @empty
+                    <div class="text-center col-span-full">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-12 h-12 text-gray-400 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm-3-2v4M8 2v4m-5 4h18m-7 4h-4v4h4v-4z"/>
+                            </svg>
+                            <p class="text-gray-500 dark:text-gray-400">@lang('messages.noReservationsFound')</p>
+                        </div>
+                    </div>
+                    @endforelse
                 </div>
             </div>
             <!-- End Card Section -->

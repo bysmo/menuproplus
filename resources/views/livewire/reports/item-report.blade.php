@@ -3,7 +3,18 @@
     <div class="p-4 bg-white dark:bg-gray-800">
         <div class="mb-4">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">@lang('menu.itemReport')</h1>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">@lang('modules.report.itemReportMessage')</p>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                @lang('modules.report.itemReportMessage')
+                @php
+                    $formattedStartTime = \Carbon\Carbon::parse($startTime)->format('H:i');
+                    $formattedEndTime = \Carbon\Carbon::parse($endTime)->format('H:i');
+                @endphp
+                <strong>
+                    ({{ $startDate === $endDate
+                        ? __('modules.report.salesDataFor') . " $startDate, " . __('modules.report.timePeriod') . " $formattedStartTime - $formattedEndTime"
+                        : __('modules.report.salesDataFrom') . " $startDate " . __('app.to') . " $endDate, " . __('modules.report.timePeriodEachDay') . " $formattedStartTime - $formattedEndTime" }})
+                </strong>
+            </p>
         </div>
 
         <!-- Stats Cards Grid -->
@@ -39,7 +50,6 @@
         <div class="flex flex-wrap justify-between items-center gap-4 p-4 bg-gray-50 rounded-lg dark:bg-gray-700">
             <div class="lg:flex items-center mb-4 sm:mb-0">
                 <form class="sm:pr-3" action="#" method="GET">
-
                     <div class="lg:flex gap-2 items-center">
                         <x-select id="dateRangeType" class="block w-full sm:w-fit mb-2 lg:mb-0" wire:model="dateRangeType" wire:change="setDateRange">
                             <option value="today">@lang('app.today')</option>
@@ -65,6 +75,28 @@
                                     <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20zM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2"/></svg>
                                 </div>
                                 <input id="datepicker-range-end" name="end" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" wire:model.live='endDate' placeholder="@lang('app.selectEndDate')">
+                            </div>
+                        </div>
+
+                        <div class="lg:flex items-center justify-between gap-x-2 ms-2">
+                            <div class="w-full max-w-[7rem]">
+                                <label for="start-time" class="sr-only">@lang('modules.reservation.timeStart'):</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
+                                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" width="24" height="24" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0 7.5a7.5 7.5 0 1 1 15 0 7.5 7.5 0 0 1-15 0m7 0V3h1v4.293l2.854 2.853-.708.708-3-3A.5.5 0 0 1 7 7.5" fill="currentColor"/></svg>
+                                    </div>
+                                    <x-input id="start-time" type="time" wire:model.live.debounce.500ms="startTime" />
+                                </div>
+                            </div>
+                            <span class="mx-2 text-gray-500 dark:text-gray-100">@lang('app.to')</span>
+                            <div class="w-full max-w-[7rem]">
+                                <label for="end-time" class="sr-only">@lang('modules.reservation.timeEnd'):</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
+                                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" width="24" height="24" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0 7.5a7.5 7.5 0 1 1 15 0 7.5 7.5 0 0 1-15 0m7 0V3h1v4.293l2.854 2.853-.708.708-3-3A.5.5 0 0 1 7 7.5" fill="currentColor"/></svg>
+                                    </div>
+                                    <x-input id="end-time" type="time" wire:model.live.debounce.500ms="endTime" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -98,10 +130,10 @@
         <table class="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
             <thead class="bg-gray-100 dark:bg-gray-700">
                 <tr>
-                    <th class="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase dark:text-gray-300">
+                    <th class="px-4 py-3 text-xs font-medium tracking-wider ltr:text-left rtl:text-right text-gray-600 uppercase dark:text-gray-300">
                         @lang('modules.menu.itemName')
                     </th>
-                    <th class="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-600 uppercase dark:text-gray-300">
+                    <th class="px-4 py-3 text-xs font-medium tracking-wider ltr:text-left rtl:text-right text-gray-600 uppercase dark:text-gray-300">
                         @lang('modules.menu.categoryName')
                     </th>
                     <th class="px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-600 uppercase dark:text-gray-300">
@@ -110,7 +142,7 @@
                     <th class="px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-600 uppercase dark:text-gray-300">
                         @lang('modules.report.sellingPrice')
                     </th>
-                    <th class="px-4 py-3 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
+                    <th class="px-4 py-3 text-xs font-medium tracking-wider ltr:text-end rtl:text-right text-gray-600 uppercase dark:text-gray-300">
                         @lang('modules.report.totalRevenue')
                     </th>
                 </tr>
@@ -127,7 +159,7 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                                    {{ $item->category->category_name }}
+                                    {{ $item->category->category_name ?? '' }}
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="text-sm font-medium text-gray-900 dark:text-white text-center">
@@ -155,7 +187,7 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                                {{ $item->category->category_name }}
+                                {{ $item->category->category_name ?? '' }}
                             </td>
                             <td class="px-4 py-3">
                                 <div class="text-sm font-medium text-gray-900 dark:text-white text-center">

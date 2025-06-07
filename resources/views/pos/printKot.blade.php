@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KOT Ticket</title>
+    <title>@lang('modules.order.kotTicket')</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -88,13 +88,13 @@
     <div class="kot-container">
         <!-- Header -->
         <div class="header">
-            <h2>Kitchen Order Ticket</h2>
-             <div>@lang('modules.order.orderNumber') #{{ $kot->order->order_number }} @if($kot->order->table) <strong>({{ $kot->order->table->table_code }})</strong> @endif</div>
+            <h2>@lang('modules.order.kitchenOrderTicket')</h2>
+            <strong>@lang('modules.order.orderNumber') #{{ $kot->order->order_number }}</strong>
             @if($kot->order->table)
-            <p>Table #: @lang @if($kot->order->table) <span class="text-skin-base font-bold">{{ $kot->order->table->table_code }}</span> @endif</p>
+            <p>@lang('modules.table.table') - <span class="text-skin-base font-bold">{{ $kot->order->table->table_code }}</span></p>
             @endif
-            <p>Date: <span>{{ $kot->created_at->timezone(timezone())->format('d-m-Y') }}</span></p>
-            <p>Time: <span>{{ $kot->created_at->timezone(timezone())->format('h:i A') }}</span></p>
+            <p>@lang('app.date'): <span>{{ $kot->created_at->timezone(timezone())->format('d-m-Y') }}</span></p>
+            <p>@lang('app.time'): <span>{{ $kot->created_at->timezone(timezone())->format('h:i A') }}</span></p>
         </div>
 
         <!-- Items -->
@@ -102,8 +102,8 @@
             <table>
             <thead>
                 <tr>
-                <th>Item</th>
-                <th style="text-align: right;">Qty</th>
+                <th>@lang('modules.menu.itemName')</th>
+                <th style="text-align: right;">@lang('modules.order.qty')</th>
                 </tr>
             </thead>
             <tbody>
@@ -130,14 +130,14 @@
 
         <div class="footer">
             @if ($kot->note)
-            <p>Special Instructions:</p>
+            <p>@lang('modules.order.specialInstructions'):</p>
             <p class="italic">{{$kot->note}}</p>
             @endif
 
         </div>
     </div>
 
-     <script>
+    <script>
         window.onload = function() {
             window.print();
         }
