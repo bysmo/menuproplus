@@ -45,12 +45,6 @@
                             @endif
                             @endif
 
-                            @if($this->hasModule('Menu Item'))
-                            @if(user_can('Show Menu Item'))
-                            @livewire('sidebar-dropdown-menu', ['name' => __('menu.modifierGroups'), 'link' => route('modifier-groups.index'), 'active' => request()->routeIs('modifier-groups.index')])
-                            @livewire('sidebar-dropdown-menu', ['name' => __('menu.itemModifiers'), 'link' => route('item-modifiers.index'), 'active' => request()->routeIs('item-modifiers.index')])
-                            @endif
-                            @endif
                         </x-sidebar-dropdown-menu>
                         @endif
                         @endif

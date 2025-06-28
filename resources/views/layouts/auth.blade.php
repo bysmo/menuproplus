@@ -73,7 +73,7 @@
         </div>
 
         <div
-            class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
+            class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gradient-to-br from-secondary to-skin-base">
             <div class="flex flex-col justify-center items-center space-y-4">
                 <a class="flex gap-2 items-center text-xl font-medium dark:text-white app-logo">
                     <img src="{{ $appTheme->logoUrl }}" class="h-8" alt="{{ global_setting()->name }} Logo" />
@@ -173,5 +173,3 @@
         })
     </script>
 @endif
-
-

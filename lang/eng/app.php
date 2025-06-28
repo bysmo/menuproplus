@@ -156,7 +156,19 @@ return array(
     'selectIcon' => 'Select Icon',
     'searchIcon' => 'Search Icon',
     'impersonateTooltip' => 'Impersonate to this restaurant - Login as the restaurant owner to view and manage their account. This allows administrators to troubleshoot issues, provide support, and make changes on behalf of the restaurant without requiring their credentials.',
-    'autoRefresh' => 'Auto Refresh',
+    'impersonateMessage' => 'You are now logged in as :name. To stop impersonating, click the "Stop Impersonation" button.',
+    'impersonateStopMessage' => 'You have stopped impersonating. You are now back to your account.',
+    'impersonateStop' => 'Stop Impersonation',
+    'impersonateStart' => 'Start Impersonation',
+    'impersonateSuccess' => 'You have successfully impersonated :name.',
+    'impersonateError' => 'Unable to impersonate :name. Please try again later.','autoRefresh' => 'Auto Refresh',
     'seconds' => 'Seconds',
     'minute' => 'Minute',
+    'I agree to the :terms_of_service and :privacy_policy' => 'I agree to the :terms_of_service and :privacy_policy',
+  'Terms of Service' => 'Terms of Service',
+  'Privacy Policy' => 'Privacy Policy',
+  'terms_of_service' => 'Terms of Service',
+  'privacy_policy' => 'Privacy Policy',
+
+
 );

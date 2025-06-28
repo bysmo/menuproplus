@@ -1,5 +1,9 @@
 <x-auth-layout>
-    <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
+    <div class="w-full sm:max-w-md mt-8 px-8 py-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-lg rounded-2xl border border-secondary/20 mx-auto">
+        <div class="mb-6 text-center">
+            <h2 class="text-3xl font-bold text-secondary">{{ __('auth.login') }}</h2>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">{{ __('auth.loginMessage') }}</p>
+        </div>
 
         <x-validation-errors class="mb-4"/>
 

@@ -35,6 +35,9 @@ export default {
                     base: withOpacity("--color-base"),
                 },
             },
+            colors: {
+                secondary: withOpacity("--color-secondary"),
+            },
             fontFamily: {
                 sans: ["Figtree", ...defaultTheme.fontFamily.sans],
             },

@@ -11,4 +11,11 @@ return array (
   'alreadyRegisteredLoginHere' => 'Already registered? Login here',
   'signup' => 'Signup',
   'whoops' => 'Whoops! Something went wrong.',
+  'login' => 'Login',
+  'loginMessage' => 'Enter your credentials to access your space',
+  'forgotPassword' => 'Forgot Password',
+  'forgotPasswordMessage' => 'Enter your email address to reset your password',
+  'resetPassword' => 'Reset Password',
+  'resetPasswordMessage' => 'Enter your new password',
+  'resetPasswordSuccess' => 'Your password has been reset successfully',
 );
