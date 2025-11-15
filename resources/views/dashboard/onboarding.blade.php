@@ -141,7 +141,7 @@
                         </svg>
                     </span>
                 </div>
-                <div class="ml-4">
+                <!--div class="ml-4">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">Need Additional Help?</h3>
                     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                         If you encounter any issues during the setup process or have questions about any of the configuration steps, our support team is here to help.
@@ -167,7 +167,7 @@
                             Rate the product on codecanyon
                         </a>
                     </div>
-                </div>
+                </div-->
             </div>
         </div>
 

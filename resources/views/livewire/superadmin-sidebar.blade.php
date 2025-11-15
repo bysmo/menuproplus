@@ -38,7 +38,7 @@
                 </div>
             </div>
 
-            <div class="absolute bottom-0 left-0 justify-center hidden w-full p-4 space-x-4 bg-white lg:flex dark:bg-gray-800" sidebar-bottom-menu="">
+            <!--div class="absolute bottom-0 left-0 justify-center hidden w-full p-4 space-x-4 bg-white lg:flex dark:bg-gray-800" sidebar-bottom-menu="">
 
                 <a href="javascript:void(0)" wire:click="$dispatch('showRaiseSupportTicket')" class="inline-flex justify-center items-center p-2 rounded cursor-pointer hover:text-skin-base hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white border-skin-base border border-solid text-skin-base">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-ticket-perforated w-5 h-5" viewBox="0 0 16 16">
@@ -48,7 +48,7 @@
                       <span class="ml-2 text-sm">Raise Support Ticket</span>
                 </a>
 
-            </div>
+            </div-->
         </div>
     </aside>
 
