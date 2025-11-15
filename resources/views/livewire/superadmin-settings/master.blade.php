@@ -42,11 +42,12 @@
                 <a href="{{ route('superadmin.superadmin-settings.index').'?tab=storage' }}" wire:navigate
                 @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'storage'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'storage')])>@lang('modules.settings.storageSettings')</a>
             </li>
-
+            <!--
             <li class="me-2">
                 <a href="{{ route('superadmin.superadmin-settings.index').'?tab=desktop-app' }}" wire:navigate
                 @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'desktop-app'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'desktop-app')])>@lang('Desktop Application')</a>
             </li>
+            -->
 
             <!-- NAV ITEM - CUSTOM MODULES  -->
             @foreach (custom_module_plugins() as $item)
