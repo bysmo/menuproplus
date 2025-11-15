@@ -140,7 +140,7 @@
 
     @include('layouts.update-uri')
 
-    <!-- @livewire('raise-support-ticket') -->
+     @livewire('raise-support-ticket')
 
     <script src="{{ asset('vendor/livewire-alert/livewire-alert.js') }}" defer data-navigate-track></script>
     <x-livewire-alert::flash />
