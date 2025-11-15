@@ -18,6 +18,12 @@ use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Str;
 use Nwidart\Modules\Facades\Module;
+use App\Models\OrderNumberSetting;
+use Intervention\Image\Facades\Image;
+use App\Models\MenuItem;
+use App\Models\Order;
+use App\Models\Branch;
+
 
 if (!function_exists('user')) {
 
@@ -36,6 +42,7 @@ if (!function_exists('user')) {
         return session('user');
     }
 }
+
 
 function customer()
 {
@@ -132,11 +139,17 @@ function timezone()
 
     if (restaurant()) {
         session(['timezone' => restaurant()->timezone]);
-
         return session('timezone');
     }
 
-    return false;
+    // For superadmin, use global setting timezone
+    if (user() && is_null(user()->restaurant_id)) {
+        $globalTimezone = global_setting()->timezone ?? 'UTC';
+        session(['timezone' => $globalTimezone]);
+        return session('timezone');
+    }
+
+    return 'UTC';
 }
 
 function paymentGateway()
@@ -186,10 +199,15 @@ if (!function_exists('role_permissions')) {
             return session('role_permissions');
         }
 
+        if (is_null(user())) {
+            return [];
+        }
+
         $roleID = user()->roles->first()->id;
         $permissions = Role::where('id', $roleID)->first()->permissions->pluck('name')->toArray();
 
-        return session(['role_permissions' => $permissions]);
+        session(['role_permissions' => $permissions]);
+        return  session('role_permissions');
     }
 }
 
@@ -208,21 +226,23 @@ if (!function_exists('user_can')) {
 }
 
 if (!function_exists('restaurant_modules')) {
-    function restaurant_modules(): array
+    function restaurant_modules($restaurant = null): array
     {
-        $restaurant = restaurant();
+        $restaurant = $restaurant ?: restaurant();
 
         if (!$restaurant) {
             return [];
         }
 
         $cacheKey = 'restaurant_modules_' . $restaurant->id;
+
         if (cache()->has($cacheKey)) {
             return cache($cacheKey);
         }
 
         $user = user();
-        if (is_null($user->restaurant_id) && is_null($user->branch_id)) {
+
+        if ($user && is_null($user->restaurant_id) && is_null($user->branch_id)) {
             return [];
         }
 
@@ -301,17 +321,9 @@ if (!function_exists('isRtl')) {
         }
 
         if (user()) {
-
-
             $language = LanguageSetting::where('language_code', auth()->user()->locale)->first();
-            if (!$language) {
-                $isRtl = false;
-                session(['isRtl' => $isRtl]);
-            }
-           else {
-                $isRtl = ($language->is_rtl == 1);
-                session(['isRtl' => $isRtl]);
-           }
+            $isRtl = ($language->is_rtl == 1);
+            session(['isRtl' => $isRtl]);
         }
 
         return false;
@@ -416,6 +428,10 @@ if (!function_exists('getDomain')) {
         $myHost = strtolower(trim($host));
         $count = substr_count($myHost, '.');
 
+        if (!is_null(config('app.main_domain_name'))) {
+            return config('app.main_domain_name');
+        }
+
         if ($count === $dotCount || $count === 1) {
             return $myHost;
         }
@@ -506,11 +522,17 @@ function superadminPaymentGateway()
 
 function pusherSettings()
 {
+
+
+    if (cache()->has('pusherSettings')) {
+        return cache('pusherSettings');
+    }
+
     $setting = PusherSetting::first();
 
-    session(['pusherSettings' => $setting]);
+    cache(['pusherSettings' => $setting]);
 
-    return session('pusherSettings');
+    return cache('pusherSettings');
 }
 
 if (!function_exists('clearRestaurantModulesCache')) {
@@ -531,7 +553,11 @@ if (!function_exists('currency_format_setting')) {
     function currency_format_setting($currencyId = null)
     {
         if (!session()->has('currency_format_setting' . $currencyId) || (is_null($currencyId) && restaurant())) {
-            $setting = $currencyId == null ? restaurant()->load('currency')->currency : Currency::where('id', $currencyId)->first();
+            if ($currencyId == null && restaurant()) {
+                $setting = restaurant()->load('currency')->currency;
+            } else {
+                $setting = Currency::where('id', $currencyId)->first();
+            }
             session(['currency_format_setting' . $currencyId => $setting]);
         }
 
@@ -542,18 +568,25 @@ if (!function_exists('currency_format_setting')) {
 if (!function_exists('currency_format')) {
 
     // @codingStandardsIgnoreLine
-    function currency_format($amount, $currencyId = null, $showSymbol = true)
+    function currency_format($amount, $currencyId = null, $showSymbol = true, $showCode = false)
     {
         $formats = currency_format_setting($currencyId);
 
-        if (!$showSymbol) {
-            $currency_symbol = '';
+        $settings = $formats->restaurant ?? Restaurant::find($formats->restaurant_id);
+
+        if ($showCode) {
+            $currency_symbol = $formats->currency_code ?? '';
         } else {
-            $settings = $formats->restaurant ?? Restaurant::find($formats->restaurant_id);
-            $currency_symbol = $currencyId == null ? $settings->currency->currency_symbol : $formats->currency_symbol;
+            if (!$showSymbol) {
+                $currency_symbol = '';
+            } else {
+                $settings = $formats->restaurant ?? Restaurant::find($formats->restaurant_id);
+                $currency_symbol = $currencyId == null ? $settings->currency->currency_symbol : $formats->currency_symbol;
+            }
         }
 
-        $currency_position = $formats->currency_position;
+
+        $currency_position = $formats->currency_position ?? 'left';
         $no_of_decimal = !is_null($formats->no_of_decimal) ? $formats->no_of_decimal : '0';
         $thousand_separator = !is_null($formats->thousand_separator) ? $formats->thousand_separator : '';
         $decimal_separator = !is_null($formats->decimal_separator) ? $formats->decimal_separator : '0';
@@ -643,5 +676,142 @@ if (!function_exists('custom_module_plugins')) {
         }
 
         return cache('custom_module_plugins');
+    }
+}
+
+if (!function_exists('isOrderPrefixEnabled')) {
+
+    /**
+     * Check if order prefix feature is enabled for the given branch
+     */
+    function isOrderPrefixEnabled($branch = null)
+    {
+        if (!$branch) {
+            $branch = branch();
+        }
+
+        if (!$branch) {
+            return false;
+        }
+
+        $settings = OrderNumberSetting::where('branch_id', $branch->id)->first();
+        return $settings && $settings->enable_feature;
+    }
+}
+
+if (!function_exists('getRestaurantStaffStats')) {
+    /**
+     * Get restaurant staff stats including staff_limit and current staff count.
+     *
+     * @param int|null $restaurantId
+     * @return array|null
+     */
+    function getRestaurantStaffStats($restaurantId = null)
+    {
+        if (is_null($restaurantId)) {
+            return null;
+        }
+
+        return cache()->rememberForever('restaurant_' . $restaurantId . '_staff_stats', function () use ($restaurantId) {
+            $restaurant = Restaurant::with('package')->find($restaurantId);
+
+            if (!$restaurant || !$restaurant->package) {
+                return [
+                    'staff_limit' => 0,
+                    'current_count' => 0,
+                    'unlimited' => false,
+                ];
+            }
+
+            $staffLimit = $restaurant->package->staff_limit;
+            $currentStaffCount = $restaurant->users()->count();
+
+            return [
+                'staff_limit' => $staffLimit,
+                'current_count' => $currentStaffCount,
+                'unlimited' => ($staffLimit == -1),
+            ];
+        });
+    }
+}
+
+if (!function_exists('getRestaurantMenuItemStats')) {
+    /**
+     * Get restaurant menu item stats including menu_items_limit and current menu item count.
+     * Counts menu items across all branches of the restaurant.
+     *
+     * @param int|null $restaurantId
+     * @return array|null
+     */
+    function getRestaurantMenuItemStats($restaurantId = null)
+    {
+        if (is_null($restaurantId)) {
+            return null;
+        }
+
+        return cache()->rememberForever('restaurant_' . $restaurantId . '_menu_item_stats', function () use ($restaurantId) {
+            $restaurant = Restaurant::with('package', 'branches')->find($restaurantId);
+
+            if (!$restaurant || !$restaurant->package) {
+                return [
+                    'menu_items_limit' => 0,
+                    'current_count' => 0,
+                    'unlimited' => false,
+                ];
+            }
+
+            $menuItemsLimit = $restaurant->package->menu_items_limit;
+            
+            // Get all branch IDs for this restaurant
+            $branchIds = $restaurant->branches->pluck('id')->toArray();
+            
+            // Count menu items across all branches
+            $currentMenuItemCount = MenuItem::whereIn('branch_id', $branchIds)->count();
+
+            return [
+                'menu_items_limit' => $menuItemsLimit,
+                'current_count' => $currentMenuItemCount,
+                'unlimited' => ($menuItemsLimit == -1),
+            ];
+        });
+    }
+}
+
+if (!function_exists('getRestaurantOrderStats')) {
+    /**
+     * Get order stats including order_limit and current order count for the current branch.
+     * Uses branch's total_orders and count_orders fields.
+     *
+     * @param int|null $branchId (kept for backward compatibility, but uses current branch)
+     * @return array|null
+     */
+    function getRestaurantOrderStats($branchId = null)
+    {
+        if (is_null($branchId)) {
+            return null;
+        }
+
+        return cache()->rememberForever('branch_' . $branchId . '_order_stats', function () use ($branchId) {
+            $branch = Branch::find($branchId);
+
+            if (!$branch) {
+                return [
+                    'order_limit' => 0,
+                    'current_count' => 0,
+                    'unlimited' => false,
+                ];
+            }
+
+            $totalOrders = $branch->total_orders ?? -1;
+            $countOrders = $branch->count_orders ?? 0;
+            
+            $unlimited = ($totalOrders == -1);
+
+            return [
+                'order_limit' => $totalOrders,
+                'current_count' => $countOrders,
+                'unlimited' => $unlimited,
+            ];
+        });
     }
 }

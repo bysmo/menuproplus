@@ -50,7 +50,6 @@ class FrontFeaturePage extends Component
     {
         $this->showEditFrontFeatureModal = false;
         $this->addFeatureModal = false;
-
     }
 
     public function saveFeature()
@@ -64,16 +63,16 @@ class FrontFeaturePage extends Component
 
         $frontDetail = FrontFeature::create(
             [
-            'language_setting_id' => $this->language,
-            'title' => $this->featureTitle,
-            'description' => $this->featureDescription,
+                'language_setting_id' => $this->language,
+                'title' => $this->featureTitle,
+                'description' => $this->featureDescription,
             ]
         );
 
         if ($this->featureImage) {
             $imageName = Files::uploadLocalOrS3($this->featureImage, 'front_feature', width: 350);
             $frontDetail->update([
-            'image' => $imageName,
+                'image' => $imageName,
             ]);
         }
         $this->language = '';
@@ -91,8 +90,16 @@ class FrontFeaturePage extends Component
     }
     public function render()
     {
-        $languageEnable = LanguageSetting::where('active', 1)->get();
-        $frontDetails = FrontFeature::where('type','image')->paginate(10);
+       $languageEnable = LanguageSetting::where('active', 1)->get();
+        $currentLocale = auth()->user()?->locale;
+        $languageSetting = LanguageSetting::where('language_code', $currentLocale)->where('active', 1)->first();
+        $frontDetails = FrontFeature::where('type', 'image');
+
+        if ($languageSetting) {
+            $frontDetails = $frontDetails->where('language_setting_id', $languageSetting->id);
+        }
+
+        $frontDetails = $frontDetails->paginate(10);
         return view('livewire.landing-site.front-feature-page', [
             'languageEnable' => $languageEnable,
             'frontDetails' => $frontDetails,

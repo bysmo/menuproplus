@@ -44,6 +44,7 @@ class DisableLanding extends Component
     public $menuIdToDelete = null;
     #[Url]
     public $activeSetting = 'settings';
+    public $menuPosition = 'header';
 
     protected $listeners = ['refreshCustomers' => '$refresh'];
 
@@ -108,31 +109,16 @@ class DisableLanding extends Component
         ]);
     }
 
-    public function submitDynamicWebPageForm()
-    {
-        $this->validate([
-            'menuName' => 'required',
-            'menuSlug' => 'required',
-            'menuContent' => 'required',
-        ]);
-
-        CustomMenu::create([
-            'menu_name' => $this->menuName,
-            'menu_slug' => $this->menuSlug,
-            'menu_content' => $this->menuContent,
-        ]);
-        $this->alert('success', __('messages.settingsUpdated'), [
-            'toast' => true,
-            'position' => 'top-end',
-            'showCancelButton' => false,
-            'cancelButtonText' => __('app.close')
-        ]);
-    }
-
     public function showEditDynamicMenu($id)
     {
         $this->menuId = $id;
         $this->showEditDynamicMenuModal = true;
+    }
+
+    #[On('hideEditDyanamicMenu')]
+    public function hideEditDyanamicMenu()
+    {
+        $this->showEditDynamicMenuModal = false;
     }
 
     public function showAddDynamicMenu()
@@ -140,28 +126,10 @@ class DisableLanding extends Component
         $this->addDyanamicMenuModal = true;
     }
 
-    public function editDynamicMenu()
+    #[On('hideAddDyanamicMenu')]
+    public function hideAddDyanamicMenu()
     {
-        $this->validate([
-            'editMenuName' => 'required',
-            'editMenuSlug' => 'required',
-            'editMenuContent' => 'required',
-        ]);
-
-        $menu = CustomMenu::findOrFail($this->menuId);
-        $menu->menu_name = $this->editMenuName;
-        $menu->menu_slug = $this->editMenuSlug;
-        $menu->menu_content = $this->editMenuContent;
-        $menu->save();
-
-        $this->showEditDynamicMenuModal = false;
-
-        $this->alert('success', __('messages.settingsUpdated'), [
-            'toast' => true,
-            'position' => 'top-end',
-            'showCancelButton' => false,
-            'cancelButtonText' => __('app.close')
-        ]);
+        $this->addDyanamicMenuModal = false;
     }
 
     public function confirmDeleteMenu($menuId)
@@ -201,10 +169,27 @@ class DisableLanding extends Component
         ]);
     }
 
+    public function sortCustomMenu($sortedIds)
+    {
+        foreach ($sortedIds as $sortedItem) {
+            CustomMenu::where('id', $sortedItem['value'])
+                ->update(['sort_order' => $sortedItem['order']]);
+        }
+
+        $this->alert('success', __('messages.settingsUpdated'), [
+            'toast' => true,
+            'position' => 'top-end',
+            'showCancelButton' => false,
+            'cancelButtonText' => __('app.close')
+        ]);
+    }
+
     public function render()
     {
         return view('livewire.forms.disable-landing', [
-            'customMenu' => CustomMenu::paginate(10),
+            'customMenu' => CustomMenu::where('position', $this->menuPosition)
+            ->orderBy('sort_order')
+            ->paginate(10),
         ]);
     }
 }

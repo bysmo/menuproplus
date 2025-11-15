@@ -136,34 +136,41 @@
                                     @endif
                                 </td>
 
-                                <td class="p-2 text-sm text-gray-900 whitespace-nowrap dark:text-white">
-                                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                        @foreach ($allModules as $module)
-                                            <div class="flex items-center space-x-0.5 text-wrap w-fit text-xs">
-                                                @if($item->modules->contains('id', $module->id))
-                                                    <svg class="flex-shrink-0 w-4 h-4 text-green-500" width="24px" height="24px" viewBox="0 0 24 24"  xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="icon flat-color"><path d="M10 18a1 1 0 0 1-.71-.29l-5-5a1 1 0 0 1 1.42-1.42l4.29 4.3 8.29-8.3a1 1 0 1 1 1.42 1.42l-9 9A1 1 0 0 1 10 18"/></svg>
-                                                @else
-                                                    <svg class="flex-shrink-0 w-3 h-3 text-red-500" width="24px" height="24px" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M20 20 4 4m16 0L4 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                                                @endif
-                                                <span class="break-words">{{ __('permissions.modules.'.$module->name) }}</span>
-                                            </div>
-                                        @endforeach
-
-                                        @php $existFeatures = collect(json_decode($item->additional_features, true) ?? []); @endphp
-
-                                        @foreach ($additionalFeatures as $feature)
-                                            @php $isActive = $existFeatures->contains($feature); @endphp
-                                            <div class="flex items-center space-x-0.5 text-wrap w-fit text-xs">
-                                                <svg class="flex-shrink-0 w-4 h-4 {{ $isActive ? 'text-green-500' : 'text-red-500' }}" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                                                    @if ($isActive)
-                                                    <path d="M10 18a1 1 0 0 1-.71-.29l-5-5a1 1 0 0 1 1.42-1.42l4.29 4.3 8.29-8.3a1 1 0 1 1 1.42 1.42l-9 9A1 1 0 0 1 10 18" />
+                                <td class="py-4 px-4 text-sm text-gray-900 dark:text-white max-w-lg">
+                                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                                        <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                                            @foreach ($allModules as $module)
+                                                <div class="flex items-center space-x-2 text-xs">
+                                                    @if($item->modules->contains('id', $module->id))
+                                                        <svg class="flex-shrink-0 w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        <span class="text-gray-700 dark:text-gray-300">{{ __('permissions.modules.'.$module->name) }}</span>
                                                     @else
-                                                    <path d="M20 20L4 4m16 0L4 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                                        <svg class="flex-shrink-0 w-3.5 h-3.5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        <span class="text-gray-500 dark:text-gray-400">{{ __('permissions.modules.'.$module->name) }}</span>
                                                     @endif
-                                                </svg>
-                                                <span class="break-words">{{ __('permissions.modules.'.$feature) }}</span>
-                                            </div>
-                                        @endforeach
+                                                </div>
+                                            @endforeach
+
+                                            @php $existFeatures = collect(json_decode($item->additional_features, true) ?? []); @endphp
+
+                                            @foreach ($additionalFeatures as $feature)
+                                                @php $isActive = $existFeatures->contains($feature); @endphp
+                                                <div class="flex items-center space-x-2 text-xs">
+                                                    <svg class="flex-shrink-0 w-3.5 h-3.5 {{ $isActive ? 'text-green-500' : 'text-red-500' }}" fill="currentColor" viewBox="0 0 20 20">
+                                                        @if ($isActive)
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                        @else
+                                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                                        @endif
+                                                    </svg>
+                                                    <span class="{{ $isActive ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400' }}">{{ __('permissions.modules.'.$feature) }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
                                 </td>
 

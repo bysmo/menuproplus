@@ -1,4 +1,4 @@
-<div class="px-4 space-y-6" wire:poll.10s>
+<div class="px-4 space-y-6" @if(pusherSettings()->is_enabled_pusher_broadcast) wire:poll.10s @endif>
 
     <h2 class="text-xl font-bold dark:text-white inline-flex gap-2 items-center text-green-600">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-patch-check text-green-600" viewBox="0 0 16 16">
@@ -15,7 +15,9 @@
             <div class="flex items-center min-w-0">
                 <div class="space-y-2">
                     <p class="font-medium text-gray-900 truncate dark:text-white flex gap-2 ">
-                        @lang('modules.order.orderNumber') #{{ $order->order_number }}
+
+                            {{ $order->show_formatted_order_number }}
+
 
                         @if ($order->status == 'kot')
                             <span class="bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-400 border border-yellow-400 text-xs font-medium px-2 py-1 rounded uppercase tracking-wide whitespace-nowrap">
@@ -25,7 +27,7 @@
                     </p>
                     <div class="flex items-center flex-1 text-xs text-gray-500">
                         {{ $order->items->count() }} @lang('modules.menu.item') | {{
-                        $order->date_time->timezone(timezone())->translatedFormat('M d, Y H:i A') }}
+                        $order->date_time->timezone(timezone())->translatedFormat('M d, Y h:i A') }}
                     </div>
 
                     @php
@@ -89,9 +91,16 @@
                     <div class="flex items-center justify-end gap-4">
                         <p class="text-sm font-normal text-gray-900 dark:text-white">x{{ $item->quantity }}</p>
 
-                        <p class="text-lg font-medium leading-tight text-gray-900 dark:text-white">
-                            {{ currency_format($item->price + $item->modifierOptions->sum('price'), $restaurant->currency_id) }}
-                        </p>
+                        <div class="flex flex-col items-end gap-1">
+                            @if($taxMode === 'item' && $restaurant?->tax_inclusive && $item->tax_amount > 0)
+                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ currency_format(($item->price + $item->modifierOptions->sum('price')) - ($item->tax_amount / $item->quantity), $restaurant->currency_id) }} + tax
+                                </div>
+                            @endif
+                            <p class="text-lg font-medium leading-tight text-gray-900 dark:text-white">
+                                {{ currency_format($item->price + $item->modifierOptions->sum('price'), $restaurant->currency_id) }}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -120,7 +129,7 @@
                             @endif
                         </div>
                         <div>
-                            {{ currency_format(($item->charge->getAmount($order->sub_total - ($order->discount_amount ?? 0)))) }}
+                            {{ currency_format(($item->charge->getAmount($order->sub_total - ($order->discount_amount ?? 0))), $restaurant->currency_id) }}
                         </div>
                     </div>
                     @endforeach
@@ -180,3 +189,28 @@
 
 
 </div>
+
+
+@push('scripts')
+
+    @if(pusherSettings()->is_enabled_pusher_broadcast)
+        <script>
+
+            document.addEventListener('DOMContentLoaded', function () {
+
+                const channel = PUSHER.subscribe('order-success');
+                channel.bind('order-success.created', function(data) {
+                    @this.call('refreshOrderSuccess');
+                    new Audio("{{ asset('sound/new_order.wav')}}").play();
+                    console.log('✅ Pusher received data for order success!. Refreshing...');
+                });
+                PUSHER.connection.bind('connected', () => {
+                    console.log('✅ Pusher connected for Order Success!');
+                });
+                channel.bind('pusher:subscription_succeeded', () => {
+                    console.log('✅ Subscribed to order-success channel!');
+                });
+            });
+        </script>
+    @endif
+@endpush

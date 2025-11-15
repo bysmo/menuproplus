@@ -4,7 +4,7 @@
             <div class="mb-4">
                 <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">@lang('menu.itemCategories')</h1>
             </div>
-            <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
+            <div class="items-center justify-between block sm:flex ">
                 <div class="flex items-center mb-4 sm:mb-0">
                     <form class="sm:pr-3" action="#" method="GET">
                         <label for="products-search" class="sr-only">Search</label>
@@ -15,10 +15,15 @@
                     </form>
                 </div>
 
-                @if(user_can('Create Item Category'))
-                <x-button type='button' wire:click="$toggle('showMenuCategoryModal')">@lang('modules.menu.addItemCategory')</x-button>
-                @endif
+                <div class="inline-flex gap-x-4 mb-4 sm:mb-0">
+                    <x-secondary-link href="{{ route('menu-items.entities.sort') }}">
+                        @lang('modules.menu.sortMenuItems')
+                    </x-secondary-link>
 
+                    @if(user_can('Create Item Category'))
+                    <x-button type='button' wire:click="$toggle('showMenuCategoryModal')">@lang('modules.menu.addItemCategory')</x-button>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -130,7 +135,7 @@
 
     <x-dialog-modal wire:model.live="showMenuCategoryModal" maxWidth="xl">
         <x-slot name="title">
-            @lang('modules.menu.itemCategory')
+            @lang('modules.menu.addItemCategory')
         </x-slot>
 
         <x-slot name="content">
@@ -138,7 +143,9 @@
         </x-slot>
 
         <x-slot name="footer">
-            <x-button-cancel wire:click="$toggle('showMenuCategoryModal')" wire:loading.attr="disabled" />
+            <x-button-cancel wire:click="$toggle('showMenuCategoryModal')" wire:loading.attr="disabled" >
+            {{ __('app.close') }}
+            </x-secondary-button>
         </x-slot>
     </x-dialog-modal>
 

@@ -2,10 +2,11 @@
 
 namespace App\Livewire\Forms;
 
+use App\Models\User;
 use App\Models\Country;
+use Livewire\Component;
 use App\Models\Restaurant;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
-use Livewire\Component;
 
 class EditRestaurant extends Component
 {
@@ -16,6 +17,7 @@ class EditRestaurant extends Component
     public $fullName;
     public $email;
     public $phone;
+    public $phoneCode;
     public $address;
     public $country;
     public $facebook;
@@ -23,10 +25,13 @@ class EditRestaurant extends Component
     public $twitter;
     public $countries;
     public $restaurant;
-    public $status;
+    public $isActive;
     public $sub_domain;
     public $domain;
-
+    public $phoneCodeSearch = '';
+    public $phoneCodeIsOpen = false;
+    public $allPhoneCodes;
+    public $filteredPhoneCodes;
 
     public function mount()
     {
@@ -35,43 +40,71 @@ class EditRestaurant extends Component
             $this->domain = str($this->restaurant->sub_domain)->endsWith(getDomain()) ? '.' . getDomain() : '';
         }
 
+        $ipCountry = (new User)->getCountryFromIp();
+
+        $defaultCountry = Country::where('countries_code', $ipCountry)->first();
+
         $this->countries = Country::all();
 
         $this->restaurantName = $this->restaurant->name;
         $this->email = $this->restaurant->email;
         $this->phone = $this->restaurant->phone_number;
+        $this->phoneCode = $this->restaurant->phone_code;
         $this->address = $this->restaurant->address;
         $this->country = $this->restaurant->country_id;
         $this->facebook = $this->restaurant->facebook_link;
         $this->instagram = $this->restaurant->instagram_link;
         $this->twitter = $this->restaurant->twitter_link;
-        $this->status = $this->restaurant->is_active;
+        $this->isActive = (int)$this->restaurant->is_active;
+        
+        // Initialize phone codes
+        $this->allPhoneCodes = collect(Country::pluck('phonecode')->unique()->filter()->values());
+        $this->filteredPhoneCodes = $this->allPhoneCodes;
+    }
+
+    public function updatedPhoneCodeIsOpen($value)
+    {
+        if (!$value) {
+            $this->reset(['phoneCodeSearch']);
+            $this->updatedPhoneCodeSearch();
+        }
+    }
+
+    public function updatedPhoneCodeSearch()
+    {
+        $this->filteredPhoneCodes = $this->allPhoneCodes->filter(function ($phonecode) {
+            return str_contains($phonecode, $this->phoneCodeSearch);
+        })->values();
+    }
+
+    public function selectPhoneCode($phonecode)
+    {
+        $this->phoneCode = $phonecode;
+        $this->phoneCodeIsOpen = false;
+        $this->phoneCodeSearch = '';
+        $this->updatedPhoneCodeSearch();
     }
 
     public function submitForm()
     {
-
-        $this->validate([
+        $rules = [
             'restaurantName' => 'required',
             'email' => 'required',
-        ]);
+            'isActive' => 'required|in:0,1',
+        ];
 
         if (module_enabled('Subdomain')) {
-
             // Validate domain or subdomain based on input
             if (empty($this->domain)) {
-                $this->validate([
-                    'sub_domain' => 'required|string'
-                ]);
-                // For custom domains, we don't need to validate the domain field
-                // as it's intentionally empty for custom domains
-                // Just continue with the subdomain validation below
+                $rules['sub_domain'] = 'required|string';
             } else {
-                $this->validate([
-                    'sub_domain' => 'required|min:3|max:50|regex:/^[a-z0-9\-_]{2,20}$/|banned_sub_domain',
-                ]);
+                $rules['sub_domain'] = 'required|min:3|max:50|regex:/^[a-z0-9\-_]{2,20}$/|banned_sub_domain';
             }
+        }
 
+        $this->validate($rules);
+
+        if (module_enabled('Subdomain')) {
             $restaurant = Restaurant::where('id', '!=', $this->restaurant->id)
                 ->where('sub_domain', strtolower($this->sub_domain . $this->domain))
                 ->exists();
@@ -88,12 +121,12 @@ class EditRestaurant extends Component
         $this->restaurant->address = $this->address;
         $this->restaurant->email = $this->email;
         $this->restaurant->phone_number = $this->phone;
+        $this->restaurant->phone_code = $this->phoneCode;
         $this->restaurant->country_id = $this->country;
         $this->restaurant->facebook_link = $this->facebook;
         $this->restaurant->instagram_link = $this->instagram;
         $this->restaurant->twitter_link = $this->twitter;
-
-        $this->restaurant->is_active = (bool)$this->status;
+        $this->restaurant->is_active = (bool)$this->isActive;
         $this->restaurant->save();
 
         $this->dispatch('hideEditStaff');
@@ -108,6 +141,9 @@ class EditRestaurant extends Component
 
     public function render()
     {
-        return view('livewire.forms.edit-restaurant');
+        return view('livewire.forms.edit-restaurant', [
+            'phonecodes' => $this->filteredPhoneCodes,
+        ]);
     }
+
 }

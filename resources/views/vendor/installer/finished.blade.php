@@ -9,7 +9,7 @@
        style="text-align: center;">
         Application has been successfully installed
     </p>
-    @if(session()->has('message') && session('message')['status'] == 'success')
+
     <div @class([
             'alert alert-success',
             'alert-danger'=> session()->has('message') && session('message')['status'] !=='success',
@@ -27,7 +27,7 @@
             </tr>
         </table>
     </div>
-    @endif
+
     <div class="buttons">
         <a href="{{ url('/') }}" class="button">Click here to exit</a>
     </div>

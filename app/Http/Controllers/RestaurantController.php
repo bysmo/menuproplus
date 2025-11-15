@@ -16,5 +16,4 @@ class RestaurantController extends Controller
     {
         return view('restaurants.show', compact('id'));
     }
-
 }

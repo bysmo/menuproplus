@@ -82,7 +82,7 @@ class LanguageSetting extends BaseModel
             'is_rtl' => 0,
         ],
         [
-            'language_code' => 'gr',
+            'language_code' => 'el',
             'flag_code' => 'gr',
             'language_name' => 'Greek',
             'active' => 0,
@@ -152,6 +152,7 @@ class LanguageSetting extends BaseModel
             'flag_code' => 'cn',
             'language_name' => 'Chinese (S)',
             'active' => 0,
+            'is_rtl' => 0,
 
         ],
         [

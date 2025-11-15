@@ -10,13 +10,17 @@ class TodayReservations extends Component
 
     public function render()
     {
-        return view('livewire.dashboard.today-reservations', [
-            'count' => Reservation::whereDate('reservation_date_time', '>=', now(timezone())->startOfDay()->toDateTimeString())
+        $count = Reservation::whereDate('reservation_date_time', '>=', now(timezone())->startOfDay()->toDateTimeString())
             ->whereDate('reservation_date_time', '<=', now(timezone())->endOfDay()->toDateTimeString())
             ->where('reservation_status', 'Confirmed')
             ->whereNull('table_id')
-            ->count()
-        ]);
+            ->count();
+
+        return view('livewire.dashboard.today-reservations', ['count' => $count]);
     }
 
+    public function refreshReservations()
+    {
+        $this->dispatch('$refresh');
+    }
 }

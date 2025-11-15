@@ -19,6 +19,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\BaseModel;
+use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable
 {
@@ -47,7 +48,11 @@ class User extends Authenticatable
         'password',
         'branch_id',
         'restaurant_id',
-        'locale'
+        'locale',
+        'phone_number',
+        'phone_code',
+        'terms_and_privacy_accepted',
+        'marketing_emails_accepted',
     ];
 
     /**
@@ -83,6 +88,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'restaurant_id' => 'integer',
             'branch_id' => 'integer',
+            'terms_and_privacy_accepted' => 'boolean',
+            'marketing_emails_accepted' => 'boolean',
         ];
     }
 
@@ -213,5 +220,46 @@ class User extends Authenticatable
         }
 
         return $ipCountry;
+    }
+
+    public function getPhoneCodeFromIp(): ?string
+    {
+        $ipCountry = $this->getCountryFromIp();
+
+        try {
+            $country = \App\Models\Country::where('countries_code', $ipCountry)->first();
+            return $country ? $country->phonecode : null;
+        } catch (\Throwable $th) {
+            return null;
+        }
+    }
+
+    public function routeNotificationForVonage($notification)
+    {
+        if (!is_null($this->phone_number) && !is_null($this->phone_code)) {
+            return '+' . $this->phone_code . $this->phone_number;
+        }
+
+        return null;
+    }
+
+    public function routeNotificationForMsg91($notification)
+    {
+        if (!is_null($this->phone_number) && !is_null($this->phone_code)) {
+            return $this->phone_code . $this->phone_number;
+        }
+
+        return null;
+
+    }        
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }

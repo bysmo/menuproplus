@@ -50,6 +50,7 @@ class CustomModuleController extends Controller
 
     public function validateModule($moduleName)
     {
+
         $appName = str_replace('-new', '', config('froiden_envato.envato_product_name'));
         $wrongMessage = 'The zip that you are trying to install is not compatible with ' . $appName . ' version';
 
@@ -167,6 +168,7 @@ class CustomModuleController extends Controller
 
         if ($status == 'active') {
 
+
             $this->runModuleMigrateCommand($moduleName);
 
             // We will call the module function php artisan asset:activate, zoom:active , etc
@@ -209,6 +211,7 @@ class CustomModuleController extends Controller
      */
     private function unzipCodecanyon($zip)
     {
+
         $codeCanyonPath = storage_path('app') . '/Modules/Codecanyon';
         $zip->extract($codeCanyonPath);
         $files = File::allfiles($codeCanyonPath);
@@ -256,6 +259,7 @@ class CustomModuleController extends Controller
 
     private function runModuleMigrateCommand($moduleName)
     {
+
 
         if (empty($moduleName)) {
             throw new \InvalidArgumentException('You must select at least one module');
@@ -328,9 +332,13 @@ class CustomModuleController extends Controller
             // if module is universal bundle module then activate the module
             if ($moduleName == 'UniversalBundle') {
                 /** @phpstan-ignore-next-line */
+
                 $module = Module::findOrFail($moduleName);
+
                 $module->enable();
-                Artisan::call('module:migrate', array($moduleName, '--force' => true));
+
+                Artisan::call('module:migrate', ['module' => $moduleName, '--force' => true]);
+
                 event(new ModuleStatusChanged($module, 'active'));
             }
 

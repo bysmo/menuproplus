@@ -21,18 +21,13 @@ class DashboardController extends Controller
 
     public function superadmin()
     {
-        $smtp = smtp_setting();
-        $global = global_setting();
-
-        $smtpConfigured = ($smtp && $smtp->mail_driver == 'smtp' && $smtp->verified) || ($global && $global->mail_driver != 'smtp');
-
         // Check if onboarding steps are completed
-        //$smtpConfigured = (smtp_setting()->mail_driver == 'smtp' && smtp_setting()->verified) || global_setting()->mail_driver != 'smtp';
-        $cronConfigured = $global->hide_cron_job == 1;
-        $appNameChanged = $global->name != 'TableTrack'; // Assuming 'TableTrack' is the default name
+        $smtpConfigured = (smtp_setting()->mail_driver == 'smtp' && smtp_setting()->verified) || smtp_setting()->mail_driver != 'smtp';
+        $cronConfigured = global_setting()->hide_cron_job == 1;
+        $appNameChanged = global_setting()->name != 'TableTrack'; // Assuming 'TableTrack' is the default name
 
         // If any of the onboarding steps are not completed, redirect to the onboarding page
-        if (!$smtpConfigured || !$cronConfigured || !$appNameChanged) {
+        if ((!$smtpConfigured || !$cronConfigured || !$appNameChanged) && !app()->environment('development')) {
             return view('dashboard.onboarding', compact('smtpConfigured', 'cronConfigured', 'appNameChanged'));
         }
 
@@ -70,7 +65,7 @@ class DashboardController extends Controller
             $pushIDs = [];
 
             foreach ($usersIDs[0] as $key => $uid) {
-                $pushIDs[] = Str::slug(global_setting()->beamAuthname) . '-' . $uid;
+                $pushIDs[] = Str::slug(global_setting()->name) . '-' . $uid;
             }
 
             $publishResponse = $beamsClient->publishToUsers(

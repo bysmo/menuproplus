@@ -3,11 +3,6 @@
 namespace App\Notifications;
 
 use App\Models\NotificationSetting;
-use App\Models\Reservation;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 
 class NewReservationForRestaurant extends BaseNotification
 {
@@ -49,13 +44,13 @@ class NewReservationForRestaurant extends BaseNotification
     {
         $build = parent::build($notifiable);
         return $build
-            ->subject(__('email.reservation.subject') . $this->reservation->reservation_date_time->format('D,d M, h:i A'))
+            ->subject(__('email.reservation.subject') . $this->reservation->reservation_date_time->translatedFormat('D,d M, h:i A'))
             ->greeting(__('app.hello') . ' ' . $notifiable->name . ',')
             ->line(__('email.reservation.text1'))
             ->line(__('email.reservation.text2'))
             ->line(__('modules.customer.name') . ': ' . $this->reservation->customer->name)
-            ->line(__('app.date') . ': ' . $this->reservation->reservation_date_time->format('d M (l)'))
-            ->line(__('app.time') . ': ' . $this->reservation->reservation_date_time->format('h:i A'))
+            ->line(__('app.date') . ': ' . $this->reservation->reservation_date_time->translatedFormat('d M (l)'))
+            ->line(__('app.time') . ': ' . $this->reservation->reservation_date_time->translatedFormat('h:i A'))
             ->line(__('modules.reservation.guests') . ': ' . $this->reservation->party_size)
             ->action(__('email.reservation.action'), route('reservations.index'))
             ->line(__('email.reservation.text3'));

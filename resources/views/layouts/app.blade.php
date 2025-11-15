@@ -15,7 +15,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/trix/1.3.1/trix.min.css" />
+    <link rel="stylesheet" href="{{ asset('vendor/trix/trix.css') }}" />
 
 
     <link rel="apple-touch-icon" sizes="180x180" href="{{ restaurantOrGlobalSetting()->upload_fav_icon_apple_touch_icon_url }}">
@@ -49,8 +49,9 @@
         <link href="{{ asset('css/app-custom.css') }}" rel="stylesheet">
     @endif
 
-
-    <script src="https://js.pusher.com/beams/2.1.0/push-notifications-cdn.js" async></script>
+    @if (App::environment('codecanyon') && pusherSettings()->beamer_status)
+        <script src="https://js.pusher.com/beams/2.1.0/push-notifications-cdn.js" async></script>
+    @endif
 
     <script>
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia(
@@ -139,11 +140,16 @@
 
     @include('layouts.update-uri')
 
+    @livewire('raise-support-ticket')
+
     <script src="{{ asset('vendor/livewire-alert/livewire-alert.js') }}" defer data-navigate-track></script>
     <x-livewire-alert::flash />
 
-    @if (user()->restaurant_id)
+    @if (superadminPaymentGateway()->razorpay_status)
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    @endif
+
+    @if (user()->restaurant_id)
 
         @livewire('order.OrderDetail')
 
@@ -153,60 +159,14 @@
 
         @livewire('order.addPayment')
 
-
-        <script src="https://js.stripe.com/v3/"></script>
-
-        <form action="{{ route('stripe.license_payment') }}" method="POST" id="license-payment-form" class="hidden">
-            @csrf
-
-            <input type="hidden" id="license_payment" name="license_payment">
-            <input type="hidden" id="package_type" name="package_type">
-            <input type="hidden" id="package_id" name="package_id">
-            <input type="hidden" id="currency_id" name="currency_id">
-
-            <div class="form-row">
-                <label for="card-element">
-                    Credit or debit card
-                </label>
-                <div id="card-element">
-                    <!-- A Stripe Element will be inserted here. -->
-                </div>
-
-                <!-- Used to display Element errors. -->
-                <div id="card-errors" role="alert"></div>
-            </div>
-
-            <button>Submit Payment</button>
-        </form>
-
-        @if (superadminPaymentGateway()->stripe_status)
-            <script>
-                const stripe = Stripe('{{ superadminPaymentGateway()->stripe_key }}');
-                const elements = stripe.elements({
-                    currency: '{{ strtolower(restaurant()->currency->currency_code) }}',
-                });
-            </script>
-        @endif
-
-        @if (superadminPaymentGateway()->flutterwave_status)
-            <script src="https://checkout.flutterwave.com/v3.js"></script>
-            <form action="{{ route('flutterwave.initiate-payment') }}" method="POST" id="flutterwavePaymentformNew" class="hidden">
-                @csrf
-                <input type="hidden" name="payment_id">
-                <input type="hidden" name="amount">
-                <input type="hidden" name="currency">
-                <input type="hidden" name="restaurant_id">
-                <input type="hidden" name="package_id">
-                <input type="hidden" name="package_type">
-            </form>
-        @endif
+        @include('sections.payment-gateway-include')
 
     @endif
 
 
     @if (App::environment('codecanyon') && pusherSettings()->beamer_status)
         <script>
-            const currentUserId = "{{ Str::slug(global_setting()->name) }}-{{ auth()->id() }}"; // Get this from your auth system
+            var currentUserId = "{{ Str::slug(global_setting()->name) }}-{{ auth()->id() }}"; // Get this from your auth system
 
             const beamsClient = new PusherPushNotifications.Client({
                 instanceId: "{{ pusherSettings()->instance_id }}",
@@ -264,10 +224,14 @@
         }
     </script>
 
+    @include('sections.pusher-script')
+
     @include('layouts.service-worker-js')
     @stack('scripts')
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/trix/1.3.1/trix.min.js"></script>
+    <script src="{{ asset('vendor/trix/trix.umd.min.js') }}"></script>
 
+    <!-- Print Image Handler -->
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js" data-navigate-track></script>
+    <script src="{{ asset('js/print-image-handler.js') }}" data-navigate-track></script>
 </body>
-
 </html>

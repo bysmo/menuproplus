@@ -20,8 +20,8 @@ class EditTax extends Component
     public function submitForm()
     {
         $this->validate([
-            'taxName' => 'required',
-            'taxPercent' => 'required|numeric'
+            'taxName' => 'required|string|max:255',
+            'taxPercent' => 'required|numeric|min:0|max:100'
         ]);
 
         $this->tax->tax_name = $this->taxName;

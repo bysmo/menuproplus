@@ -75,7 +75,7 @@
 
           <div id="tooltip-toggle" role="tooltip"
             class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip">
-            Toggle dark mode
+            @lang('app.toggleDarkMode')
             <div class="tooltip-arrow" data-popper-arrow></div>
           </div>
 
@@ -107,7 +107,24 @@
                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
                     role="menuitem">@lang('menu.profile')</a>
                 </li>
+                <li>
+                    <a href="{{ route('superadmin.custom-modules.index') }}"
+                      class="flex justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
+                      role="menuitem">
+                      @lang('modules.settings.customModules')
 
+
+                    </a>
+                  </li>
+                <li>
+                  <a href="{{ route('superadmin.app-update.index') }}"
+                    class="flex justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
+                    role="menuitem">
+                    @lang('menu.appUpdate')
+
+                    <span class="bg-skin-base text-white text-xs font-medium px-1.5 py-0.5 rounded-full dark:bg-gray-500 dark:text-gray-300">v{{ \Illuminate\Support\Facades\File::get('version.txt') }}</span>
+                  </a>
+                </li>
 
                 <li>
                   <form method="POST" action="{{ route('logout') }}" x-data>

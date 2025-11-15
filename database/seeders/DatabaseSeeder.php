@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
         $this->call(SuperadminPaymentGatewaySeeder::class);
         $this->call(PusherSettinSeeder::class);
 
+
         $restaurants = Restaurant::with('branches')->get();
 
         foreach ($restaurants as $restaurant) {
@@ -43,6 +44,7 @@ class DatabaseSeeder extends Seeder
             $this->call(RoleSeeder::class, false, ['restaurant' => $restaurant]);
             $this->call(UserSeeder::class, false, ['branch' => $branch]);
             $this->call(ReservationSettingsSeeder::class, false, ['branch' => $branch]);
+            $this->call(KotCancelReasonSeeder::class, false, ['restaurant' => $restaurant]);
 
             if (!App::environment('codecanyon')) {
                 $this->call(AreaSeeder::class, false, ['branch' => $branch]);
@@ -61,9 +63,7 @@ class DatabaseSeeder extends Seeder
                     'amount' => 99,
                     'status' => 'paid'
                 ]);
-
             }
         }
     }
-
 }

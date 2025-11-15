@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Branch;
 use App\Models\Country;
+use App\Models\OrderType;
 use App\Models\Restaurant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
@@ -68,23 +69,60 @@ class RestaurantSettingSeeder extends Seeder
             $setting->facebook_link = 'https://www.facebook.com/';
             $setting->instagram_link = 'https://www.instagram.com/';
             $setting->twitter_link = 'https://www.twitter.com/';
+            $setting->customer_site_language = 'en';
             $setting->save();
 
             $branch = new Branch();
             $branch->restaurant_id = $setting->id;
             $branch->name = fake()->city();
             $branch->address = fake()->address();
-            $branch->saveQuietly();
+
+            $branch->save();
+
+
             $this->call(OnboardingSeeder::class, false, ['branch' => $branch]);
             $branch->generateQrCode();
+            $this->addKotPlaces($branch);
+            $this->addOrderTypes($branch);
+
+            $branch->generateKotSetting();
 
             $branch = new Branch();
             $branch->restaurant_id = $setting->id;
             $branch->name = fake()->city();
             $branch->address = fake()->address();
-            $branch->saveQuietly();
+            $branch->save();
+
+
             $this->call(OnboardingSeeder::class, false, ['branch' => $branch]);
             $branch->generateQrCode();
+            $this->addKotPlaces($branch);
+            $this->addOrderTypes($branch);
+
+            $branch->generateKotSetting();
         }
     }
+
+    public function addKotPlaces($branch)
+    {
+        if (!$branch) {
+            $this->command->warn(__('messages.noBranchFound'));
+            return;
+        }
+    }
+
+    public function addOrderTypes($branch)
+    {
+        $defaultOrderTypes = ['Dine In', 'Delivery', 'Pickup'];
+        $defaultOrderTypesSlug = ['dine_in', 'delivery', 'pickup'];
+
+        foreach ($defaultOrderTypes as $index => $type) {
+            OrderType::firstOrCreate([
+                'order_type_name' => $type,
+                'branch_id' => $branch->id,
+                'slug' => $defaultOrderTypesSlug[$index],
+            ]);
+        }
+    }
+
 }

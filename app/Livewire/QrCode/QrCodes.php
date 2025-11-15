@@ -15,7 +15,7 @@ class QrCodes extends Component
 
     public function downloadQrCode($tableCode, $branchId)
     {
-        $filename = 'qrcode-' . $branchId . '-' . str()->slug($tableCode) . '.png';
+        $filename = 'qrcode-' . $branchId . '-' . str()->slug($tableCode, '-', (auth()->user() ? auth()->user()->locale : 'en')) . '.png';
 
         $file = FileStorage::where('filename', $filename)->first();
 

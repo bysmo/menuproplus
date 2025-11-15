@@ -46,6 +46,18 @@
                                     <span class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.customerAddress')</span>
                                 </label>
                             </div>
+
+                            <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <x-checkbox name="customerPhone" id="customerPhone" wire:model='customerPhone' />
+                                <label for="customerPhone" class="ms-3 flex items-center">
+                                    <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 me-2" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                    <span class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.customerPhone')</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -92,6 +104,18 @@
                                     <span class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.totalGuest')</span>
                                 </label>
                             </div>
+                            <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <x-checkbox name="showOrderType" id="showOrderType" wire:model='showOrderType' />
+                                <label for="showOrderType" class="ms-3 flex items-center">
+                                    <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 me-2" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                    </svg>
+                                    <span class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.showOrderType')</span>
+                                </label>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -150,7 +174,9 @@
                                                 <img src="{{ $paymentQrCode }}" alt="QR Code"
                                                     class="h-24 w-24 object-contain">
                                             @else
-                                                <span class="text-gray-500 dark:text-gray-400">No QR Code</span>
+                                                <span class="text-gray-500 dark:text-gray-400">
+                                                    @lang('modules.settings.noQrCode')
+                                                </span>
                                             @endif
                                         </div>
 
@@ -195,6 +221,10 @@
                                     </div>
 
                                     <x-input-error for="paymentQrCode" class="mt-2" />
+
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                        @lang('modules.settings.paymentQrCodeUploadHelp')
+                                    </p>
                                 </div>
                             </div>
 
@@ -214,6 +244,17 @@
                                 <label for="showPaymentDetails" class="ms-3 flex items-center">
                                     <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 me-2" width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M448 128v320H128V128zm-42.667 42.667H170.667v234.666h234.666zM384 64v42.667l-277.334-.001V384H64V64zm-21.333 234.667v42.666H213.333v-42.666zm0-85.334V256H213.333v-42.667z" fill-rule="evenodd" fill="currentColor"/></svg>
                                     <span class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.showPaymentDetails')</span>
+                                </label>
+                            </div>
+
+                            <!-- Show/Hide Payment Status -->
+                            <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <x-checkbox name="showPaymentStatus" id="showPaymentStatus" wire:model='showPaymentStatus' />
+                                <label for="showPaymentStatus" class="ms-3 flex items-center">
+                                    <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="font-medium text-gray-900 dark:text-white">@lang('modules.settings.showPaymentStatus')</span>
                                 </label>
                             </div>
                         </div>
@@ -281,9 +322,14 @@
 
                                                 <div class="order-info">
                                                     <div class="summary-row">
-                                                        <span>@lang('modules.order.orderNumber') #<span
+                                                        <span>
+                                                            @if(!isOrderPrefixEnabled())
+                                                                @lang('modules.order.orderNumber') #<span
+                                                            @else
+                                                                <span
+                                                            @endif
                                                                 class="order-number">SAMPLE-001</span></span>
-                                                        <span>{{ now()->format('D, d M Y, H:i') }}</span>
+                                                        <span>{{ now()->format('d M Y, h:i A') }}</span>
                                                     </div>
 
                                                     <div class="summary-grid">
@@ -312,6 +358,12 @@
                                                             <span>@lang('modules.customer.customerAddress'): 123 Sample Street</span>
                                                         </div>
                                                     @endif
+
+                                                    @if ($customerPhone)
+                                                        <div class="summary-row">
+                                                            <span>@lang('modules.customer.phone'): +1 234 567 8900</span>
+                                                        </div>
+                                                    @endif
                                                 </div>
 
                                                 <table class="items-table">
@@ -327,14 +379,14 @@
                                                         <tr>
                                                             <td class="qty">2</td>
                                                             <td class="description">Sample Item 1</td>
-                                                            <td class="price">{{ currency_format(10) }}</td>
-                                                            <td class="amount">{{ currency_format(20) }}</td>
+                                                            <td class="price">{{ currency_format(10, restaurant()->currency_id) }}</td>
+                                                            <td class="amount">{{ currency_format(20, restaurant()->currency_id) }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td class="qty">1</td>
                                                             <td class="description">Sample Item 2</td>
-                                                            <td class="price">{{ currency_format(15) }}</td>
-                                                            <td class="amount">{{ currency_format(15) }}</td>
+                                                            <td class="price">{{ currency_format(15, restaurant()->currency_id) }}</td>
+                                                            <td class="amount">{{ currency_format(15, restaurant()->currency_id) }}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -342,20 +394,27 @@
                                                 <div class="summary">
                                                     <div class="summary-row">
                                                         <span>@lang('modules.order.subTotal'):</span>
-                                                        <span>{{ currency_format(35) }}</span>
+                                                        <span>{{ currency_format(35, restaurant()->currency_id) }}</span>
                                                     </div>
 
                                                     @if ($restaurantTax)
                                                         <div class="summary-row">
                                                             <span>Tax (10%):</span>
-                                                            <span>{{ currency_format(3.5) }}</span>
+                                                            <span>{{ currency_format(3.5, restaurant()->currency_id) }}</span>
                                                         </div>
                                                     @endif
 
                                                     <div class="summary-row total">
                                                         <span>@lang('modules.order.total'):</span>
-                                                        <span>{{ currency_format(38.5) }}</span>
+                                                        <span>{{ currency_format(38.5, restaurant()->currency_id) }}</span>
                                                     </div>
+
+                                                    @if ($showPaymentStatus)
+                                                        <div class="summary-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #000;">
+                                                            <span style="font-weight: bold;">@lang('modules.order.paymentStatus'):</span>
+                                                            <span style="font-weight: bold; color: #10b981;">@lang('modules.order.paid')</span>
+                                                        </div>
+                                                    @endif
                                                 </div>
 
                                                 <div class="footer">
@@ -381,12 +440,12 @@
                                                                     </thead>
                                                                     <tbody>
                                                                         <tr>
-                                                                            <td class="qty">{{ currency_format(20) }}</td>
+                                                                            <td class="qty">{{ currency_format(20, restaurant()->currency_id) }}</td>
                                                                             <td class="payment-method">cash</td>
                                                                             <td class="price">{{ now()->subMinutes(10)->format('d M, Y h:i A') }}</td>
                                                                         </tr>
                                                                         <tr>
-                                                                            <td class="qty">{{ currency_format(18.5) }}</td>
+                                                                            <td class="qty">{{ currency_format(18.5, restaurant()->currency_id) }}</td>
                                                                             <td class="payment-method">upi</td>
                                                                             <td class="price">{{ now()->subMinutes(5)->format('d M, Y h:i A') }}</td>
                                                                         </tr>

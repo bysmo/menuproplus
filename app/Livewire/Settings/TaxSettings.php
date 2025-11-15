@@ -19,10 +19,20 @@ class TaxSettings extends Component
     public $showEditCurrencyModal = false;
     public $showAddCurrencyModal = false;
     public $confirmDeleteCurrencyModal = false;
+    public $settings;
+    public $taxMode = 'order';
+    public $itemTaxInclusive = 0;
+    public $activeTab = 'settings';
+    public $assignAllTaxesToItems = false;
 
     public function mount()
     {
         $this->taxes = Tax::get();
+
+        if ($this->settings) {
+            $this->taxMode = $this->settings->tax_mode ?? 'order';
+            $this->itemTaxInclusive = $this->settings->tax_inclusive ?? 0;
+        }
     }
 
     public function showAddCurrency()
@@ -57,7 +67,6 @@ class TaxSettings extends Component
             'showCancelButton' => false,
             'cancelButtonText' => __('app.close')
         ]);
-
     }
 
     #[On('hideEditCurrency')]
@@ -73,10 +82,38 @@ class TaxSettings extends Component
         $this->showAddCurrencyModal = false;
         $this->dispatch('refreshTaxes');
     }
-    
+
+    public function saveTaxSettings()
+    {
+        if ($this->settings) {
+            if ($this->taxMode !== 'item') {
+                $this->assignAllTaxesToItems = false;
+            }
+
+            $this->settings->tax_mode = $this->taxMode;
+            $this->settings->tax_inclusive = $this->itemTaxInclusive;
+            $this->settings->save();
+            
+            if ($this->taxMode === 'item' && $this->assignAllTaxesToItems) {
+                $allTaxes = Tax::all();
+                $items = \App\Models\MenuItem::doesntHave('taxes')->get();
+                foreach ($items as $item) {
+                    $item->taxes()->sync($allTaxes->pluck('id')->toArray());
+                }
+            }
+
+            $this->alert('success', __('app.saved'), [
+                'toast' => true,
+                'position' => 'top-end',
+                'showCancelButton' => false
+            ]);
+        }
+
+        session()->forget('restaurant');
+    }
+
     public function render()
     {
         return view('livewire.settings.tax-settings');
     }
-
 }

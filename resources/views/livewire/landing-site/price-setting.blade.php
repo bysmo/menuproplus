@@ -41,14 +41,25 @@
 
             <!-- Header Description -->
             <div class="sm:col-span-2">
-                <label for="priceDescription" class="block text-sm font-medium text-gray-700">
+                <label for="priceDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     @lang('modules.settings.priceDescription')
                 </label>
-                <x-textarea id="priceDescription"
-                          wire:model="priceDescription" rows="3" class="mt-1 block w-full">
-                </x-textarea>
+                <input x-ref="priceDescription" id="priceDescription" name="priceDescription" wire:model="priceDescription"
+                    value="{{ $priceDescription }}" type="hidden" />
+                <div wire:ignore class="mt-1">
+                    <trix-editor class="trix-content text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        input="priceDescription"
+                        data-gramm="false"
+                        placeholder="{{ __('placeholders.featureDescriptionPlaceHolder') }}"
+                        x-on:trix-change="$wire.set('priceDescription', $event.target.value)"
+                        x-ref="trixEditor"
+                        x-init="
+                            window.addEventListener('reset-trix-editor', () => {
+                                $refs.trixEditor.editor.loadHTML('');
+                            });" >
+                    </trix-editor>
+                </div>
                 <x-input-error for="priceDescription" class="mt-2" />
-
             </div>
 
 

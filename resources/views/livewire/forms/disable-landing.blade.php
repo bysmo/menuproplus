@@ -131,7 +131,7 @@
             'text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'"
             class="py-4 px-6 focus:outline-none transition-colors duration-200 text-sm">
             <div class="flex items-center space-x-2">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M17 18h-4v-1h4zm-9 0h3v-1H8zm12-4h-7v1h7zm-9 0H4v1h7zM23 3v18H1V3zm-1 9H2v8h20zm0-8H2v7h20z"></path><path fill="none" d="M0 0h24v24H0z"></path></g></svg>
+                <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M17 18h-4v-1h4zm-9 0h3v-1H8zm12-4h-7v1h7zm-9 0H4v1h7zM23 3v18H1V3zm-1 9H2v8h20zm0-8H2v7h20z"></path><path fill="none" d="M0 0h24v24H0z"></path></g></svg>
             <span>@lang('modules.settings.priceSetting')</span>
             </div>
         </button>
@@ -147,26 +147,26 @@
         <form wire:submit="submitForm">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div class="col-span-2 mb-4">
-                    <div class="flex items-center space-x-6">
-                        <label class="flex items-center">
+                    <div class="flex items-center space-x-6 rtl:space-x-reverse dark:text-gray-200">
+                        <label class="flex items-center cursor-pointer">
                             <input type="radio" name="landingType" value="static"
                                 wire:model="landingType"
                                 {{ $landingType === 'static' ? 'checked' : '' }}
-                                class="form-radio h-4 w-4 text-blue-600">
-                            <span class="ml-2"> @lang('modules.settings.staticLandingPage')</span>
+                                class="form-radio h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600">
+                            <span class="ms-2 text-gray-900 dark:text-gray-300"> @lang('modules.settings.staticLandingPage')</span>
                         </label>
 
-                        <label class="flex items-center">
+                        <label class="flex items-center cursor-pointer">
                             <input type="radio" name="landingType" value="dynamic"
                                 wire:model="landingType"
                                 {{ $landingType === 'dynamic' ? 'checked' : '' }}
-                                class="form-radio h-4 w-4 text-blue-600">
-                            <span class="ml-2"> @lang('modules.settings.dynamicLandingPage')</span>
+                                class="form-radio h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600">
+                            <span class="ms-2 text-gray-900 dark:text-gray-300"> @lang('modules.settings.dynamicLandingPage')</span>
                         </label>
                     </div>
                 </div>
                     <div class="border p-4 rounded-lg dark:border-gray-500 space-y-4">
-                    <div>
+                     <div>
                         <x-label for="disableLandingSite">
                             <div class="flex items-center cursor-pointer">
                                 <x-checkbox name="disableLandingSite" id="disableLandingSite"
@@ -179,8 +179,8 @@
                         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                             @lang('modules.settings.disableLandingSiteHelpDescription')
                         </p>
-                    </div>
-                    @if (!$disableLandingSite)
+                     </div>
+                     @if (!$disableLandingSite)
                         <div>
                             <x-label for="landingSiteType" :value="__('modules.settings.landingSiteType')" />
                             <x-select id="landingSiteType" class="mt-1 block w-full" wire:model.live="landingSiteType">
@@ -232,7 +232,7 @@
                                 <x-input-error for="yelp" class="mt-2" />
                             </div>
                         @endif
-                    @endif
+                     @endif
                 </div>
 
                 <div class="border p-4 rounded-lg dark:border-gray-500 space-y-4">
@@ -276,11 +276,33 @@
         class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 dark:bg-gray-800 mt-4">
         <div class="flex items-center justify-between">
             <h3 class="text-xl font-semibold dark:text-white">@lang('modules.settings.showMoreWebPage')</h3>
-            <x-button class="m-3" type="button" wire:click="$toggle('addDyanamicMenuModal')">
+            <x-button class="m-3" type="button" wire:click="$set('addDyanamicMenuModal', true)">
                 @lang('modules.settings.addDyanamicMenu')
             </x-button>
         </div>
+        <div class="mb-4">
+            <div class="flex gap-4">
+                <label class="flex items-center cursor-pointer">
+                    <input type="radio" wire:model.live="menuPosition" value="header" class="peer sr-only">
+                    <span class="px-4 py-2 rounded-md text-sm border border-gray-200 dark:border-gray-700
+                        peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900
+                        peer-checked:text-indigo-600 dark:peer-checked:text-indigo-400
+                        dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        @lang('app.header')
+                    </span>
+                </label>
 
+                <label class="flex items-center cursor-pointer">
+                    <input type="radio" wire:model.live="menuPosition" value="footer" class="peer sr-only">
+                    <span class="px-4 py-2 rounded-md text-sm border border-gray-200 dark:border-gray-700
+                        peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900
+                        peer-checked:text-indigo-600 dark:peer-checked:text-indigo-400
+                        dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        @lang('app.footer')
+                    </span>
+                </label>
+            </div>
+        </div>
         <div class="flex flex-col">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
@@ -294,7 +316,6 @@
                                 class="py-3 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
                                 @lang('modules.settings.menuSlug')
                             </th>
-
                             <th
                                 class="py-3 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
                                 @lang('modules.settings.isActive')
@@ -305,10 +326,22 @@
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                    <tbody wire:sortable="sortCustomMenu" class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                         @forelse ($customMenu as $menu)
-                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 even:bg-gray-50 dark:even:bg-gray-700">
-                                <td class="py-3 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
+                            <tr wire:sortable.item="{{ $menu->id }}" class="hover:bg-gray-100 dark:hover:bg-gray-700 even:bg-gray-50 dark:even:bg-gray-700">
+                                <td class="py-3 flex space-x-1 items-center px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
+                                    <span class="group cursor-move">
+                                        <svg wire:sortable.handle class="w-5 h-5 text-gray-400 group-hover:text-gray-700 dark:text-gray-500 dark:group-hover:text-gray-200 transition-colors duration-150" viewBox="0 0 48 48">
+                                            <g fill="currentColor">
+                                                <circle cx="18" cy="12" r="4"/>
+                                                <circle cx="18" cy="24" r="4"/>
+                                                <circle cx="18" cy="36" r="4"/>
+                                                <circle cx="30" cy="12" r="4"/>
+                                                <circle cx="30" cy="24" r="4"/>
+                                                <circle cx="30" cy="36" r="4"/>
+                                            </g>
+                                        </svg>
+                                    </span>
                                     {{ $menu->menu_name }}
                                     <a href="{{ route('customMenu', $menu->menu_slug) }}" target="_blank" class="text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 font-medium">
                                         <svg class="inline-block w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -334,7 +367,6 @@
                                         </label>
                                     </div>
                                 </td>
-
 
                                 <td class="py-3 px-4 space-x-2 whitespace-nowrap text-right">
                                     <x-secondary-button-table wire:click='showEditDynamicMenu({{ $menu->id }})'
@@ -379,7 +411,7 @@
         </div>
 
 
-        <div wire:key='custom-menu-paginate-{{ microtime() }}'
+        <div wire:key='custom-menu-paginate-{{ $menuPosition }}'
             class="sticky bottom-0 right-0 items-center w-full p-4 bg-white border-t border-gray-200 sm:flex sm:justify-between dark:bg-gray-800 dark:border-gray-700">
             <div class="flex items-center mb-4 sm:mb-0 w-full">
                 {{ $customMenu->links() }}
@@ -440,11 +472,6 @@
             @livewire('forms.add-dyanamic-menu')
         </x-slot>
 
-        {{-- <x-slot name="footer">
-            <x-secondary-button wire:click="hideAddDyanamicMenu" wire:loading.attr="disabled">
-                {{ __('app.close') }}
-            </x-secondary-button>
-        </x-slot> --}}
     </x-right-modal>
 
     <x-right-modal wire:model.live="showEditDynamicMenuModal">
@@ -458,11 +485,6 @@
             @endif
         </x-slot>
 
-        {{-- <x-slot name="footer">
-            <x-secondary-button wire:click="$set('closeEditMenu', null)" wire:loading.attr="disabled">
-                {{ __('app.close') }}
-            </x-secondary-button>
-        </x-slot> --}}
     </x-right-modal>
 
 
@@ -487,4 +509,7 @@
             </div>
         </x-slot>
     </x-dialog-modal>
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/gh/livewire/sortable@v1.x.x/dist/livewire-sortable.js"></script>
+    @endpush
 </div>

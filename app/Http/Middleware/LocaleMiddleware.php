@@ -27,19 +27,6 @@ class LocaleMiddleware
             return $next($request);
         }
 
-        if (isset($user)) {
-
-            App::setLocale(session('locale') ?? $user?->locale ?? 'en');
-        } else {
-            try {
-
-                App::setLocale(session('locale') ?? global_setting()?->locale);
-            } catch (\Exception $e) {
-                App::setLocale('en');
-            }
-        }
-
-
         if (is_null($user?->restaurant_id) && is_null($user?->branch_id)) {
             return $next($request);
         }

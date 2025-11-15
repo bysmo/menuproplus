@@ -18,22 +18,35 @@ class FeatureIconHeading extends Component
 
     public function mount()
     {
-
         if (!$this->languageSettingid) {
-            $defaultLanguage = LanguageSetting::where('active', 1)->first();
-            $this->languageSettingid = $defaultLanguage ? $defaultLanguage->id : null;
+            $userLocale = auth()->user()?->locale;
+
+            if ($userLocale) {
+                $userLanguage = LanguageSetting::where('language_code', $userLocale)
+                    ->where('active', 1)
+                    ->first();
+
+                if ($userLanguage) {
+                    $this->languageSettingid = $userLanguage->id;
+                }
+            }
 
             if (!$this->languageSettingid) {
-                $this->alert('error', __('messages.languageNotFound'), [
-                    'toast' => true,
-                    'position' => 'top-end',
-                    'showCancelButton' => false,
-                    'cancelButtonText' => __('app.close')
-                ]);
+                $defaultLanguage = LanguageSetting::where('active', 1)->first();
+                $this->languageSettingid = $defaultLanguage ? $defaultLanguage->id : null;
+
+                if (!$this->languageSettingid) {
+                    $this->alert('error', __('messages.languageNotFound'), [
+                        'toast' => true,
+                        'position' => 'top-end',
+                        'showCancelButton' => false,
+                        'cancelButtonText' => __('app.close')
+                    ]);
+                }
             }
+
             $this->loadLanguageContents();
         }
-
     }
 
     public function loadLanguageContents()

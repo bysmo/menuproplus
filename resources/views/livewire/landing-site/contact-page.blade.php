@@ -78,7 +78,7 @@
                         <input
                             type="file"
                             id="contactImage"
-                            wire:model="contactImage"
+                            wire:model.live="contactImage"
                             accept="image/*"
                             class="mt-1 block w-full text-sm text-gray-500
                                    file:mr-4 file:py-2 file:px-4
@@ -88,20 +88,35 @@
                                    hover:file:bg-indigo-100"
                         >
                         <x-input-error for="contactImage" class="mt-2" />
-                       @if ($existingImageUrl)
+
+                        {{-- Real-time preview for newly selected image --}}
+                        @if ($tempImageUrl)
                             <div class="mt-4">
-                                <label for="headerDescription" class="block text-sm font-medium text-gray-700">
-                                @lang('modules.settings.preview')
-                            </label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    @lang('modules.settings.newImagePreview')
+                                </label>
+                                <div class="mt-2">
+                                    <img src="{{ $tempImageUrl }}" alt="New Contact Image Preview"
+                                        class="rounded-lg shadow-md w-32 h-auto border border-indigo-300">
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Existing image preview --}}
+                        @if ($existingImageUrl && !$tempImageUrl)
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    @lang('modules.settings.currentImage')
+                                </label>
                                 <div class="mt-2">
                                     @if (Str::endsWith($existingImageUrl, ['.jpg', '.jpeg', '.png', '.gif']))
-                                        <img src="{{ $existingImageUrl }}" alt="Expense Receipt"
+                                        <img src="{{ $existingImageUrl }}" alt="Current Contact Image"
                                             class="rounded-lg shadow-md w-32 h-auto border">
                                     @endif
                                 </div>
                             </div>
-                            @else
-                                <p class="text-gray-500 mt-4">@lang('modules.expenses.noReceiptAvailable')</p>
+                        @elseif (!$existingImageUrl && !$tempImageUrl)
+                            <p class="text-gray-500 mt-4 dark:text-gray-400">@lang('modules.settings.noImageSelected')</p>
                         @endif
                     </div>
                     <div class="flex w-full pb-4 space-x-4 mt-6 justify-start">

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->boolean('beamer_status')->default(false);
             $table->string('instance_id')->nullable();
             $table->string('beam_secret')->nullable();
+
             $table->timestamps();
         });
 

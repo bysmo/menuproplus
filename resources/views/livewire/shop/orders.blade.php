@@ -5,17 +5,16 @@
     <ul role="list" class=" space-y-2 dark:divide-gray-700 mt-4">
         @forelse ($orders as $order)
         <li class="p-3 border rounded-md">
-            <a href="{{ route('order_success', $order->id) }}"  class="font-medium text-skin-base truncate dark:text-white">
+            <a href="{{ route('order_success', $order->uuid) }}"  class="font-medium text-skin-base truncate dark:text-white">
                 <div class="flex w-full  space-y-4">
 
                     <div class="flex w-full items-center justify-between" >
                         <div class="flex items-center">
                             <div>
-                            
-                                    @lang('modules.order.orderNumber') #{{ $order->order_number }}
-                                
+                                    {{ $order->show_formatted_order_number }}
+
                                 <div class="flex items-center flex-1 text-xs text-gray-500">
-                                    {{ $order->items->count() }} @lang('modules.menu.item') | {{ $order->date_time->timezone($restaurant->timezone)->translatedFormat('M d, Y H:i A') }}
+                                    {{ $order->items->count() }} @lang('modules.menu.item') | {{ $order->date_time->timezone($restaurant->timezone)->translatedFormat('M d, Y h:i A') }}
                                 </div>
                             </div>
                         </div>

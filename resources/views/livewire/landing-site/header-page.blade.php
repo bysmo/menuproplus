@@ -45,11 +45,20 @@
                 <label for="headerDescription" class="block text-sm font-medium text-gray-700">
                     @lang('modules.settings.headerDescription')
                 </label>
-                <textarea id="headerDescription"
-                          wire:model="headerDescription"
-                          rows="3"
-                          class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
-                            <x-input-error for="headerDescription" class="mt-2" />
+
+                <input x-ref="headerDescription" id="headerDescription" name="headerDescription" wire:model="headerDescription"
+                    value="{{ $headerDescription }}" type="hidden" />
+
+                <div wire:ignore class="mt-2">
+                    <trix-editor class="trix-content text-sm" input="headerDescription" data-gramm="false"
+                        placeholder="{{ __('placeholders.headerDescriptionPlaceHolder') }}"
+                        x-on:trix-change="$wire.set('headerDescription', $event.target.value)" x-ref="trixEditor"  x-init="
+                            window.addEventListener('reset-trix-editor', () => {
+                                $refs.trixEditor.editor.loadHTML('');
+                            });" >
+                    </trix-editor>
+                </div>
+                <x-input-error for="headerDescription" class="mt-2" />
 
             </div>
             <!-- Select Image -->

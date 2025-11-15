@@ -4,10 +4,7 @@ namespace App\Notifications;
 
 use App\Models\NotificationSetting;
 use App\Models\Reservation;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 
 class ReservationConfirmation extends BaseNotification
 {

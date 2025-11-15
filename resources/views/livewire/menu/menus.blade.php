@@ -4,20 +4,27 @@
             <div class="mb-4">
                 <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">@lang('modules.menu.allMenus')</h1>
             </div>
-            <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
+            <div class="items-center justify-between block sm:flex">
                 <div class="flex items-center mb-4 sm:mb-0">
                     <form class="sm:pr-3" action="#" method="GET">
                         <label for="products-search" class="sr-only">Search</label>
                         <div class="relative w-48 mt-1 sm:w-64 xl:w-96">
                             <x-input id="menu_name" class="block mt-1 w-full" type="text" placeholder="{{ __('placeholders.searchMenus') }}" wire:model.live.debounce.500ms="search" />
-
                         </div>
                     </form>
                 </div>
+                <div class="inline-flex gap-x-4 mb-4 sm:mb-0">
+                <x-secondary-link href="{{ route('menu-items.entities.sort') }}">
+                    @lang('modules.menu.sortMenuItems')
+                </x-secondary-link>
 
                 @if(user_can('Create Menu'))
-                <x-button type='button' data-drawer-target="drawer-create-product-default" data-drawer-show="drawer-create-product-default" aria-controls="drawer-create-product-default" data-drawer-placement="right" id="createProductButton">@lang('modules.menu.addMenu')</x-button>
+                    <x-button type='button' data-drawer-target="drawer-create-product-default"
+                    data-drawer-show="drawer-create-product-default"
+                    aria-controls="drawer-create-product-default"
+                    data-drawer-placement="right" id="createProductButton">@lang('modules.menu.addMenu')</x-button>
                 @endif
+                </div>
             </div>
         </div>
     </div>

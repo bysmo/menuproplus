@@ -19,6 +19,6 @@ class FrontDetail extends BaseModel
 
     public function imageUrl(): Attribute
     {
-        return Attribute::get(fn(): string => $this->image ? asset('user-uploads/header/' . $this->image) : asset('landing/dashboard.png'));
+        return Attribute::get(fn(): string => $this->image ? asset_url_local_s3('header/' . $this->image) : asset('landing/dashboard.png'));
     }
 }

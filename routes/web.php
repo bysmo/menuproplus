@@ -1,7 +1,8 @@
 <?php
 
-
+use App\Http\Controllers\OtpLoginController;
 use App\Exports\PaymentExport;
+use App\Livewire\CustomerDisplay;
 use App\Http\Middleware\SuperAdmin;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
@@ -10,15 +11,20 @@ use App\Http\Controllers\PosController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ShopController;
 use App\Http\Middleware\DisableFrontend;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\TableController;
 use App\Http\Middleware\LocaleMiddleware;
+use App\Http\Controllers\QRCodeController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ViewPngController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\DashboardController;
@@ -26,76 +32,120 @@ use App\Http\Controllers\CustomMenuController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\LandingSiteController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Middleware\CustomerSiteMiddleware;
+use App\Http\Middleware\VerifyRestaurantAccess;
 use App\Http\Controllers\CustomModuleController;
 use App\Http\Controllers\ItemCategoryController;
 use App\Http\Controllers\ItemModifierController;
 use App\Http\Controllers\GlobalSettingController;
 use App\Http\Controllers\ModifierGroupController;
+use App\Http\Controllers\PaypalPaymentController;
 use App\Http\Controllers\WaiterRequestController;
+use App\Http\Controllers\XenditPaymentController;
+use App\Http\Controllers\SuperAdmin\XenditController;
+use App\Http\Controllers\SuperAdmin\XenditWebhookController;
+use App\Http\Controllers\DatabaseBackupController;
 use App\Http\Controllers\OnboardingStepController;
-use App\Http\Controllers\FlutterwavePaymentController;
+use App\Http\Controllers\PayfastPaymentController;
+use App\Http\Controllers\PaystackPaymentController;
 use App\Http\Controllers\DeliveryExecutiveController;
 use App\Http\Controllers\RestaurantPaymentController;
 use App\Http\Controllers\RestaurantSettingController;
+use App\Http\Controllers\SuperAdmin\PaypalController;
 use App\Http\Controllers\SuperadminSettingController;
+use App\Http\Controllers\FlutterwavePaymentController;
+use App\Http\Controllers\SuperAdmin\PayfastController;
+use App\Http\Controllers\SuperAdmin\PaystackController;
 use App\Http\Controllers\SuperAdmin\FlutterwaveController;
 use App\Http\Controllers\SuperAdmin\StripeWebhookController;
+use App\Http\Controllers\SuperAdmin\PayFastWebhookController;
+use App\Http\Controllers\SuperAdmin\PaystackWebhookController;
 use App\Http\Controllers\SuperAdmin\RazorpayWebhookController;
 use App\Http\Controllers\SuperAdmin\FlutterwaveWebhookController;
+use App\Http\Middleware\CheckRestaurantPackage;
+
 
 Route::get('/manifest.json', [HomeController::class, 'manifest'])->name('manifest');
 
-Route::middleware([LocaleMiddleware::class])->group(function () {
-
-    Route::get('/', [HomeController::class, 'landing'])->name('home')->middleware(DisableFrontend::class);
-    Route::get('/restaurant-signup', [HomeController::class, 'signup'])->name('restaurant_signup');
-    Route::get('/customer-logout', [HomeController::class, 'customerLogout'])->name('customer_logout');
-    Route::get('page/{slug}', [CustomMenuController::class, 'index'])->name('customMenu');
-    Route::get('terms', [HomeController::class, 'terms'])->name('terms.show');
-    Route::get('policy', [HomeController::class, 'policy'])->name('policy.show');
-
-
-
-    Route::group(['prefix' => 'restaurant'], function () {
-        Route::get('/table/{hash}', [ShopController::class, 'tableOrder'])->name('table_order')->where('id', '.*');
-        Route::get('/my-orders/{hash}', [ShopController::class, 'myOrders'])->name('my_orders');
-        Route::get('/my-bookings/{hash}', [ShopController::class, 'myBookings'])->name('my_bookings');
-        Route::get('/my-addresses/{hash}',  [ShopController::class, 'myAddresses'])->name('my_addresses');
-        Route::get('/book-a-table/{hash}', [ShopController::class, 'bookTable'])->name('book_a_table');
-        Route::get('/contact/{hash}', [ShopController::class, 'contact'])->name('contact');
-        Route::get('/about-us/{hash}', [ShopController::class, 'about'])->name('about');
-        Route::get('/profile/{hash}', [ShopController::class, 'profile'])->name('profile');
-        Route::get('/orders-success/{id}', [ShopController::class, 'orderSuccess'])->name('order_success');
-    });
-
-
-    Route::get('/restaurant/{hash}', [ShopController::class, 'cart'])->name('shop_restaurant');
-
-    Route::post('stripe/order-payment', [StripeController::class, 'orderPayment'])->name('stripe.order_payment');
-    Route::get('/stripe/success-callback', [StripeController::class, 'success'])->name('stripe.success');
-
-    Route::post('stripe/license-payment', [StripeController::class, 'licensePayment'])->name('stripe.license_payment');
-    Route::get('/stripe/license-success-callback', [StripeController::class, 'licenseSuccess'])->name('stripe.license_success');
-    Route::post('/flutterwave/initiate-payment', [FlutterwaveController::class, 'initiatePayment'])->name('flutterwave.initiate-payment');
-    Route::get('/flutterwave/callback', [FlutterwaveController::class, 'paymentCallback'])->name('flutterwave.callback');
+Route::group(['prefix' => 'restaurant', 'middleware' => ['subdomain.redirect']], function () {
+    Route::get('/table/{hash}', [ShopController::class, 'tableOrder'])->name('table_order')->where('id', '.*');
 });
 
 
-Route::middleware(['auth', config('jetstream.auth_session'), 'verified', LocaleMiddleware::class])->group(function () {
+Route::group(['prefix' => 'restaurant'], function () {
+    Route::get('/my-orders/{hash}', [ShopController::class, 'myOrders'])->name('my_orders');
+    Route::get('/my-bookings/{hash}', [ShopController::class, 'myBookings'])->name('my_bookings');
+    Route::get('/my-addresses/{hash}',  [ShopController::class, 'myAddresses'])->name('my_addresses');
+    Route::get('/book-a-table/{hash}', [ShopController::class, 'bookTable'])->name('book_a_table');
+    Route::get('/contact/{hash}', [ShopController::class, 'contact'])->name('contact');
+    Route::get('/about-us/{hash}', [ShopController::class, 'about'])->name('about');
+    Route::get('/profile/{hash}', [ShopController::class, 'profile'])->name('profile');
+    Route::get('/orders-success/{id}', [ShopController::class, 'orderSuccess'])->name('order_success');
+});
+
+Route::get('/restaurant/{hash}', [ShopController::class, 'cart'])->name('shop_restaurant');
+
+
+// Only register the root route if Subdomain module is not enabled
+if (!function_exists('module_enabled') || !module_enabled('Subdomain')) {
+    Route::get('/', [HomeController::class, 'landing'])->name('home')->middleware(DisableFrontend::class);
+    Route::get('/change-locale/{locale}', [HomeController::class, 'changeLocale'])->name('change.locale');
+}
+
+Route::get('/restaurant-signup', [HomeController::class, 'signup'])->name('restaurant_signup');
+Route::get('/customer-logout', [HomeController::class, 'customerLogout'])->name('customer_logout');
+Route::get('page/{slug}', [CustomMenuController::class, 'index'])->name('customMenu');
+
+
+
+Route::post('stripe/order-payment', [StripeController::class, 'orderPayment'])->name('stripe.order_payment');
+Route::get('/stripe/success-callback', [StripeController::class, 'success'])->name('stripe.success');
+
+Route::post('stripe/license-payment', [StripeController::class, 'licensePayment'])->name('stripe.license_payment');
+Route::get('/stripe/license-success-callback', [StripeController::class, 'licenseSuccess'])->name('stripe.license_success');
+Route::post('/flutterwave/initiate-payment', [FlutterwaveController::class, 'initiatePayment'])->name('flutterwave.initiate-payment');
+Route::get('/flutterwave/callback', [FlutterwaveController::class, 'paymentCallback'])->name('flutterwave.callback');
+
+// OTP Login Routes
+Route::get('/otp-login', [OtpLoginController::class, 'showOtpLoginForm'])->name('otp.login');
+Route::post('/otp/send', [OtpLoginController::class, 'sendOtp'])->name('otp.send');
+Route::post('/otp/verify', [OtpLoginController::class, 'verifyOtp'])->name('otp.verify');
+Route::post('/otp/resend', [OtpLoginController::class, 'resendOtp'])->name('otp.resend');
+
+Route::post('/paypal/initiate-payment', [PaypalController::class, 'initiatePayment'])->name('paypal.initiate-payment');
+Route::get('billing/paypal-recurring', [PaypalController::class, 'payWithPaypalRecurrring'])->name('billing.paypal-recurring');
+Route::get('/paypal/lifetime/success', [PaypalController::class, 'paypalLifetimeSuccess'])->name('paypal.lifetime.success');
+
+Route::post('/payfast/initiate-payment', [PayfastController::class, 'initiatePayfastPayment'])->name('payfast.initiate-payment');
+Route::get('billing/payfast-success', [PayFastController::class, 'payFastPaymentSuccess'])->name('billing.payfast-success');
+Route::get('billing/payfast-cancel', [PayFastController::class, 'payFastPaymentCancel'])->name('billing.payfast-cancel');
+
+Route::post('/paystack/initiate-payment', [PaystackController::class, 'initiatePaystackPayment'])->name('paystack.initiate-payment');
+Route::post('/xendit/initiate-payment', [XenditController::class, 'initiatePaystackPayment'])->name('xendit.initiate-payment');
+
+Route::get('/paystack/callback', [PaystackController::class, 'handleGatewayCallback'])->name('paystack.callback');
+
+
+
+Route::middleware(['auth', config('jetstream.auth_session'), 'verified', VerifyRestaurantAccess::class, CheckRestaurantPackage::class])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('account_unverified', [DashboardController::class, 'accountUnverified'])->name('account_unverified');
 
     Route::get('onboarding-steps', [OnboardingStepController::class, 'index'])->name('onboarding_steps');
 
     Route::resource('menus', MenuController::class);
+    Route::get('menu-items/sort-entities', [MenuController::class, 'unifiedSort'])->name('menu-items.entities.sort');
+    Route::get('menu-items/bulk-import', [MenuItemController::class, 'bulkImport'])->name('menu-items.bulk-import');
     Route::resource('menu-items', MenuItemController::class);
     Route::resource('item-categories', ItemCategoryController::class);
     Route::resource('item-modifiers', ItemModifierController::class);
     Route::resource('modifier-groups', ModifierGroupController::class);
+
     Route::resource('areas', AreaController::class);
     Route::resource('tables', TableController::class);
 
     Route::get('orders/print/{id}', [OrderController::class, 'printOrder'])->name('orders.print');
+    Route::get('orders/pdf/{id}', [OrderController::class, 'generateOrderPdf'])->name('orders.pdf');
     Route::resource('orders', OrderController::class);
 
     Route::get('pos/order/{id}', [PosController::class, 'order'])->name('pos.order');
@@ -103,7 +153,7 @@ Route::middleware(['auth', config('jetstream.auth_session'), 'verified', LocaleM
     Route::resource('pos', PosController::class);
 
     Route::resource('kots', KotController::class);
-    Route::get('kot/print/{id}', [KotController::class, 'printkot'])->name('kot.print');
+    Route::get('kot/print/{id}/{kotPlaceid?}', [KotController::class, 'printkot'])->name('kot.print');
 
     Route::resource('customers', CustomerController::class);
 
@@ -111,35 +161,40 @@ Route::middleware(['auth', config('jetstream.auth_session'), 'verified', LocaleM
 
 
     Route::get('payments/export', fn() => Excel::download(new PaymentExport, 'payments-' . now()->toDateTimeString() . '.xlsx'))->name('payments.export');
-    Route::view('payments', 'payments.index')->name('payments.index');
-    Route::view('payments/due', 'payments.due')->name('payments.due');
-    Route::view('payments/expenses', 'payments.expenses')->name('payments.expenses');
-    Route::view('payments/expenseCategory', 'payments.expenseCategory ')->name('payments.expenseCategory');
+    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::get('payments/due', [PaymentController::class, 'due'])->name('payments.due');
+    Route::get('payments/expenses', [PaymentController::class, 'expenses'])->name('payments.expenses');
+    Route::get('payments/expenseCategory', [PaymentController::class, 'expenseCategory'])->name('payments.expenseCategory');
 
-    Route::view('qr-codes', 'qrcodes.index')->name('qrcodes.index');
+    Route::get('qr-codes', [QRCodeController::class, 'index'])->name('qrcodes.index');
 
     Route::resource('reservations', ReservationController::class);
 
     Route::prefix('reports')->group(function () {
-        Route::view('item-report', 'reports.items')->name('reports.item');
-        Route::view('category-report', 'reports.category')->name('reports.category');
-        Route::view('sales-report', 'reports.sales')->name('reports.sales');
-        Route::view('expense-report', 'reports.expense-reports')->name('reports.expenseReports');
-        Route::view('outstanding-payment-report', 'reports.outstanding-payment')->name('reports.outstandingPayment');
-        Route::view('expense-summary-report', 'reports.expense-summary')->name('reports.expensesummaryreport');
+        Route::get('item-report', [ReportController::class, 'itemReport'])->name('reports.item');
+        Route::get('category-report', [ReportController::class, 'categoryReport'])->name('reports.category');
+        Route::get('sales-report', [ReportController::class, 'salesReport'])->name('reports.sales');
+        Route::get('expense-report', [ReportController::class, 'expenseReport'])->name('reports.expenseReports');
+        Route::get('outstanding-payment-report', [ReportController::class, 'outstandingPaymentReport'])->name('reports.outstandingPayment');
+        Route::get('expense-summary-report', [ReportController::class, 'expenseSummaryReport'])->name('reports.expensesummaryreport');
+        Route::get('print-log', [ReportController::class, 'printLog'])->name('reports.printLog');
+        Route::get('delivery-report', [ReportController::class, 'deliveryReport'])->name('reports.delivery');
     });
 
     Route::resource('staff', StaffController::class);
 
     Route::resource('delivery-executives', DeliveryExecutiveController::class);
-    Route::view('billing/upgrade-plan', 'plans.index')->name('pricing.plan');
+    Route::get('billing/upgrade-plan', [PlanController::class, 'index'])->name('pricing.plan');
 
     Route::get('/pusher/beams-auth', [DashboardController::class, 'beamAuth'])->name('beam_auth');
 
     Route::resource('waiter-requests', WaiterRequestController::class);
+
+    Route::get('/customer-display', [\App\Http\Controllers\PosController::class, 'customerDisplay'])->name('customer.display');
+    Route::get('/customer-order-board', [\App\Http\Controllers\PosController::class, 'customerOrderBoard'])->name('customer.order-board');
 });
 
-Route::middleware(['auth', config('jetstream.auth_session'), 'verified', SuperAdmin::class, LocaleMiddleware::class])->group(function () {
+Route::middleware(['auth', config('jetstream.auth_session'), 'verified', SuperAdmin::class])->group(function () {
 
     Route::name('superadmin.')->group(function () {
         Route::get('super-admin-dashboard', [DashboardController::class, 'superadmin'])->name('dashboard');
@@ -155,8 +210,9 @@ Route::middleware(['auth', config('jetstream.auth_session'), 'verified', SuperAd
 
         Route::get('offline-plan', [BillingController::class, 'offlinePlanRequests'])->name('offline-plan-request');
 
-        Route::resource('superadmin-settings', SuperadminSettingController::class);
+        Route::get('users', [SuperadminSettingController::class, 'users'])->name('users.index');
 
+        Route::resource('superadmin-settings', SuperadminSettingController::class);
 
         Route::post('app-update/deleteFile', [GlobalSettingController::class, 'deleteFile'])->name('app-update.deleteFile');
         Route::resource('app-update', GlobalSettingController::class);
@@ -174,4 +230,47 @@ Route::post('/webhook/flutter-webhook/{hash}', [FlutterwavePaymentController::cl
 Route::match(['get', 'post'], '/success', [FlutterwavePaymentController::class, 'paymentMainSuccess'])->name('flutterwave.success');
 Route::match(['get', 'post'], '/failed', [FlutterwavePaymentController::class, 'paymentFailed'])->name('flutterwave.failed');
 Route::post('/webhook/save-flutterwave-webhook/{hash}', [FlutterwaveWebhookController::class, 'handleWebhook'])->name('billing.save-flutterwave-webhook');
+Route::post('save-paypal-webhook/{hash}', [PaypalController::class, 'verifyBillingIPN'])->name('billing.save_paypal-webhook');
+Route::post('payfast-notification/{id}', [PayFastWebhookController::class, 'saveInvoice'])->name('payfast-notification');
+Route::post('/webhook/save-paystack-webhook/{hash}', [PaystackWebhookController::class, 'saveInvoices'])->name('billing.save-paystack-webhook');
 Route::view('offline', 'offline');
+
+Route::match(['get', 'post'], '/payfast/success', [PayfastPaymentController::class, 'paymentMainSuccess'])->name('payfast.success');
+Route::match(['get', 'post'], '/payfast/failed', [PayfastPaymentController::class, 'paymentFailed'])->name('payfast.failed');
+Route::post('/webhook/notify/{company}/{reference}', [PayfastPaymentController::class, 'payfastNotify'])->name('payfast.notify');
+
+Route::post('/webhook/paypal-webhook/{hash}', [PaypalPaymentController::class, 'handleGatewayWebhook'])->name('paypal.webhook');
+Route::get('paypal/success', [PaypalPaymentController::class, 'success'])->name('paypal.success');
+Route::get('paypal/cancel', [PaypalPaymentController::class, 'cancel'])->name('paypal.cancel');
+
+// Paddle Subscription Routes
+Route::post('/paddle/subscription/initiate', [\App\Http\Controllers\SuperAdmin\PaddleController::class, 'initiatePaddlePayment'])->name('paddle.subscription.initiate');
+Route::get('/paddle/checkout', [\App\Http\Controllers\SuperAdmin\PaddleController::class, 'showCheckoutPage'])->name('paddle.checkout.page');
+Route::match(['get', 'post'], '/paddle/subscription/callback', [\App\Http\Controllers\SuperAdmin\PaddleController::class, 'handleGatewayCallback'])->name('paddle.subscription.callback');
+Route::match(['get', 'post'], '/paddle/subscription/failed', [\App\Http\Controllers\SuperAdmin\PaddleController::class, 'paymentFailed'])->name('paddle.subscription.failed');
+
+// Paddle Webhook Routes
+Route::post('/webhook/save-paddle-webhook/{hash}', [\App\Http\Controllers\SuperAdmin\PaddleWebhookController::class, 'handleWebhook'])->name('billing.save-paddle-webhook');
+Route::match(['get', 'post'], '/success', [PaystackPaymentController::class, 'paymentMainSuccess'])->name('paystack.success');
+Route::post('/webhook/paystack-webhook/{hash}', [PaystackPaymentController::class, 'handleGatewayWebhook'])->name('paystack.webhook');
+Route::match(['get', 'post'], '/failed', [PaystackPaymentController::class, 'paymentFailed'])->name('paystack.failed');
+
+Route::post('/webhook/xendit-webhook/{hash}', [XenditPaymentController::class, 'handleGatewayWebhook'])->name('xendit.webhook');
+Route::match(['get', 'post'], '/xendit/success', [XenditPaymentController::class, 'paymentMainSuccess'])->name('xendit.success');
+Route::match(['get', 'post'], '/xendit/failed', [XenditPaymentController::class, 'paymentFailed'])->name('xendit.failed');
+
+// Xendit Subscription Routes
+Route::post("/xendit/subscription/initiate", [XenditController::class, "initiateXenditPayment"])->name("xendit.subscription.initiate");
+Route::match(["get", "post"], "/xendit/subscription/callback", [XenditController::class, "handleGatewayCallback"])->name("xendit.subscription.callback");
+Route::match(["get", "post"], "/xendit/subscription/failed", [XenditController::class, "paymentFailed"])->name("xendit.subscription.failed");
+
+// Xendit Webhook Routes
+Route::post('/webhook/save-xendit-webhook/{hash}', [XenditWebhookController::class, 'handleSubscriptionWebhook'])->name('billing.save-xendit-webhook');
+
+
+Route::get('/receipt/{id}/preview', [ViewPngController::class, 'preview']); // shows the view to capture
+Route::get('/kot/{id}/preview/{kotPlaceid?}', [ViewPngController::class, 'previewKot'])->name('kot.preview'); // shows KOT view to capture
+
+Route::post('/kot/png', [ViewPngController::class, 'storeKot'])->name('kot.png.store'); // saves KOT PNG
+Route::post('/order/png', [ViewPngController::class, 'storeOrder'])->name('order.png.store'); // saves Order PNG
+Route::post('/report/png', [ViewPngController::class, 'storeReport'])->name('report.png.store'); // saves Report PNG

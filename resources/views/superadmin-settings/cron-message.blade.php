@@ -25,7 +25,6 @@
                 <li>Enables automated email notifications for orders, reservations, and password resets</li>
                 <li>Processes scheduled tasks like recurring payments and subscription renewals</li>
                 <li>Handles background tasks without affecting application performance</li>
-                <li>Ensures data synchronization and database maintenance runs automatically</li>
                 <li>Prevents missed notifications and keeps your restaurant management system running smoothly</li>
             </ul>
         </div>

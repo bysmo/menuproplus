@@ -35,14 +35,13 @@ class NewRestaurantSignup extends BaseNotification
     public function toMail(object $notifiable): MailMessage
     {
         $build = parent::build($notifiable);
-
         $siteName = global_setting()->name;
 
         return $build
-            ->subject('New Restaurant Signup on ' . $siteName . '! 🎉')
+            ->subject(__('email.newRestaurantSignup.subject', ['site_name' => $siteName]))
             ->greeting(__('app.hello') . ' ' . $notifiable->name . ',')
-            ->line('We\'re excited to inform you that a new restaurant has just signed up for ' . $siteName . '! 🎉')
-            ->line('Restaurant Name: ' . $this->forRestaurant->name);
+            ->line(__('email.newRestaurantSignup.line1', ['site_name' => $siteName]))
+            ->line(__('email.newRestaurantSignup.line2', ['restaurant_name' => $this->forRestaurant->name]));
     }
 
     /**

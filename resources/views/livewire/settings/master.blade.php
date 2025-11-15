@@ -69,11 +69,34 @@
                 @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'receipt'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'receipt')])>@lang('modules.settings.receiptSetting')</a>
             </li>
 
+             <li class="me-2">
+                <a href="{{ route('settings.index').'?tab=printer' }}" wire:navigate
+                @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'printer'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'printer')])>@lang('modules.settings.printerSetting')</a>
+            </li>
+
             <li class="me-2">
                 <a href="{{ route('settings.index').'?tab=deliverySettings' }}" wire:navigate
                 @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'deliverySettings'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'deliverySettings')])>@lang('modules.settings.deliverySettings')</a>
             </li>
 
+            <li class="me-2">
+                <a href="{{ route('settings.index').'?tab=kotSettings' }}" wire:navigate
+                @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'kotSettings'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'kotSettings')])>@lang('modules.settings.kotSettings')</a>
+            </li>
+            <li class="me-2">
+                <a href="{{ route('settings.index').'?tab=cancelSettings' }}" wire:navigate
+                @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'cancelSettings'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'cancelSettings')])>@lang('modules.settings.cancelSettings')</a>
+            </li>
+
+            <li class="me-2">
+                <a href="{{ route('settings.index').'?tab=orderSettings' }}" wire:navigate
+                @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'orderSettings'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'orderSettings')])>@lang('modules.settings.orderSetting')</a>
+            </li>
+
+            <!-- NAV ITEM - CUSTOM MODULES  -->
+            @foreach (custom_module_plugins() as $item)
+                @includeIf(strtolower($item) . '::sections.settings.restaurant.sidebar')
+            @endforeach
         </ul>
     </div>
 
@@ -110,7 +133,7 @@
                 @break
 
                 @case('tax')
-                @livewire('settings.taxSettings')
+                @livewire('settings.taxSettings', ['settings' => $settings])
                 @break
 
                 @case('reservation')
@@ -136,15 +159,36 @@
                 @livewire('settings.ReceiptSetting', ['settings' => $settings])
                 @break
 
+                @case('printer')
+                @livewire('settings.PrinterSetting', ['settings' => $settings])
+                @break
+
                 @case('deliverySettings')
                 @livewire('settings.branchDeliverySettings', ['settings' => $settings])
+                @break
+
+                @case('kotSettings')
+                @livewire('settings.kotSettings', ['settings' => $settings])
+                @break
+
+                @case('cancelSettings')
+                @livewire('settings.CancellationSettings', ['settings' => $settings])
+                @break
+
+                @case('orderSettings')
+                @livewire('settings.OrderSettings', ['settings' => $settings])
                 @break
 
                 @default
 
             @endswitch
 
-
+             <!-- NAV ITEM - CUSTOM MODULES  -->
+             @foreach (custom_module_plugins() as $item)
+                @if($activeSetting == $item.'Settings')
+                    @livewire($item.'::restaurant.setting')
+                @endif
+           @endforeach
         </div>
 
     </div>

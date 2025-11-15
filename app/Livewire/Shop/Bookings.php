@@ -12,8 +12,12 @@ class Bookings extends Component
 
     public function mount()
     {
-        if (is_null(customer()))
-        {
+        if (is_null(customer())) {
+
+            if (module_enabled('Subdomain')) {
+                return $this->redirect('/');
+            }
+
             return $this->redirect(route('home'));
         }
 
@@ -26,5 +30,4 @@ class Bookings extends Component
     {
         return view('livewire.shop.bookings');
     }
-
 }

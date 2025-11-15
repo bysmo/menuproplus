@@ -14,6 +14,9 @@ class LanguageSwitcher extends Component
     {
         User::withoutGlobalScope(BranchScope::class)->where('id', user()->id)->update(['locale' => $locale]);
 
+        session()->forget('user');
+        session(['user' => auth()->user()]);
+
         if (user()) {
             $language = LanguageSetting::where('language_code', $locale)->first();
             $isRtl = ($language->is_rtl == 1);

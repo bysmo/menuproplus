@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Module;
 use App\Models\Package;
 use App\Enums\PackageType;
-use App\Livewire\LandingSite\FooterSetting;
 use App\Models\Contact;
 use App\Models\CustomMenu;
 use App\Models\FrontDetail;
@@ -21,6 +20,41 @@ class HomeController extends Controller
 {
 
     use AppBoot;
+
+    protected $language;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $locale = session('customer_locale') ?? (global_setting()->locale ?? 'en');
+        $languageSetting = LanguageSetting::where('language_code', $locale)->first();
+
+        if (!$languageSetting) {
+            $locale = 'en';
+            $languageSetting = LanguageSetting::where('language_code', 'en')->first();
+        }
+
+        if (!session()->has('customer_is_rtl')) {
+            session(['customer_is_rtl' => $languageSetting->is_rtl == 1]);
+        }
+
+        app()->setLocale($locale);
+        $this->language = $locale;
+    }
+
+    public function changeLocale($locale)
+    {
+        // Validate if the locale exists in language settings
+        $languageSetting = LanguageSetting::where('language_code', $locale)->first();
+
+        // Set the customer locale in session
+        session(['customer_locale' => $locale]);
+        session(['customer_is_rtl' => $languageSetting->is_rtl == 1]);
+        app()->setLocale($locale);
+        $this->language = $locale;
+        return redirect()->back()->with('success', 'Language changed successfully');
+    }
 
     public function landing()
     {
@@ -58,7 +92,7 @@ class HomeController extends Controller
         $monthlyPackages = Package::where('package_type', PackageType::STANDARD)->where('monthly_status', true)->where('is_private', false)->get();
         $annualPackages = Package::where('package_type', PackageType::STANDARD)->where('annual_status', true)->where('is_private', false)->get();
         $lifetimePackages = Package::where('package_type', PackageType::LIFETIME)->where('is_private', false)->get();
-        $language = request()->get('lang', app()->getLocale());
+        $language = $this->language;
 
         $languageSetting = LanguageSetting::where('language_code', $language)->first();
         $languageId = $languageSetting ? $languageSetting->id : null;
@@ -68,14 +102,11 @@ class HomeController extends Controller
         $frontFaqs = FrontFaq::where('language_setting_id', $languageId)->get();
         $frontContact = Contact::where('language_setting_id', $languageId)->first();
 
-        if($global->landing_type == 'static'){
+        if ($global->landing_type == 'static') {
             return view('landing.index', compact('packages', 'AllModulesWithFeature', 'trialPackage', 'monthlyPackages', 'annualPackages', 'lifetimePackages'));
-
-        }else {
-            return view('landing.dynamic-index', compact('packages', 'AllModulesWithFeature', 'trialPackage', 'monthlyPackages', 'annualPackages', 'lifetimePackages', 'customMenu','frontDetails','frontFeatures','frontReviews','frontFaqs','frontContact'));
-
         }
 
+        return view('landing.dynamic-index', compact('packages', 'AllModulesWithFeature', 'trialPackage', 'monthlyPackages', 'annualPackages', 'lifetimePackages', 'customMenu', 'frontDetails', 'frontFeatures', 'frontReviews', 'frontFaqs', 'frontContact'));
     }
 
     public function signup()
@@ -90,28 +121,33 @@ class HomeController extends Controller
     public function customerLogout()
     {
         session()->flush();
-        return redirect('/');
+        return redirect(module_enabled('Subdomain') ? url('/') : route('shop_restaurant', [request()->restaurant]));
     }
 
     public function manifest()
     {
         $hash = request()->query('hash', '');
 
-        if(!empty($hash)){
-             $slug = 'restaurant/' . $hash . '/';
-        }else {
-             $slug = 'super-admin/';
+        if (!empty($hash)) {
+            $slug = 'restaurant/' . $hash . '/';
+        } else {
+            $slug = 'super-admin/';
         }
 
         $relativeUrl = urldecode(request()->query('url', ''));
 
+        $superadminUrl1 = File::exists(public_path('user-uploads/favicons/super-admin/android-chrome-192x192.png')) ? asset('user-uploads/favicons/super-admin/android-chrome-192x192.png') : asset('img/192x192.png');
+        $superadminUrl2 = File::exists(public_path('user-uploads/favicons/super-admin/android-chrome-512x512.png')) ? asset('user-uploads/favicons/super-admin/android-chrome-512x512.png') : asset('img/512x512.png');
+
+
         $firstimagePath = public_path('user-uploads/favicons/' . $slug . 'android-chrome-192x192.png');
         $secondimagePath = public_path('user-uploads/favicons/' . $slug . 'android-chrome-512x512.png');
-        $firsticonUrl = File::exists($firstimagePath) ? asset('user-uploads/favicons/' . $slug . 'android-chrome-192x192.png') : asset('img/192x192.png');
-        $secondiconUrl = File::exists($secondimagePath) ? asset('user-uploads/favicons/' . $slug . 'android-chrome-512x512.png') : asset('img/512x512.png');
+        $firsticonUrl = File::exists($firstimagePath) ? asset('user-uploads/favicons/' . $slug . 'android-chrome-192x192.png') : $superadminUrl1;
+        $secondiconUrl = File::exists($secondimagePath) ? asset('user-uploads/favicons/' . $slug . 'android-chrome-512x512.png') : $superadminUrl2;
         $globalSetting = global_setting();
 
         $restaurant = Restaurant::where('hash', $hash)->first();
+
         return response()->json([
             'name' => $restaurant ? $restaurant->name : $globalSetting->name,
             'short_name' => $restaurant ? $restaurant->name : $globalSetting->name,
@@ -134,17 +170,4 @@ class HomeController extends Controller
             ]
         ]);
     }
-
-    public function terms()
-    {
-        $terms = global_setting()->terms;
-        return view('terms', compact('terms'));
-    }
-
-    public function policy()
-    {
-        $policy = global_setting()->privacy_policy;
-        return view('policy', compact('policy'));
-    }
-
 }

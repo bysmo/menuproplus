@@ -95,7 +95,11 @@
                                 @endif
                             </div>
 
-                            <x-input-error for="logo" class="mt-2" />
+                            <x-input-error for="photo" class="mt-2" />
+
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                @lang('modules.settings.logoUploadHelp')
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -177,8 +181,6 @@
                         @endforeach
                     </div>
                 </div>
-
-
 
 
                 {{-- Theme Color Picker --}}

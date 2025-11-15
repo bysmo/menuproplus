@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ isRtl() ? 'rtl' : 'ltr' }}">
+<html lang="{{ session('customer_locale') ?? $restaurant->customer_site_language }}" dir="{{ session('customer_is_rtl') ? 'rtl' : 'ltr' }}">
 
 <head>
     <link rel="manifest" href="{{ url('manifest.json') }}?url={{ urlencode(ltrim(Request::getRequestUri(), '/')) }}&hash={{ $restaurant->hash }}" crossorigin="use-credentials">
@@ -8,15 +8,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ restaurantOrGlobalSetting()->upload_fav_icon_apple_touch_icon_url }}">
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ restaurantOrGlobalSetting()->upload_fav_icon_android_chrome_192_url }}">
-    <link rel="icon" type="image/png" sizes="512x512" href="{{ restaurantOrGlobalSetting()->upload_fav_icon_android_chrome_512_url }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ restaurantOrGlobalSetting()->upload_favicon_16_url }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ restaurantOrGlobalSetting()->upload_favicon_32_url }}">
-    <link rel="shortcut icon" href="{{ restaurantOrGlobalSetting()->favicon_url }}">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $restaurant->uploadFavIconAppleTouchIconUrl }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ $restaurant->uploadFavIconAndroidChrome192Url }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ $restaurant->uploadFavIconAndroidChrome512Url }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $restaurant->uploadFavIcon16Url }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $restaurant->uploadFavIcon32Url }}">
+    <link rel="shortcut icon" href="{{ $restaurant->faviconUrl }}">
 
     <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="{{ restaurantOrGlobalSetting()->upload_fav_icon_apple_touch_icon_url }}">
+    <meta name="msapplication-TileImage" content="{{ $restaurant->logoUrl }}">
+
 
     <meta name="keyword" content="{{ $restaurant->meta_keyword ?? '' }}">
     <meta name="description" content="{{ $restaurant->meta_description ?? $restaurant->name }}">
@@ -131,31 +133,34 @@
     @include('layouts.update-uri')
     <script src="{{ asset('vendor/livewire-alert/livewire-alert.js') }}" defer data-navigate-track></script>
 
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-    <script src="https://js.stripe.com/v3/"></script>
-
-    <form action="{{ route('stripe.order_payment') }}" method="POST" id="order-payment-form" class="hidden">
-        @csrf
-
-        <input type="hidden" id="order_payment" name="order_payment">
-
-        <div class="form-row">
-            <label for="card-element">
-                Credit or debit card
-            </label>
-            <div id="card-element">
-                <!-- A Stripe Element will be inserted here. -->
-            </div>
-
-            <!-- Used to display Element errors. -->
-            <div id="card-errors" role="alert"></div>
-        </div>
-
-        <button>Submit Payment</button>
-    </form>
+    @if ($restaurant->paymentGateways->razorpay_status)
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    @endif
 
     @if ($restaurant->paymentGateways->stripe_status)
+        <script src="https://js.stripe.com/v3/"></script>
+
+        <form action="{{ route('stripe.order_payment') }}" method="POST" id="order-payment-form" class="hidden">
+            @csrf
+
+            <input type="hidden" id="order_payment" name="order_payment">
+
+            <div class="form-row">
+                <label for="card-element">
+                    Credit or debit card
+                </label>
+                <div id="card-element">
+                    <!-- A Stripe Element will be inserted here. -->
+                </div>
+
+                <!-- Used to display Element errors. -->
+                <div id="card-errors" role="alert"></div>
+            </div>
+
+            <button>Submit Payment</button>
+        </form>
+
+
         <script>
             const stripe = Stripe('{{ $restaurant->paymentGateways->stripe_key }}');
             const elements = stripe.elements({
@@ -263,6 +268,11 @@
 </script>
 
     <x-livewire-alert::flash />
+    @include('sections.pusher-script')
+
+     <!-- Print Image Handler -->
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js" data-navigate-track></script>
+  <script src="{{ asset('js/print-image-handler.js') }}" data-navigate-track></script>
 
     @stack('scripts')
 </body>

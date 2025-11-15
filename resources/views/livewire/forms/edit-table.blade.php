@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        <div class="flex w-full pb-4 space-x-4 mt-6">
+        <div class="flex w-full pb-4 space-x-4 mt-6 rtl:space-x-reverse">
             <x-button>@lang('app.save')</x-button>
             <x-danger-button  wire:click="showDeleteTable"  wire:key='member-del-{{ $item->id . microtime() }}'>
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
@@ -75,7 +75,7 @@
 
     <x-confirmation-modal wire:model="confirmDeleteTableModal">
         <x-slot name="title">
-            @lang('modules.table.deleteTable')?
+            @lang('modules.table.deleteTable')
         </x-slot>
 
         <x-slot name="content">

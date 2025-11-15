@@ -36,7 +36,8 @@ class OrderSeeder extends Seeder
 
     public function submitCustomerName($branch)
     {
-        for ($i = 0; $i < 11; $i++) {
+        // Create 5 orders for today
+        for ($i = 0; $i < 5; $i++) {
             $customer = new Customer();
             $customer->restaurant_id = $branch->restaurant_id;
             $customer->name = fake()->name();
@@ -44,11 +45,23 @@ class OrderSeeder extends Seeder
             $customer->delivery_address = fake()->address();
             $customer->save();
 
-            $this->placeOrder($customer, $branch);
+            $this->placeOrder($customer, $branch, true); // true for today
+        }
+
+        // Create 6 orders for previous days
+        for ($i = 0; $i < 6; $i++) {
+            $customer = new Customer();
+            $customer->restaurant_id = $branch->restaurant_id;
+            $customer->name = fake()->name();
+            $customer->email = fake()->unique()->safeEmail();
+            $customer->delivery_address = fake()->address();
+            $customer->save();
+
+            $this->placeOrder($customer, $branch, false); // false for previous days
         }
     }
 
-    public function placeOrder($customer, $branch)
+    public function placeOrder($customer, $branch, $isToday = true)
     {
         $table = Table::inRandomOrder()->where('branch_id', $branch->id)->first();
         $waiter = User::inRandomOrder()->where('branch_id', $branch->id)->first();
@@ -59,11 +72,12 @@ class OrderSeeder extends Seeder
             'table_id' => $table->id,
             'customer_id' => $customer->id,
             'waiter_id' => $waiter->id,
-            'date_time' => now()->subDays(rand(0, 3))->toDateTimeString(),
+            'date_time' => $isToday ? now()->toDateTimeString() : now()->subDays(rand(1, 3))->toDateTimeString(),
             'sub_total' => 0,
             'total' => 0,
             'status' => 'draft',
-            'branch_id' => $branch->id
+            'branch_id' => $branch->id,
+            'placed_via' => 'pos',
         ]);
 
         $kot = Kot::create([

@@ -45,22 +45,31 @@ class SendOrderBill extends BaseNotification
      */
     public function toMail($notifiable)
     {
-        // Calculate tax amounts
-        $taxesWithAmount = [];
+        // Get tax mode from restaurant settings
+        $taxMode = $this->settings->tax_mode ?? 'order';
 
-        foreach ($this->order->taxes as $tax) {
-            $taxAmount = $this->order->sub_total * ($tax->tax->tax_percent / 100);
-            $taxesWithAmount[] = [
-                'name' => $tax->tax->tax_name,
-                'amount' => $taxAmount,
-                'rate' => $tax->tax->tax_percent,
-            ];
+        // Calculate tax amounts based on tax mode
+        $taxesWithAmount = [];
+        $totalTaxAmount = 0;
+
+        if ($taxMode === 'order') {
+            foreach ($this->order->taxes as $tax) {
+                $taxAmount = ($this->order->sub_total - ($this->order->discount_amount ?? 0)) * ($tax->tax->tax_percent / 100);
+                $taxesWithAmount[] = [
+                    'name' => $tax->tax->tax_name,
+                    'amount' => $taxAmount,
+                    'rate' => $tax->tax->tax_percent,
+                ];
+            }
+        } else {
+            // For item-level tax mode, use the total tax amount
+            $totalTaxAmount = $this->order->total_tax_amount ?? 0;
         }
 
         $chargesWithAmount = [];
 
         foreach ($this->order->charges as $charge) {
-            
+
             $chargeAmount = $charge->charge->charge_type == 'percent' ? ($charge->charge->charge_value / 100) * $this->order->sub_total : $charge->charge->charge_value;
             $chargesWithAmount[] = [
                 'name' => $charge->charge->charge_name,
@@ -70,18 +79,27 @@ class SendOrderBill extends BaseNotification
             ];
         }
 
+        // Generate PDF attachment
+        $orderController = new \App\Http\Controllers\OrderController();
+        $pdfContent = $orderController->getOrderPdfContent($this->order->id);
+
         $build = parent::build($notifiable);
         return $build
-            ->subject(__('email.sendOrderBill.subject', ['order_number' => $this->order->order_number, 'site_name' => $this->settings->name]))
+            ->subject(__('email.sendOrderBill.subject', ['order_number' => $this->order->show_formatted_order_number, 'site_name' => $this->settings->name]))
             ->markdown('emails.order-bill', [
-                        'order' => $this->order,
-                        'subtotal' => $this->order->sub_total,
-                        'taxesWithAmount' => $taxesWithAmount,
-                        'chargesWithAmount' => $chargesWithAmount,
-                        'totalPrice' => $this->order->total,
-                        'items' => $this->order->items,
-                        'settings' => $this->settings,
-                    ]);
+                'order' => $this->order,
+                'subtotal' => $this->order->sub_total,
+                'taxesWithAmount' => $taxesWithAmount,
+                'chargesWithAmount' => $chargesWithAmount,
+                'totalPrice' => $this->order->total,
+                'items' => $this->order->items,
+                'settings' => $this->settings,
+                'taxMode' => $taxMode,
+                'totalTaxAmount' => $totalTaxAmount,
+            ])
+            ->attachData($pdfContent, $this->order->show_formatted_order_number . '.pdf', [
+                'mime' => 'application/pdf',
+            ]);
     }
 
     /**
@@ -112,5 +130,4 @@ class SendOrderBill extends BaseNotification
             'total_price' => $this->order->total_price,
         ];
     }
-
 }

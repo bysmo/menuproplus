@@ -31,6 +31,12 @@ class CustomConfigProvider extends ServiceProvider
             if ($setting) {
                 $this->setMailConfig($setting);
             }
+
+            $pushNotificationSetting = DB::table('pusher_settings')->first();
+
+            if ($pushNotificationSetting) {
+                $this->setPushNotificationConfig($pushNotificationSetting);
+            }
         } catch (\Exception $e) {
             info($e->getMessage());
             // Handle exceptions appropriately, e.g., log the error
@@ -69,6 +75,29 @@ class CustomConfigProvider extends ServiceProvider
         Config::set('app.name', $globalSetting->name);
 
         Config::set('app.logo', $globalSetting->logo ? asset_url_local_s3('logo/' . $globalSetting->logo) : asset('img/logo.png'));
+        Config::set('session.driver', $globalSetting->session_driver ?? Config::get('session.driver'));
+    }
+
+    public function setPushNotificationConfig($setting)
+    {
+        // Set broadcasting configuration
+        if ($setting->pusher_broadcast && $setting->pusher_app_id && $setting->pusher_key && $setting->pusher_secret) {
+            Config::set('broadcasting.default', 'pusher');
+            Config::set('broadcasting.connections.pusher.key', $setting->pusher_key);
+            Config::set('broadcasting.connections.pusher.secret', $setting->pusher_secret);
+            Config::set('broadcasting.connections.pusher.app_id', $setting->pusher_app_id);
+            Config::set('broadcasting.connections.pusher.options.cluster', $setting->pusher_cluster ?? '');
+            Config::set('broadcasting.connections.pusher.options.host', 'api-' . ($setting->pusher_cluster ?? 'mt1') . '.pusher.com');
+            Config::set('broadcasting.connections.pusher.options.port', 443);
+            Config::set('broadcasting.connections.pusher.options.useTLS', true);
+            Config::set('broadcasting.connections.pusher.options.curl_options', [
+                CURLOPT_SSL_VERIFYHOST => 0,
+                CURLOPT_SSL_VERIFYPEER => 0,
+                CURLOPT_TIMEOUT => 30,
+            ]);
+        } else {
+            Config::set('broadcasting.default', 'null');
+        }
     }
 
     /**
@@ -78,6 +107,14 @@ class CustomConfigProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        // Ensure broadcasting config is set during boot
+        try {
+            $pushNotificationSetting = DB::table('pusher_settings')->first();
+            if ($pushNotificationSetting) {
+                $this->setPushNotificationConfig($pushNotificationSetting);
+            }
+        } catch (\Exception $e) {
+            info('Error setting broadcasting config in boot: ' . $e->getMessage());
+        }
     }
 }

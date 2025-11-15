@@ -132,7 +132,7 @@
                         @endif
 
 
-                    <div class="flex w-full pb-4 space-x-4 mt-6">
+                    <div class="flex w-full pb-4 space-x-4 mt-6 rtl:space-x-reverse">
                         <x-button type="submit" wire:target="submitForm" wire:loading.attr="disabled">
                             {{ $methodId ? __('app.update') : __('app.add') }}
                         </x-button>

@@ -51,9 +51,6 @@
           @endif
 
         </div>
-
-
-
       </div>
 
       <div class="flex items-center gap-4 w-fit justify-end">
@@ -79,19 +76,19 @@
         @livewire('restaurant.stop-impersonate-restaurant')
 
         @if (restaurant()->package->package_type == \App\Enums\PackageType::DEFAULT)
-            <a href="{{ route('pricing.plan') }}" wire:navigate class="hidden lg:inline-flex" >
-                <x-secondary-button class="inline-flex items-center shadow-md text-skin-base dark:text-skin-base hover:origin-center group">
+            <a href="{{ route('pricing.plan') }}" wire:navigate class="inline-flex" >
+                <x-secondary-button class="inline-flex items-center gap-2 shadow-md text-skin-base dark:text-skin-base hover:origin-center group px-2 sm:px-3">
                     <svg class="w-5 h-5 text-current group-hover:scale-110 duration-500" width="24" height="24" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M7.657 6.247c.11-.33.576-.33.686 0l.645 1.937a2.89 2.89 0 0 0 1.829 1.828l1.936.645c.33.11.33.576 0 .686l-1.937.645a2.89 2.89 0 0 0-1.828 1.829l-.645 1.936a.361.361 0 0 1-.686 0l-.645-1.937a2.89 2.89 0 0 0-1.828-1.828l-1.937-.645a.361.361 0 0 1 0-.686l1.937-.645a2.89 2.89 0 0 0 1.828-1.828zM3.794 1.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387A1.73 1.73 0 0 0 4.593 5.69l-.387 1.162a.217.217 0 0 1-.412 0L3.407 5.69A1.73 1.73 0 0 0 2.31 4.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387A1.73 1.73 0 0 0 3.407 2.31zM10.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732L9.1 2.137a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/></svg>
-                    @lang('modules.settings.upgradeLicense')
+                    <span class="hidden sm:inline">@lang('modules.settings.upgradeLicense')</span>
                 </x-secondary-button>
             </a>
         @elseif (restaurant()->package->package_type == \App\Enums\PackageType::TRIAL)
-        <a href="{{ route('pricing.plan') }}" wire:navigate class="hidden xl:inline-flex" >
-            <x-secondary-button>
+        <a href="{{ route('pricing.plan') }}" wire:navigate class="inline-flex" >
+            <x-secondary-button class="px-2 sm:px-3">
                 @php
                     $daysLeftInTrial = floor(now(timezone())->diffInDays(\Carbon\Carbon::parse(restaurant()->trial_ends_at)->addDays(1)));
                 @endphp
-                {{ $daysLeftInTrial > 0 ? $daysLeftInTrial .' ' . __('modules.package.daysLeftTrial') : __('modules.package.trialExpired') }}
+                <span class="text-xs sm:text-sm">{{ $daysLeftInTrial > 0 ? $daysLeftInTrial .' ' . __('modules.package.daysLeftTrial') : __('modules.package.trialExpired') }}</span>
             </x-secondary-button>
         </a>
         @endif
@@ -125,7 +122,8 @@
 
         <div id="tooltip-toggle" role="tooltip"
           class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip">
-          Toggle dark mode
+          @lang('app.toggleDarkMode')
+
           <div class="tooltip-arrow" data-popper-arrow></div>
         </div>
 
@@ -166,15 +164,6 @@
                   role="menuitem">@lang('menu.settings')</a>
               </li>
 
-              {{-- <li>
-                <a href="{{ route('app-update.index') }}"
-                  class="flex justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-                  role="menuitem">
-                  @lang('menu.appUpdate')
-
-                  <span class="bg-skin-base text-white text-xs font-medium px-1.5 py-0.5 rounded-full dark:bg-gray-500 dark:text-gray-300">v{{ \Illuminate\Support\Facades\File::get('version.txt') }}</span>
-                </a>
-              </li> --}}
               @endif
 
               <li>
@@ -188,6 +177,69 @@
             </ul>
           </div>
         </div>
+
+
+        <!-- Profile -->
+        <div class="flex items-center w-8">
+          <div class="flex w-full">
+            <button type="button"
+              class="inline-flex items-center justify-center w-10 h-10 text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-600"
+              id="user-menu-button-3" aria-expanded="false" data-dropdown-toggle="dropdown-3" data-dropdown-placement="left-end">
+              <span class="sr-only">Open user menu</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24" viewBox="0 0 512 512" xml:space="preserve"><path d="M112 441.328h288v32H112zM0 38.672v352h200v34.656h112v-34.656h200v-352zm216 323.25v-16h80v16zm248-35.25H48v-240h416z" style="fill:currentColor"/></svg>
+
+            </button>
+          </div>
+          <!-- Dropdown menu -->
+          <div
+            class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded shadow dark:bg-gray-700 dark:divide-gray-600"
+            id="dropdown-3">
+
+            <ul class="py-1" role="none">
+              @if (in_array('Customer Display', restaurant_modules()))
+              <li>
+                <a href="{{ route('customer.display') }}" target="_blank"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
+                  role="menuitem">@lang('menu.customerDisplay')</a>
+              </li>
+              <li>
+                <a href="{{ route('customer.order-board') }}" target="_blank"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
+                  role="menuitem">@lang('modules.order.customerOrderBoard')</a>
+              </li>
+              @endif
+
+              @if (module_enabled('Kiosk') && in_array('Kiosk', restaurant_modules()))
+                <li>
+                    <a href="{{ route('kiosk.restaurant', restaurant()->hash). '?branch=' . branch()->unique_hash }}" target="_blank"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
+                    role="menuitem">@lang('kiosk::modules.menu.kiosk')</a>
+                </li>
+              @endif
+
+            </ul>
+          </div>
+        </div>
+
+
+
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const btn = document.getElementById('customer-display-dropdown-button');
+                const menu = document.getElementById('customer-display-dropdown-menu');
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    menu.classList.toggle('hidden');
+                });
+                document.addEventListener('click', function (e) {
+                    if (!btn.contains(e.target)) {
+                        menu.classList.add('hidden');
+                    }
+                });
+            });
+        </script>
+
       </div>
     </div>
   </div>

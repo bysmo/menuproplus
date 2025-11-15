@@ -12,14 +12,14 @@
 
 ## {{ __('email.sendOrderBill.orderSummary') }}
 
-**{{ __('email.sendOrderBill.order') }}**: #{{ $order->order_number }}
+**{{ __('email.sendOrderBill.order') }}**: #{{ $order->show_formatted_order_number }}
 
 **{{ __('email.sendOrderBill.orderType') }}**: {{ ucwords(str_replace('_', ' ', $order->order_type)) }}
 @component('mail::table')
 | {{ __('modules.menu.itemName') }}           | {{ __('modules.order.qty') }}      | {{ __('modules.order.price') }}     |
 |:-------------- |:-------------:| ---------:|
 @foreach ($items as $item)
-| **{{ $item->menuItem->item_name }}** @if ($item->modifierOptions->isNotEmpty()) @foreach ($item->modifierOptions as $modifier) <br> &nbsp;• {{ $modifier->name }} @if ($modifier->price > 0) (+{{ currency_format($modifier->price, $settings->currency_id) }}) @endif @endforeach @endif | {{ $item->quantity }} | {{ currency_format(($item->price + $item->modifierOptions->sum('price')) * $item->quantity, $settings->currency_id) }} |
+| **{{ $item->menuItem->item_name }}** @if ($item->modifierOptions->isNotEmpty()) @foreach ($item->modifierOptions as $modifier) <br> &nbsp;• {{ $modifier->name }} @if ($modifier->price > 0) (+{{ currency_format($modifier->price, $settings->currency_id) }}) @endif @endforeach @endif @if($item->note) <br> <em>{{ __('modules.order.note') }}: {{ $item->note }}</em> @endif | {{ $item->quantity }} | {{ currency_format(($item->price + $item->modifierOptions->sum('price')) * $item->quantity, $settings->currency_id) }} |
 @endforeach
 | **{{ __('modules.order.subTotal') }}**   |               | **{{ currency_format($subtotal, $settings->currency_id) }}** |
 @if (!is_null($order->discount_amount))
@@ -34,15 +34,45 @@
 @foreach ($chargesWithAmount as $charge)
 | **{{ $charge['name'] }}** @if ($charge['type'] == 'percent') **({{ rtrim(rtrim($charge['rate'], '0'), '.') }}%)** @endif |     | **{{ currency_format($charge['amount'], $settings->currency_id) }}** |
 @endforeach
+@if ($taxMode == 'order')
 @foreach ($taxesWithAmount as $tax)
 | **{{ $tax['name'] }} ({{ $tax['rate'] }}%)** |     | **{{ currency_format($tax['amount'], $settings->currency_id) }}** |
 @endforeach
+@else
+@php
+    $taxTotals = [];
+    $totalTax = 0;
+    foreach ($items as $item) {
+        $qty = $item->quantity ?? 1;
+        $taxBreakdown = is_array($item->tax_breakup) ? $item->tax_breakup : (json_decode($item->tax_breakup, true) ?? []);
+        foreach ($taxBreakdown as $taxName => $taxInfo) {
+            if (!isset($taxTotals[$taxName])) {
+                $taxTotals[$taxName] = [
+                    'percent' => $taxInfo['percent'] ?? 0,
+                    'amount' => ($taxInfo['amount'] ?? 0) * $qty
+                ];
+            } else {
+                $taxTotals[$taxName]['amount'] += ($taxInfo['amount'] ?? 0) * $qty;
+            }
+        }
+        $totalTax += $item->tax_amount ?? 0;
+    }
+@endphp
+@foreach ($taxTotals as $taxName => $taxInfo)
+| {{ $taxName }} ({{ $taxInfo['percent'] }}%) |     | {{ currency_format($taxInfo['amount'], $settings->currency_id) }} |
+@endforeach
+| **{{ __('modules.order.totalTax') }}** |     | **{{ currency_format($totalTax, $settings->currency_id) }}** |
+@endif
 | **{{ __('modules.order.total') }}**      |               | **{{ currency_format($totalPrice, $settings->currency_id) }}** |
 @endcomponent
 
-**{{ __('app.date') }}**: {{ $order->date_time->translatedFormat('F j, Y, g:i a') }}
+**{{ __('app.date') }}**: {{ $order->date_time->timezone($settings->timezone)->translatedFormat('F j, Y, g:i a') }}
 
 {{ __('email.sendOrderBill.satisfactionMessage') }}
+
+@component('mail::button', ['url' => route('orders.pdf', $order->id)])
+{{ __('email.sendOrderBill.downloadReceipt') }}
+@endcomponent
 
 @lang('app.regards'),<br>
 {{ $settings->name }}

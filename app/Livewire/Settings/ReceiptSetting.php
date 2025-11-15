@@ -15,6 +15,7 @@ class ReceiptSetting extends Component
     public $settings;
     public bool $customerName;
     public bool $customerAddress;
+    public bool $customerPhone;
     public bool $tableNumber;
     public $paymentQrCode;
     public bool $waiter;
@@ -25,12 +26,15 @@ class ReceiptSetting extends Component
     public bool $showTax;
     public bool $showPaymentQrCode;
     public bool $showPaymentDetails;
+    public bool $showPaymentStatus;
+    public bool $showOrderType;
 
     public function mount()
     {
         $this->receiptSetting = restaurant()->receiptSetting;
         $this->customerName = (bool)$this->receiptSetting->show_customer_name;
         $this->customerAddress = (bool)$this->receiptSetting->show_customer_address;
+        $this->customerPhone = (bool)$this->receiptSetting->show_customer_phone;
         $this->tableNumber = (bool)$this->receiptSetting->show_table_number;
         $this->showPaymentQrCode = (bool)$this->receiptSetting->show_payment_qr_code;
         $this->waiter = (bool)$this->receiptSetting->show_waiter;
@@ -38,22 +42,58 @@ class ReceiptSetting extends Component
         $this->restaurantLogo = (bool)$this->receiptSetting->show_restaurant_logo;
         $this->restaurantTax = (bool)$this->receiptSetting->show_tax;
         $this->showPaymentDetails = (bool)$this->receiptSetting->show_payment_details;
+        $this->showPaymentStatus = (bool)$this->receiptSetting->show_payment_status;
         $this->paymentQrCode = $this->receiptSetting->payment_qr_code_url;
+        $this->showOrderType = (bool)$this->receiptSetting->show_order_type;
+    }
+
+    public function updatedPaymentQrCode()
+    {
+        $this->validatePaymentQrCode();
+    }
+
+    public function validatePaymentQrCode()
+    {
+        // Clear any existing errors for this field
+        $this->resetErrorBag('paymentQrCode');
+
+        if ($this->paymentQrCode instanceof TemporaryUploadedFile) {
+            // Validate image dimensions
+            $imageInfo = @getimagesize($this->paymentQrCode->getRealPath());
+            if ($imageInfo) {
+                $width = $imageInfo[0];
+                $height = $imageInfo[1];
+
+                // Only show error if dimensions are smaller than recommended (200 × 200)
+                // Images larger than recommended size are acceptable and will not show an error
+                if ($width < 200 || $height < 200) {
+                    $this->addError('paymentQrCode', __('modules.settings.imageDimensionsTooSmall', [
+                        'width' => 200,
+                        'height' => 200,
+                        'currentWidth' => $width,
+                        'currentHeight' => $height
+                    ]));
+                }
+            }
+        }
     }
 
     public function submitForm()
     {
 
         $data = [
-        'show_customer_name' => $this->customerName,
-        'show_customer_address' => $this->customerAddress,
-        'show_table_number' => $this->tableNumber,
-        'show_payment_qr_code' => $this->showPaymentQrCode,
-        'show_waiter' => $this->waiter,
-        'show_total_guest' => $this->totalGuest,
-        'show_restaurant_logo' => $this->restaurantLogo,
-        'show_tax' => $this->restaurantTax,
-        'show_payment_details' => $this->showPaymentDetails,
+            'show_customer_name' => $this->customerName,
+            'show_customer_address' => $this->customerAddress,
+            'show_customer_phone' => $this->customerPhone,
+            'show_table_number' => $this->tableNumber,
+            'show_payment_qr_code' => $this->showPaymentQrCode,
+            'show_waiter' => $this->waiter,
+            'show_total_guest' => $this->totalGuest,
+            'show_restaurant_logo' => $this->restaurantLogo,
+            'show_tax' => $this->restaurantTax,
+            'show_payment_details' => $this->showPaymentDetails,
+            'show_payment_status' => $this->showPaymentStatus,
+            'show_order_type' => $this->showOrderType,
         ];
 
         if ($this->showPaymentQrCode && !$this->paymentQrCode) {
@@ -61,25 +101,37 @@ class ReceiptSetting extends Component
             return;
         }
 
+        // Validate QR code dimensions if a new file is provided
+        if ($this->paymentQrCode instanceof TemporaryUploadedFile) {
+            $this->validatePaymentQrCode();
+
+            // Check if there are validation errors
+            if ($this->getErrorBag()->has('paymentQrCode')) {
+                return;
+            }
+        }
+
         // Handle QR Code upload only if a new file is provided
         if ($this->paymentQrCode instanceof TemporaryUploadedFile) {
             $data['payment_qr_code'] = Files::uploadLocalOrS3(
-            $this->paymentQrCode,
-            'payment_qr_code',
-            150,
-            150
+                $this->paymentQrCode,
+                'payment_qr_code',
+                200,
+                200
             );
         }
 
         $this->receiptSetting->update($data);
 
+        $this->paymentQrCode = $this->receiptSetting->payment_qr_code_url;
+
         $this->dispatch('settingsUpdated');
 
         $this->alert('success', __('messages.settingsUpdated'), [
-        'toast' => true,
-        'position' => 'top-end',
-        'showCancelButton' => false,
-        'cancelButtonText' => __('app.close'),
+            'toast' => true,
+            'position' => 'top-end',
+            'showCancelButton' => false,
+            'cancelButtonText' => __('app.close'),
         ]);
     }
 
@@ -87,5 +139,4 @@ class ReceiptSetting extends Component
     {
         return view('livewire.settings.receipt-setting');
     }
-
 }

@@ -142,7 +142,7 @@ class RestaurantTable extends Component
 
     public function render()
     {
-        $query = Restaurant::with(['package', 'branches'])
+        $query = Restaurant::with(['package'])
         ->where(function ($q) {
             return $q->where('name', 'like', '%' . $this->search . '%')
                 ->orWhere('id', 'like', '%' . $this->search . '%')

@@ -150,7 +150,7 @@ class OfflinePaymentRequestsList extends Component
             return $this->alert('error', 'File not found.');
         }
 
-        $filePath = public_path('user-uploads/' .OfflinePlanChange::FILE_PATH . '/' . $request->file_name);
+        $filePath = public_path('user-uploads/' . OfflinePlanChange::FILE_PATH . '/' . $request->file_name);
 
         if (!file_exists($filePath)) {
             return $this->alert('error', 'File not found.');

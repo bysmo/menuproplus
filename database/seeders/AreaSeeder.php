@@ -28,7 +28,7 @@ class AreaSeeder extends Seeder
                 'branch_id' => $branch->id,
             ]
         ];
+
         Area::insert($areas);
     }
-
 }

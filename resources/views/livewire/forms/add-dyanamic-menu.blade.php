@@ -44,6 +44,28 @@
                     <span class="text-red-500 text-sm">{{ $message }}</span>
                 @enderror
             </div>
+
+            <div>
+                <x-label for="position" value="{{ __('app.position') }}" />
+                <ul class="flex w-full gap-4 mt-1">
+                    <li>
+                        <input type="radio" id="header"  value="header" class="hidden peer"
+                            wire:model='position'>
+                        <label for="header"
+                            class="inline-flex items-center justify-between p-2 text-gray-600 bg-white border-2 border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-green-600 peer-checked:border-green-600 peer-checked:text-gray-900 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700 text-sm font-medium">
+                            @lang('app.header')
+                        </label>
+                    </li>
+                    <li>
+                        <input type="radio" id="footer" value="footer" class="hidden peer"
+                            wire:model='position' />
+                        <label for="footer"
+                            class="inline-flex items-center justify-between p-2 text-gray-600 bg-white border-2 border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-red-600 peer-checked:border-red-600 peer-checked:text-gray-900 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700 text-sm font-medium">
+                            @lang('app.footer')
+                        </label>
+                    </li>
+                </ul>
+            </div>
             <div>
                 <x-button>@lang('app.save')</x-button>
             </div>

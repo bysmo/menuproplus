@@ -20,4 +20,9 @@ class ItemModifier extends BaseModel
     {
         return $this->belongsTo(ModifierGroup::class);
     }
+
+    public function variation(): BelongsTo
+    {
+        return $this->belongsTo(MenuItemVariation::class, 'menu_item_variation_id');
+    }
 }

@@ -39,10 +39,10 @@ class EditExecutive extends Component
         // Reset the value
         $this->memberName = '';
         $this->memberPhone = '';
-        $this->status = '';
+        $this->status = 'available';
 
         $this->dispatch('hideEditStaff');
-        
+
         $this->alert('success', __('messages.memberUpdated'), [
             'toast' => true,
             'position' => 'top-end',
@@ -50,7 +50,7 @@ class EditExecutive extends Component
             'cancelButtonText' => __('app.close')
         ]);
     }
-    
+
     public function render()
     {
         return view('livewire.forms.edit-executive');

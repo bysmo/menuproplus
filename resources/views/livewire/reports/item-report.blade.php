@@ -6,8 +6,8 @@
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                 @lang('modules.report.itemReportMessage')
                 @php
-                    $formattedStartTime = \Carbon\Carbon::parse($startTime)->format('H:i');
-                    $formattedEndTime = \Carbon\Carbon::parse($endTime)->format('H:i');
+                    $formattedStartTime = \Carbon\Carbon::parse($startTime)->format('h:i A');
+                    $formattedEndTime = \Carbon\Carbon::parse($endTime)->format('h:i A');
                 @endphp
                 <strong>
                     ({{ $startDate === $endDate
@@ -28,7 +28,7 @@
                 </div>
             </div>
             <p class="text-3xl break-words font-bold text-skin-base dark:text-skin-base">
-                {{ currency_format($menuItems->sum(fn($item) => $item->price * $item->orders->sum('quantity'))) }}
+                {{ currency_format($menuItems->sum(fn($item) => $item->price * $item->orders->sum('quantity')), restaurant()->currency_id) }}
             </p>
             </div>
 
@@ -82,17 +82,17 @@
                             <div class="w-full max-w-[7rem]">
                                 <label for="start-time" class="sr-only">@lang('modules.reservation.timeStart'):</label>
                                 <div class="relative">
-                                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
+                                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pointer-events-none">
                                         <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" width="24" height="24" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0 7.5a7.5 7.5 0 1 1 15 0 7.5 7.5 0 0 1-15 0m7 0V3h1v4.293l2.854 2.853-.708.708-3-3A.5.5 0 0 1 7 7.5" fill="currentColor"/></svg>
                                     </div>
                                     <x-input id="start-time" type="time" wire:model.live.debounce.500ms="startTime" />
                                 </div>
                             </div>
-                            <span class="mx-2 text-gray-500 dark:text-gray-100">@lang('app.to')</span>
+                            <span class="mx-2 text-gray-500 dark:text-gray-100 w-10 text-center">@lang('app.to')</span>
                             <div class="w-full max-w-[7rem]">
                                 <label for="end-time" class="sr-only">@lang('modules.reservation.timeEnd'):</label>
                                 <div class="relative">
-                                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
+                                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pointer-events-none">
                                         <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" width="24" height="24" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0 7.5a7.5 7.5 0 1 1 15 0 7.5 7.5 0 0 1-15 0m7 0V3h1v4.293l2.854 2.853-.708.708-3-3A.5.5 0 0 1 7 7.5" fill="currentColor"/></svg>
                                     </div>
                                     <x-input id="end-time" type="time" wire:model.live.debounce.500ms="endTime" />
@@ -168,12 +168,12 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="text-sm font-medium text-gray-900 dark:text-white text-center">
-                                        {{ currency_format($variation->price) }}
+                                        {{ currency_format($variation->price, restaurant()->currency_id) }}
                                     </div>
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="text-sm font-medium text-gray-900 dark:text-white text-right">
-                                        {{ currency_format($variation->price * ($item->orders->where('menu_item_variation_id', $variation->id)->sum('quantity') ?? 0)) }}
+                                        {{ currency_format($variation->price * ($item->orders->where('menu_item_variation_id', $variation->id)->sum('quantity') ?? 0), restaurant()->currency_id) }}
                                     </div>
                                 </td>
                             </tr>
@@ -196,12 +196,12 @@
                             </td>
                             <td class="px-4 py-3">
                                 <div class="text-sm font-medium text-gray-900 dark:text-white text-center">
-                                    {{ currency_format($item->price) }}
+                                    {{ currency_format($item->price, restaurant()->currency_id) }}
                                 </div>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="text-sm font-medium text-gray-900 dark:text-white text-right">
-                                    {{ currency_format($item->price * $item->orders->sum('quantity')) }}
+                                    {{ currency_format($item->price * $item->orders->sum('quantity'), restaurant()->currency_id) }}
                                 </div>
                             </td>
                         </tr>

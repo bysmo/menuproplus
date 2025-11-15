@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\BaseModel;
 
+/**
+ * @property int|null $order_type_id
+ * @property string|null $order_type
+ */
 class KotItem extends BaseModel
 {
     use HasFactory;
@@ -28,5 +32,20 @@ class KotItem extends BaseModel
     public function modifierOptions(): BelongsToMany
     {
         return $this->belongsToMany(ModifierOption::class, 'kot_item_modifier_options', 'kot_item_id', 'modifier_option_id');
+    }
+
+    public function kot(): BelongsTo
+    {
+        return $this->belongsTo(Kot::class);
+    }
+
+    public function cancelReason(): BelongsTo
+    {
+        return $this->belongsTo(KotCancelReason::class, 'cancel_reason_id');
+    }
+
+    public function orderItem(): BelongsTo
+    {
+        return $this->belongsTo(OrderItem::class);
     }
 }

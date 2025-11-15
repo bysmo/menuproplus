@@ -9,9 +9,9 @@
         </div>
 
         <div class="text-lg font-medium text-gray-800">
-           @lang('modules.order.total'): {{ currency_format($customer->orders->sum('total')) }}
+           @lang('modules.order.total'): {{ currency_format($customer->orders->sum('total'), restaurant()->currency_id) }}
         </div>
-        
+
     </div>
 
     <div class="flex flex-col">

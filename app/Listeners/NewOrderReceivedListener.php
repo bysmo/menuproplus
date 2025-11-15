@@ -26,7 +26,7 @@ class NewOrderReceivedListener
      */
     public function handle(SendNewOrderReceived $event): void
     {
-        $users = User::role('Admin_'.$event->order->branch->restaurant_id)->where('restaurant_id', $event->order->branch->restaurant->id)->withoutGlobalScope(BranchScope::class)->get();
+        $users = User::role('Admin_' . $event->order->branch->restaurant_id)->where('restaurant_id', $event->order->branch->restaurant->id)->withoutGlobalScope(BranchScope::class)->get();
 
         try {
             Notification::send($users, new NewOrderReceived($event->order));
@@ -36,6 +36,6 @@ class NewOrderReceivedListener
 
         $pushNotification = new DashboardController();
         $pushUsersIds = [$users->pluck('id')->toArray()];
-        $pushNotification->sendPushNotifications($pushUsersIds, __('email.newOrder.subject'), '#'.$event->order->order_number, route('orders.index'));
+        $pushNotification->sendPushNotifications($pushUsersIds, __('email.newOrder.subject'), $event->order->show_formatted_order_number, route('orders.index'));
     }
 }

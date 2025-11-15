@@ -43,6 +43,11 @@
                 @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'storage'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'storage')])>@lang('modules.settings.storageSettings')</a>
             </li>
 
+            <li class="me-2">
+                <a href="{{ route('superadmin.superadmin-settings.index').'?tab=desktop-app' }}" wire:navigate
+                @class(["inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300", 'border-transparent' => ($activeSetting != 'desktop-app'), 'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' => ($activeSetting == 'desktop-app')])>@lang('Desktop Application')</a>
+            </li>
+
             <!-- NAV ITEM - CUSTOM MODULES  -->
             @foreach (custom_module_plugins() as $item)
                 @includeIf(strtolower($item) . '::sections.superadmin-settings.sidebar')
@@ -56,35 +61,39 @@
         <div>
             @switch($activeSetting)
                 @case('app')
-                @livewire('superadminSettings.appSettings', ['settings' => $settings])
+                    @livewire('superadminSettings.appSettings', ['settings' => $settings])
                 @break
 
                 @case('email')
-                @livewire('settings.emailSettings', ['settings' => $settings])
+                    @livewire('settings.emailSettings', ['settings' => $settings])
                 @break
 
                 @case('language')
-                @livewire('settings.languageSettings')
+                    @livewire('settings.languageSettings')
                 @break
 
                 @case('payment')
-                @livewire('settings.SuperadminPaymentSettings', ['settings' => $settings])
+                    @livewire('settings.RestaurantPaymentSettings')
                 @break
 
                 @case('theme')
-                @livewire('settings.SuperadminThemeSettings', ['settings' => $settings])
+                    @livewire('settings.SuperadminThemeSettings', ['settings' => $settings])
                 @break
 
                 @case('push')
-                @livewire('settings.pushNotificationSettings', ['settings' => $settings])
+                    @livewire('settings.pushNotificationSettings', ['settings' => $settings])
                 @break
 
                 @case('currency')
-                @livewire('settings.SuperadminCurrencySettings', ['settings' => $settings])
+                    @livewire('settings.SuperadminCurrencySettings', ['settings' => $settings])
                 @break
 
                 @case('storage')
-                @livewire('settings.storageSettings')
+                    @livewire('settings.storageSettings')
+                @break
+
+                @case('desktop-app')
+                    @livewire('settings.desktopApplicationSettings', ['settings' => $settings])
                 @break
 
                 @default
@@ -93,10 +102,10 @@
 
               <!-- NAV ITEM - CUSTOM MODULES  -->
               @foreach (custom_module_plugins() as $item)
-              @if($activeSetting == $item)
-                @livewire($item.'::super-admin.setting')
-              @endif
-          @endforeach
+                @if($activeSetting == $item)
+                    @livewire($item.'::super-admin.setting')
+                @endif
+              @endforeach
 
         </div>
 

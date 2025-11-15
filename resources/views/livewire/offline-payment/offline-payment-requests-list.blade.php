@@ -238,11 +238,12 @@
             <div class="w-full col-span-2">
                 @if ($status == 'verified')
                     <x-label for="payDate" :value="__('modules.billing.paymentDate')" />
-                    <x-datepicker id="payDate" class="w-full mt-1" wire:model="payDate" autocomplete="off" placeholder="{{ __('Select Date') }}" />
+                    <x-input type="date" id="payDate" wire:model="payDate"
+                            class="mt-1 block w-full dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" />
                     <x-input-error for="payDate" class="mt-2" />
 
                     <x-label for="nextPayDate" :value="__('modules.billing.nextPaymentDate')" class="mt-4" />
-                    <x-datepicker id="nextPayDate" class="w-full mt-1" wire:model="nextPayDate" autocomplete="off" placeholder="{{ __('Select Date') }}" />
+                    <x-input type="date" id="nextPayDate" class="w-full mt-1" wire:model="nextPayDate" autocomplete="off" placeholder="{{ __('Select Date') }}" />
                     <x-input-error for="nextPayDate" class="mt-2" />
                 @elseif ($status == 'rejected')
                     <x-label for="remark" :value="__('modules.billing.remark')" />

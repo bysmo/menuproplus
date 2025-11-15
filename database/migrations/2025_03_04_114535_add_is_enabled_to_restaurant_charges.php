@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+
     /**
      * Run the migrations.
      */
@@ -13,10 +14,10 @@ return new class extends Migration
     {
         if (!Schema::hasColumn('restaurant_charges', 'is_enabled')) {
             Schema::table('restaurant_charges', function (Blueprint $table) {
-            $table->boolean('is_enabled')->default(true)->after('order_types');
+                $table->boolean('is_enabled')->default(true)->after('order_types');
             });
         }
-}
+    }
 
     /**
      * Reverse the migrations.
@@ -27,4 +28,5 @@ return new class extends Migration
             $table->dropColumn('is_enabled');
         });
     }
+
 };

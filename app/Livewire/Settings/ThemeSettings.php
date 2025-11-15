@@ -56,9 +56,48 @@ class ThemeSettings extends Component
         ];
     }
 
+    public function updatedPhoto()
+    {
+        $this->validateLogo();
+    }
+
+    public function validateLogo()
+    {
+        // Clear any existing errors for this field
+        $this->resetErrorBag('photo');
+
+        if ($this->photo) {
+            // Validate image dimensions
+            $imageInfo = @getimagesize($this->photo->getRealPath());
+            if ($imageInfo) {
+                $width = $imageInfo[0];
+                $height = $imageInfo[1];
+
+                // Only show error if dimensions are smaller than recommended (97 × 96)
+                // Images larger than recommended size are acceptable and will not show an error
+                if ($width < 97 || $height < 96) {
+                    $this->addError('photo', __('modules.settings.imageDimensionsTooSmall', [
+                        'width' => 97,
+                        'height' => 96,
+                        'currentWidth' => $width,
+                        'currentHeight' => $height
+                    ]));
+                }
+            }
+        }
+    }
+
     public function submitForm()
     {
         $this->validate();
+
+        // Validate logo dimensions if it's an image
+        $this->validateLogo();
+
+        // Check if there are validation errors
+        if ($this->getErrorBag()->has('photo')) {
+            return;
+        }
 
         $this->themeColorRgb = $this->hex2rgba($this->themeColor);
 

@@ -64,6 +64,65 @@
         .module-file-item:hover {
             transform: translateY(-2px);
         }
+
+        @keyframes highlight-bounce {
+            0%, 100% {
+                transform: translateY(0);
+                box-shadow: 0 0 0 0 rgba(var(--skin-base-rgb), 0.4);
+            }
+            50% {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 16px -8px rgba(var(--skin-base-rgb), 0.4);
+            }
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 20px 10px rgba(34, 197, 94, 0.3);
+                transform: scale(1.02);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+                transform: scale(1);
+            }
+        }
+
+        .highlight-install-btn {
+            animation: pulse-glow 1.5s ease-in-out infinite;
+            background: linear-gradient(45deg, #22c55e, #16a34a) !important;
+            position: relative;
+            overflow: visible;
+        }
+
+        .highlight-install-btn::before {
+            content: '👉 @lang('app.clickToInstall')';
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0.9;
+        }
+
+        .highlight-install-btn::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: -8px;
+            transform: translateX(-50%);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #1f2937;
+        }
     </style>
 @endpush
 
@@ -192,9 +251,9 @@
                                             @if($diffInMinutes < 10)
                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                     @if($diffInMinutes < 1)
-                                                       uploaded now
+                                                       @lang('app.uploadedNow')
                                                     @else
-                                                        uploaded {{ intval($diffInMinutes) }} minutes ago
+                                                        @lang('app.uploadedAgo', ['time' => $lastModified->diffForHumans()])
                                                     @endif
                                                 </span>
                                             @endif
@@ -202,7 +261,7 @@
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <button type="button"
-                                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-skin-base hover:bg-skin-base/90 rounded-lg transition-colors install-files"
+                                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-skin-base hover:bg-skin-base/90 rounded-lg transition-colors install-files {{ $diffInMinutes < 1 ? 'highlight-install-btn' : '' }}"
                                                 data-file-no="{{ $key + 1 }}"
                                                 data-file-path="{{ $filename }}">
                                             @lang('modules.update.install')
@@ -211,12 +270,15 @@
                                             </svg>
                                         </button>
                                         <button type="button"
-                                                class="inline-flex items-center p-2 text-gray-500 hover:text-red-600 rounded-lg transition-colors delete-files"
+                                                class="inline-flex items-center p-2 text-gray-500 hover:text-red-600 rounded-lg transition-colors delete-files group relative"
                                                 data-file-no="{{ $key + 1 }}"
                                                 data-file-path="{{ $filename }}">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                             </svg>
+                                            <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                                @lang('app.removeFile')
+                                            </span>
                                         </button>
                                     </div>
                                 </div>

@@ -14,21 +14,39 @@ class AddItemModifier extends Component
 
     public $menuItemId;
     public $modifierGroupId;
+    public $variationId = null;
     public $isRequired = false;
     public $allowMultipleSelection = false;
     public $showAddModifierGroupModal = false;
+    public $variations = [];
 
     public function submitForm()
     {
         $this->validate([
             'menuItemId' => 'required',
-            'modifierGroupId' => 'required|exists:modifier_groups,id|unique:item_modifiers,modifier_group_id,NULL,id,menu_item_id,' . $this->menuItemId,
-        ], [
-            'modifierGroupId.unique' => 'The selected modifier group is already associated with this menu item.',
+            'modifierGroupId' => 'required|exists:modifier_groups,id',
         ]);
+
+        // Check for existing modifier based on whether this is for a variation or a menu item
+        $query = ItemModifier::where('modifier_group_id', $this->modifierGroupId)
+            ->where('menu_item_id', $this->menuItemId);
+
+        if ($this->variationId) {
+            $query->where('menu_item_variation_id', $this->variationId);
+            $errorMessage = __('messages.modifierGroupAlreadyAssociatedWithVariation');
+        } else {
+            $query->whereNull('menu_item_variation_id');
+            $errorMessage = __('messages.modifierGroupAlreadyAssociatedWithMenuItem');
+        }
+
+        if ($query->exists()) {
+            $this->addError('modifierGroupId', $errorMessage);
+            return;
+        }
 
         ItemModifier::create([
             'menu_item_id' => $this->menuItemId,
+            'menu_item_variation_id' => $this->variationId,
             'modifier_group_id' => $this->modifierGroupId,
             'is_required' => $this->isRequired,
             'allow_multiple_selection' => $this->allowMultipleSelection,
@@ -51,13 +69,23 @@ class AddItemModifier extends Component
         $this->reset([
             'menuItemId',
             'modifierGroupId',
+            'variationId',
+            'variations',
             'isRequired',
             'allowMultipleSelection',
             'showAddModifierGroupModal',
         ]);
     }
 
-    // #[On('hideAddModifierGroupModal')]
+    public function updatedMenuItemId($value)
+    {
+        $this->variations = $value
+            ? MenuItem::find($value)?->variations()->get() ?? []
+            : [];
+        $this->variationId = null;
+    }
+
+     // #[On('hideAddModifierGroupModal')]
     // public function hideAddModifierGroupModal()
     // {
     //     $this->resetForm();

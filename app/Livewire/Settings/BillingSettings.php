@@ -14,10 +14,18 @@ use App\Models\GlobalSubscription;
 use App\Models\SuperadminPaymentGateway;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Config;
+use stdClass;
+use GuzzleHttp\Client;
+use Carbon\Carbon;
+use App\Traits\SuperAdmin\PaystackSettings;
+use Unicodeveloper\Paystack\Paystack;
+
 
 class BillingSettings extends Component
 {
     use WithPagination, LivewireAlert;
+    use PaystackSettings;
 
     public $currentTab;
     public $activeSetting;
@@ -88,9 +96,15 @@ class BillingSettings extends Component
             ->first();
 
         $subscriptionId = $subscription->subscription_id;
+        $transactionId = $subscription->transaction_id;
         $gatewayName = $subscription->gateway_name;
+        // Get the plan_id from the latest GlobalInvoice for this subscription
+        $planId = GlobalInvoice::where('restaurant_id', restaurant()->id)
+            ->where('transaction_id', $transactionId)
+            ->orderByDesc('id')
+            ->value('plan_id');
 
-        if (!$subscriptionId) {
+        if (!$planId && !$subscription->subscription_id) {
             $this->alert('error', __('messages.noSubscriptionFound'), [
                 'toast' => true,
                 'position' => 'top-end',
@@ -108,6 +122,11 @@ class BillingSettings extends Component
                     'stripe' => $this->cancelStripeSubscription($subscriptionId, $cancelType, $paymentGateway->stripe_secret),
                     'razorpay' => $this->cancelRazorpaySubscription($subscriptionId, $cancelType, $paymentGateway->razorpay_key, $paymentGateway->razorpay_secret),
                     'flutterwave' => $this->cancelFlutterwaveSubscription($subscriptionId, $cancelType, $paymentGateway->flutterwave_secret),
+                    'paypal' => $this->cancelPaypalSubscription($subscriptionId, $cancelType, $paymentGateway),
+                    'payfast' => $this->cancelPayfastSubscription($subscriptionId, $cancelType, $paymentGateway),
+                    'paystack' => $this->cancelPaystackSubscription($subscriptionId, $cancelType, $paymentGateway->paystack_secret),
+                    'xendit' => $this->cancelXenditSubscription($planId, $cancelType, $paymentGateway->xendit_secret),
+                    'paddle' => $this->cancelPaddleSubscription($subscriptionId, $cancelType, $paymentGateway),
                     default => session()->flash('error', __('messages.invalidGateway')),
                 };
             } catch (\Exception $e) {
@@ -187,6 +206,8 @@ class BillingSettings extends Component
         $restaurant->license_expire_on = $expireDate;
         $restaurant->status = 'active';
         $restaurant->save();
+        // Ensure feature/module cache reflects new plan immediately
+        clearRestaurantModulesCache($restaurant->id);
 
         GlobalSubscription::where('restaurant_id', $restaurant->id)
             ->where('subscription_status', 'active')
@@ -259,6 +280,301 @@ class BillingSettings extends Component
         // Refresh the page after the operation
         $this->js("Livewire.navigate(window.location.href)");
     }
+
+    private function cancelPaypalSubscription($subscriptionId, $cancelType, $paymentGateway)
+    {
+        $restaurant = Restaurant::where('id', restaurant()->id)->first();
+        $paypalClientId = $paymentGateway->paypal_mode === 'sandbox' ? $paymentGateway->test_paypal_client_id : $paymentGateway->live_paypal_client_id;
+        $paypalSecret = $paymentGateway->paypal_mode === 'sandbox' ? $paymentGateway->test_paypal_secret : $paymentGateway->live_paypal_secret;
+
+        try {
+            $apiContext = new \PayPal\Rest\ApiContext(
+                new \PayPal\Auth\OAuthTokenCredential($paypalClientId, $paypalSecret)
+            );
+            config(['paypal.settings.mode' => $paymentGateway->paypal_mode]);
+            $paypal_conf = Config::get('paypal');
+            $apiContext->setConfig($paypal_conf['settings']);
+
+            $agreement = new \PayPal\Api\Agreement();
+            $agreement->setId($subscriptionId);
+
+            $descriptor = new \PayPal\Api\AgreementStateDescriptor();
+            $descriptor->setNote('Cancelling the agreement via admin panel');
+
+            // Cancel the agreement
+            $agreement->cancel($descriptor, $apiContext);
+            $cancelledAgreement = \PayPal\Api\Agreement::get($agreement->getId(), $apiContext);
+
+            if ($cancelledAgreement->getState() === 'Cancelled') {
+                $endOn = \Carbon\Carbon::parse($cancelledAgreement->getAgreementDetails()->getFinalPaymentDate())->format('Y-m-d');
+
+                if ($cancelType) {
+                    $this->updateSubscription($restaurant);
+                } else {
+                    $restaurant->license_expire_on = $endOn;
+                    $restaurant->save();
+                }
+
+                $this->alert('success', __('messages.subscriptionCancelled'), [
+                    'toast' => true,
+                    'position' => 'top-end',
+                    'showCancelButton' => false,
+                    'cancelButtonText' => __('app.close')
+                ]);
+            } else {
+                $this->alert('error', __('messages.cancelFailed'));
+            }
+
+        } catch (\Exception $e) {
+            logger()->error('PayPal cancellation error: ' . $e->getMessage());
+            $this->alert('error', __('messages.errorOccurred') . ': ' . $e->getMessage());
+        }
+
+        $this->js("Livewire.navigate(window.location.href)");
+    }
+
+    private function cancelPayfastSubscription($subscriptionId, $cancelType, $paymentGateway)
+    {
+        $credential = new stdClass();
+        if($paymentGateway->payfast_mode == 'sandbox'){
+            $credential->payfast_salt_passphrase = $paymentGateway->test_payfast_passphrase;
+            $credential->payfast_key = $paymentGateway->test_payfast_merchant_id;
+            $credential->payfast_secret = $paymentGateway->test_payfast_merchant_key;
+            $cancelSandbox = '?testing=true';
+
+        }
+        else{
+            $credential->payfast_salt_passphrase = $paymentGateway->live_payfast_passphrase;
+            $credential->payfast_key = $paymentGateway->live_payfast_merchant_id;
+            $credential->payfast_secret = $paymentGateway->live_payfast_merchant_key;
+            $cancelSandbox = '';
+        }
+
+        $payfastInvoice = GlobalInvoice::where('gateway_name', 'payfast')->latest()->first();
+        $date = now()->format('Y-m-d\TH:i:s');
+
+             try{
+                $url = 'https://api.payfast.co.za/subscriptions/'.$payfastInvoice->token.'/cancel'.$cancelSandbox;
+
+                $header = ['merchant-id' => $credential->payfast_key, 'version' => 'v1' , 'timestamp' => $date, 'signature' => $payfastInvoice->signature];
+                $client = new Client();
+                $res = $client->request('PUT', $url, ['headers' => $header]);
+                $conversionRate = $res->getBody();
+                $conversionRate = json_decode($conversionRate, true);
+                if($conversionRate['status'] == 'success'){
+                    $restaurant = Restaurant::find(restaurant()->id);
+                    if ($cancelType) {
+                        $this->updateSubscription($restaurant);
+                    } else {
+                        $licenseDuration = $restaurant->package_type === 'monthly' ? 'addMonth' : 'addYear';
+
+                        if ($restaurant->license_updated_at) {
+                            $restaurant->license_expire_on = Carbon::parse($restaurant->license_updated_at)->$licenseDuration();
+                            $restaurant->save();
+                        } else {
+                            $this->alert('error', __('messages.invalidLicenseDate'));
+                        }
+                    }
+
+                    $this->alert('success', __('messages.subscriptionCancelled'), [
+                        'toast' => true,
+                        'position' => 'top-end',
+                        'showCancelButton' => false,
+                        'cancelButtonText' => __('app.close')
+                    ]);
+                }else {
+                    $this->alert('error', __('messages.cancelFailed') . ': ' . ($responseBody['message'] ?? 'Unknown error'));
+                }
+
+            }
+            catch (\Exception $e) {
+                $restaurant = Restaurant::find(restaurant()->id);
+                    if ($cancelType) {
+                        $this->updateSubscription($restaurant);
+                    } else {
+                        $licenseDuration = $restaurant->package_type === 'monthly' ? 'addMonth' : 'addYear';
+
+                        if ($restaurant->license_updated_at) {
+                            $restaurant->license_expire_on = Carbon::parse($restaurant->license_updated_at)->$licenseDuration();
+                            $restaurant->save();
+                        } else {
+                            $this->alert('error', __('messages.invalidLicenseDate'));
+                        }
+                    }
+
+                $this->alert('success', __('messages.subscriptionStatusUpdate'), [
+                    'toast' => false,
+                    'position' => 'center',
+                    'showCancelButton' => true,
+                    'cancelButtonText' => __('app.close'),
+                ]);
+            }
+
+        $this->js("Livewire.navigate(window.location.href)");
+    }
+
+    private function cancelPaystackSubscription($subscriptionId, $cancelType, $paystackSecret)
+    {
+        try {
+            // Fetch the token from your DB — make sure you're storing it when creating the subscription
+            $this->setPaystackConfigs();
+            $subscription = GlobalSubscription::where('subscription_id', $subscriptionId)->first();
+            if (!$subscription || !$subscription->token) {
+                $this->alert('error', __('messages.missingEmailToken'));
+                return;
+            }
+            //  Merge the required request data
+            request()->merge([
+                'code' => $subscription->subscription_id,
+                'token' => $subscription->token,
+            ]);
+
+            info(request()->all());
+            // Call the Paystack wrapper method
+            $paystack = new Paystack();
+            $response = $paystack->disableSubscription();
+
+            if (isset($response['status']) && $response['status'] === true) {
+                $restaurant = Restaurant::find(restaurant()->id);
+
+                if ($cancelType) {
+                    $this->updateSubscription($restaurant);
+                } else {
+                    $licenseDuration = $restaurant->package_type === 'monthly' ? 'addMonth' : 'addYear';
+                    if ($restaurant->license_updated_at) {
+                        $restaurant->license_expire_on = \Carbon\Carbon::parse($restaurant->license_updated_at)->$licenseDuration();
+                        $restaurant->save();
+                    } else {
+                        $this->alert('error', __('messages.invalidLicenseDate'));
+                    }
+                }
+
+                $this->alert('success', __('messages.subscriptionCancelled'), [
+                    'toast' => true,
+                    'position' => 'top-end',
+                    'showCancelButton' => false,
+                    'cancelButtonText' => __('app.close')
+                ]);
+            } else {
+                $this->alert('error', __('messages.cancelFailed') . ': ' . ($response['message'] ?? 'Unknown error'));
+            }
+        } catch (\Exception $e) {
+            logger()->error('Exception in cancelling Paystack subscription', ['error' => $e->getMessage()]);
+            $this->alert('error', __('messages.errorOccurred') . ': ' . $e->getMessage());
+        }
+
+        $this->js("Livewire.navigate(window.location.href)");
+    }
+
+    private function cancelXenditSubscription($planId, $cancelType, $xenditSecret)
+{
+
+    try {
+        $response = Http::withBasicAuth($xenditSecret, '')
+            ->post("https://api.xendit.co/recurring/plans/{$planId}/deactivate");
+
+        if ($response->successful() && isset($response->json()['id'])) {
+            $restaurant = Restaurant::find(restaurant()->id);
+
+            if ($cancelType) {
+                $this->updateSubscription($restaurant);
+            } else {
+                $licenseDuration = $restaurant->package_type === 'monthly' ? 'addMonth' : 'addYear';
+                if ($restaurant->license_updated_at) {
+                    $restaurant->license_expire_on = \Carbon\Carbon::parse($restaurant->license_updated_at)->$licenseDuration();
+                    $restaurant->save();
+                } else {
+                    $this->alert('error', __('messages.invalidLicenseDate'));
+                }
+            }
+
+            $this->alert('success', __('messages.subscriptionCancelled'), [
+                'toast' => true,
+                'position' => 'top-end',
+                'showCancelButton' => false,
+                'cancelButtonText' => __('app.close')
+            ]);
+        } else {
+            $errorMessage = $response->json('message') ?? 'Unknown error';
+            // dd($errorMessage);
+            $this->alert('error', __('messages.cancelFailed') . ': ' . $errorMessage);
+        }
+    } catch (\Exception $e) {
+        $this->alert('error', __('messages.errorOccurred') . ': ' . $e->getMessage());
+    }
+
+    $this->js("Livewire.navigate(window.location.href)");
+}
+
+    private function cancelPaddleSubscription($subscriptionId, $cancelType, $paymentGateway)
+    {
+        try {
+            // Determine API key and URL based on mode
+            $isSandbox = $paymentGateway->paddle_mode === 'sandbox';
+            $apiKey = $isSandbox
+                ? $paymentGateway->test_paddle_api_key
+                : $paymentGateway->live_paddle_api_key;
+
+            $apiUrl = $isSandbox
+                ? 'https://sandbox-api.paddle.com'
+                : 'https://api.paddle.com';
+
+            // Cancel subscription via Paddle API
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json'
+            ])->post($apiUrl . '/subscriptions/' . $subscriptionId . '/cancel', [
+                'effective_from' => $cancelType ? 'immediately' : 'next_billing_period'
+            ]);
+
+            if ($response->successful()) {
+                $restaurant = Restaurant::find(restaurant()->id);
+
+                if ($cancelType) {
+                    // Immediate cancellation - move to default plan
+                    $this->updateSubscription($restaurant);
+                } else {
+                    // Cancel at period end - set expiry date
+                    $subscriptionData = $response->json('data');
+
+                    // Get the current billing period end date
+                    if (isset($subscriptionData['current_billing_period']['ends_at'])) {
+                        $restaurant->license_expire_on = \Carbon\Carbon::parse($subscriptionData['current_billing_period']['ends_at'])->format('Y-m-d');
+                    } else {
+                        // Fallback: calculate based on package type
+                        $licenseDuration = $restaurant->package_type === 'monthly' ? 'addMonth' : 'addYear';
+                        if ($restaurant->license_updated_at) {
+                            $restaurant->license_expire_on = \Carbon\Carbon::parse($restaurant->license_updated_at)->$licenseDuration();
+                        } else {
+                            $this->alert('error', __('messages.invalidLicenseDate'));
+                            return;
+                        }
+                    }
+                    $restaurant->save();
+                }
+
+                $this->alert('success', __('messages.subscriptionCancelled'), [
+                    'toast' => true,
+                    'position' => 'top-end',
+                    'showCancelButton' => false,
+                    'cancelButtonText' => __('app.close')
+                ]);
+            } else {
+                $errorMessage = $response->json('error.detail') ?? $response->json('error.message') ?? 'Unknown error';
+                $this->alert('error', __('messages.cancelFailed') . ': ' . $errorMessage);
+            }
+        } catch (\Exception $e) {
+            logger()->error('Paddle cancellation error: ' . $e->getMessage());
+            $this->alert('error', __('messages.errorOccurred') . ': ' . $e->getMessage());
+        }
+
+        $this->js("Livewire.navigate(window.location.href)");
+    }
+
+
+
+
+
 
     public function render()
     {

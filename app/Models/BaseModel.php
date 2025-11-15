@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Froiden\RestAPI\ApiModel;
 use Illuminate\Database\Eloquent\Model;
 
 class BaseModel extends Model

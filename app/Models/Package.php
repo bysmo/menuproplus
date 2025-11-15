@@ -25,6 +25,7 @@ class Package extends BaseModel
         'Table Reservation',
         'Payment Gateway Integration',
         'Theme Setting',
+        'Customer Display',
     ];
 
     public function modules()

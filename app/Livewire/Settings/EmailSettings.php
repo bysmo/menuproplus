@@ -76,6 +76,7 @@ class EmailSettings extends Component
 
         $this->emailSetting->fresh();
 
+        cache()->forget('smtp_setting');
         session()->forget('smtp_setting');
 
         $verify = $this->verifySmtp();

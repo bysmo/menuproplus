@@ -93,7 +93,7 @@
                                     <div class="tooltip-arrow" data-popper-arrow></div>
                                 </div>
                                 <x-secondary-link target="_blank" :href="route('table_order', [restaurant()->id]) .
-                                    '?branch=' .branch()->id .'&hash='. restaurant()->hash .'&from_qr=1'" class="text-xs"
+                                    '?branch=' .branch()->unique_hash .'&hash='. restaurant()->hash .'&from_qr=1'" class="text-xs"
                                     data-tooltip-target="visit-tooltip-toggle" type="button"
                                     data-tooltip-placement="top">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

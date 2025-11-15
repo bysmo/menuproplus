@@ -161,11 +161,35 @@
 
                         <div class="mt-4">
                             <x-label for="currencyID" value="{{ __('modules.package.chooseCurrency') }}" />
-                            <x-select id="currencyID" class="block readonly w-full mt-1" wire:model.live="currencyID" disabled>
+
+                            <x-select id="currencyID" @class([
+                                'block readonly w-full mt-1',
+                                !$canEditCurrency ? 'bg-gray-100 dark:bg-gray-600' : 'bg-white dark:bg-gray-800',
+                                !$canEditCurrency ? 'disabled' : '',
+                            ]) wire:model.live="currencyID"  disabled="{{ !$canEditCurrency }}">
+
                                 @foreach($currencies as $currency)
                                     <option value="{{ $currency->id }}">{{ $currency->currency_symbol }} ({{ $currency->currency_code }})</option>
                                 @endforeach
                             </x-select>
+
+                            @if(!$canEditCurrency)
+                                <div class="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md dark:bg-yellow-900/20 dark:border-yellow-700">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                                                <strong>Currency cannot be changed</strong> because restaurants have already subscribed to this package. To change the currency, you would need to migrate existing subscribers to a new package.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
                             <x-input-error for="currencyID" class="mt-2" />
                         </div>
 
@@ -175,6 +199,13 @@
                                 <x-input id="price" class="block w-full mt-1" type="number" min="0" wire:model="price" />
                                 <x-input-error for="price" class="mt-2" />
                             </div>
+                            @if($paymentKey->paddle_status == 1)
+                                <div class="mt-4">
+                                    <x-label for="paddleLifetimePriceId" value="Paddle Lifetime Price ID" required="true" />
+                                    <x-input id="paddleLifetimePriceId" class="block w-full mt-1" type="text" wire:model="paddleLifetimePriceId" />
+                                    <x-input-error for="paddleLifetimePriceId" class="mt-2" />
+                                </div>
+                            @endif
                         @else
                             <div class="grid grid-cols-2 mt-4 gap-x-3 md:gap-x-5">
                                 <x-label for="monthlyStatus">
@@ -232,6 +263,22 @@
                                             <x-input-error for="flutterwaveMonthlyPlanId" class="mt-2" />
                                         </div>
                                     @endif
+
+                                    @if($paymentKey->paystack_status == 1)
+                                        <div>
+                                            <x-label for="paystackMonthlyPlanId"
+                                                value="{{ __('modules.package.monthlyPaystackId') }}" required="true" />
+                                            <x-input id="paystackMonthlyPlanId" class="block w-full mt-1" type="text" min="0" wire:model="paystackMonthlyPlanId" />
+                                            <x-input-error for="paystackMonthlyPlanId" class="mt-2" />
+                                        </div>
+                                    @endif
+                                    @if($paymentKey->paddle_status == 1)
+                                        <div>
+                                            <x-label for="paddleMonthlyPriceId" value="Paddle Monthly Price ID" required="true" />
+                                            <x-input id="paddleMonthlyPriceId" class="block w-full mt-1" type="text" wire:model="paddleMonthlyPriceId" />
+                                            <x-input-error for="paddleMonthlyPriceId" class="mt-2" />
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
 
@@ -265,6 +312,21 @@
                                                 value="{{ __('modules.package.annualFlutterwaveId') }}" required="true" />
                                             <x-input id="flutterwaveAnnualPlanId" class="block w-full mt-1" type="text" min="0" wire:model="flutterwaveAnnualPlanId" />
                                             <x-input-error for="flutterwaveAnnualPlanId" class="mt-2" />
+                                        </div>
+                                    @endif
+                                    @if($paymentKey->paystack_status == 1)
+                                        <div>
+                                            <x-label for="paystackAnnualPlanId"
+                                                value="{{ __('modules.package.annualPaystackId') }}" required="true" />
+                                            <x-input id="paystackAnnualPlanId" class="block w-full mt-1" type="text" min="0" wire:model="paystackAnnualPlanId" />
+                                            <x-input-error for="paystackAnnualPlanId" class="mt-2" />
+                                        </div>
+                                    @endif
+                                    @if($paymentKey->paddle_status == 1)
+                                        <div>
+                                            <x-label for="paddleAnnualPriceId" value="Paddle Annual Price ID" required="true" />
+                                            <x-input id="paddleAnnualPriceId" class="block w-full mt-1" type="text" wire:model="paddleAnnualPriceId" />
+                                            <x-input-error for="paddleAnnualPriceId" class="mt-2" />
                                         </div>
                                     @endif
                                 </div>
@@ -319,7 +381,7 @@
                                     <div class="flex items-center">
                                         <x-checkbox
                                             id="module_{{ $module->id }}"
-                                            wire:model="selectedModules"
+                                            wire:model.live="selectedModules"
                                             value="{{ $module->id }}"
                                         />
                                         <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">{{ __('permissions.modules.'.$module->name) }}</span>
@@ -373,6 +435,110 @@
                         </div>
                     @endif
 
+                    @if($this->isSmsModuleSelected() && module_enabled('Sms'))
+                        <!-- SMS Count Field -->
+                        <div class="mt-6">
+                            <div class="rounded-md bg-yellow-50 p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-yellow-700">
+                                            @lang('sms::modules.package.smsCountInfo')
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- SMS Count and Carry Forward SMS in same line -->
+                            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <x-label for="smsCount" value="{{ __('sms::modules.package.smsCount') }}" required="true" class="text-sm font-medium text-gray-700 dark:text-gray-300"/>
+                                    <x-input id="smsCount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" type="number" min="-1" wire:model.live='smsCount' />
+                                    <x-input-error for="smsCount" class="mt-2" />
+                                </div>
+                                
+                                <div class="flex items-center mt-3">
+                                    <x-label for="carryForwardSms">
+                                        <div class="flex items-center cursor-pointer">
+                                            <x-checkbox id="carryForwardSms" wire:model="carryForwardSms" />
+                                            <div class="select-none ms-2">
+                                                {{ __('sms::modules.package.carryForwardSms') }}
+                                            </div>
+                                        </div>
+                                    </x-label>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Package Limits Section -->
+                    @php
+                        $menuItemModule = $modules->firstWhere('name', 'Menu Item');
+                        $orderModule = $modules->firstWhere('name', 'Order');
+                        $staffModule = $modules->firstWhere('name', 'Staff');
+                        
+                        $isMenuItemSelected = $menuItemModule && in_array($menuItemModule->id, $selectedModules);
+                        $isOrderSelected = $orderModule && in_array($orderModule->id, $selectedModules);
+                        $isStaffSelected = $staffModule && in_array($staffModule->id, $selectedModules);
+                        
+                        $showLimitsSection = $isMenuItemSelected || $isOrderSelected || $isStaffSelected;
+                    @endphp
+
+                    @if($showLimitsSection)
+                        <div class="mt-6 mb-2">
+                            <div class="rounded-md bg-blue-50 p-4 dark:bg-blue-900/10">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                            @lang('modules.package.packageLimitsConfiguration')
+                                        </h3>
+                                        <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                                            @lang('modules.package.packageLimitsConfigurationInfo')
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-3">
+                                <!-- Menu Items Limit - Only show if Menu Item module is selected -->
+                                @if($isMenuItemSelected)
+                                    <div>
+                                        <x-label for="menuItemsLimit" value="{{ __('modules.package.menuItemsLimit') }}" required="true" class="text-sm font-medium text-gray-700 dark:text-gray-300"/>
+                                        <x-input id="menuItemsLimit" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" type="number" min="-1" wire:model="menuItemsLimit" placeholder="" />
+                                        <x-input-error for="menuItemsLimit" class="mt-2" />
+                                    </div>
+                                @endif
+
+                                <!-- Order Limit - Only show if Order module is selected -->
+                                @if($isOrderSelected)
+                                    <div>
+                                        <x-label for="orderLimit" value="{{ __('modules.package.orderLimit') }}" required="true" class="text-sm font-medium text-gray-700 dark:text-gray-300"/>
+                                        <x-input id="orderLimit" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" type="number" min="-1" wire:model="orderLimit" placeholder="" />
+                                        <x-input-error for="orderLimit" class="mt-2" />
+                                    </div>
+                                @endif
+
+                                <!-- Staff Limit - Only show if Staff module is selected -->
+                                @if($isStaffSelected)
+                                    <div>
+                                        <x-label for="staffLimit" value="{{ __('modules.package.staffLimit') }}" required="true" class="text-sm font-medium text-gray-700 dark:text-gray-300"/>
+                                        <x-input id="staffLimit" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" type="number" min="-1" wire:model="staffLimit" placeholder="" />
+                                        <x-input-error for="staffLimit" class="mt-2" />
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="mt-2">
                         <x-label for="description" value="{{ __('modules.package.description') }}" required="true" class="text-sm font-medium text-gray-700 dark:text-gray-300"/>
                         <x-textarea id="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" wire:model='description' />
@@ -397,6 +563,81 @@
                     </div>
                 </div>
             </form>
+        </div>
+    @endif
+
+    @if($showModulesForm)
+        <div class="mx-auto sm:px-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    @lang('modules.package.selectModules')
+                </h2>
+
+                <!-- Toggle All Modules -->
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" wire:model.live="toggleSelectedModules" class="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                            @lang('modules.package.selectAllModules')
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Modules Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    @foreach($modules as $module)
+                        <label class="flex items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                            <input type="checkbox"
+                                   wire:model.live="selectedModules"
+                                   value="{{ $module->id }}"
+                                   class="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                            <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">
+                                {{ __('permissions.modules.'.$module->name) }}
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+
+                <!-- Additional Features -->
+                @if(count($additionalFeatures) > 0)
+                    <div class="border-t border-gray-200 dark:border-gray-600 pt-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            @lang('modules.package.additionalFeatures')
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($additionalFeatures as $feature)
+                                <label class="flex items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                                    <input type="checkbox"
+                                           wire:model.live="selectedFeatures"
+                                           value="{{ $feature }}"
+                                           class="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                                    <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">
+                                        {{ __('permissions.modules.'.$feature) }}
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Form Actions -->
+                <div class="mt-6 flex items-center space-x-4">
+                    <x-button type="button" wire:click="submitForm" class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        @lang('app.save')
+                    </x-button>
+
+                    <x-secondary-link href="{{ route('superadmin.packages.index') }}" wire:navigate class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        @lang('app.cancel')
+                    </x-secondary-link>
+                </div>
+            </div>
         </div>
     @endif
 </div>

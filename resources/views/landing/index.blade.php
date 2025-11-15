@@ -19,7 +19,7 @@
                 @else
                     @lang('landing.getStartedFree')
                 @endif
-                <svg class="ml-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                <svg class="ml-2 rtl:ml-0 rtl:mr-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
                     xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd"
                         d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
@@ -30,7 +30,7 @@
         </div>
 
         <div class="relative  max-w-screen-lg flex justify-center mx-auto">
-            <img src="{{ asset('landing/dashboard.jpg') }}" class="shadow-lg border rounded-lg" alt="">
+            <img src="{{ asset('landing/dashboard.png') }}" class="shadow-lg border rounded-lg" alt="">
             <!-- SVG Element -->
             <div class="hidden md:block absolute top-0 end-0 -translate-y-12 translate-x-20">
                 <svg class="w-16 h-auto text-skin-base" width="121" height="135" viewBox="0 0 121 135" fill="none"
@@ -74,7 +74,7 @@
     <!-- Grid -->
     <div class="md:grid md:grid-cols-2 md:items-center md:gap-12 xl:gap-32">
         <div>
-            <img class="rounded-xl border border-gray-100 shadow" src="{{ asset('landing/order-management.jpg') }}"
+            <img class="rounded-xl border border-gray-100 shadow" src="{{ asset('landing/order-management.png') }}"
                 alt="order management">
         </div>
         <!-- End Col -->
@@ -118,7 +118,7 @@
         </div>
         <!-- End Col -->
         <div>
-            <img class="rounded-xl border border-gray-100 shadow" src="{{ asset('landing/table-reservation.jpg') }}"
+            <img class="rounded-xl border border-gray-100 shadow" src="{{ asset('landing/table-reservation.png') }}"
                 alt="order management">
         </div>
         <!-- End Col -->
@@ -129,7 +129,7 @@
     <!-- Grid -->
     <div class="md:grid md:grid-cols-2 md:items-center md:gap-12 xl:gap-32">
         <div>
-            <img class="rounded-xl border border-gray-100 shadow" src="{{ asset('landing/menu-management.jpg') }}"
+            <img class="rounded-xl border border-gray-100 shadow" src="{{ asset('landing/menu-management.png') }}"
                 alt="order management">
         </div>
         <!-- End Col -->
@@ -515,8 +515,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 lg:items-center gap-6 md:gap-8 lg:gap-12">
       <div class="aspect-w-16 aspect-h-6 lg:aspect-h-14 overflow-hidden bg-gray-100 rounded-2xl dark:bg-neutral-800">
-        <img class="group-hover:scale-105 group-focus:scale-105 transition-transform duration-500 ease-in-out object-cover rounded-2xl"
-        src="{{ asset('landing/contact.jpg') }}" alt="Image du contact">
+        <img class="group-hover:scale-105 group-focus:scale-105 transition-transform duration-500 ease-in-out object-cover rounded-2xl" src="https://images.unsplash.com/photo-1572021335469-31706a17aaef?q=80&w=560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Contacts Image">
       </div>
       <!-- End Col -->
 

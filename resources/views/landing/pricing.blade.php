@@ -46,12 +46,48 @@
                 <!-- Module List -->
                 <div class="space-y-3">
                     @foreach($modules as $moduleName)
+                    @php
+                        $isEnabled = in_array($moduleName, $packageAllModules);
+                        $showLimit = false;
+                        $limitValue = null;
+                        
+                        // Check if this module should show limit count
+                        if ($isEnabled) {
+                            if ($moduleName === 'Menu Item') {
+                                $showLimit = true;
+                                $limitValue = $package->menu_items_limit;
+                            } elseif ($moduleName === 'Order') {
+                                $showLimit = true;
+                                $limitValue = $package->order_limit;
+                            } elseif ($moduleName === 'Staff') {
+                                $showLimit = true;
+                                $limitValue = $package->staff_limit;
+                            }
+                        }
+                    @endphp
                     <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-800 dark:text-neutral-200">{{ __('permissions.modules.'.$moduleName) }}</span>
-                        @if(in_array($moduleName,$packageAllModules))
-                        <svg class="shrink-0 size-5 text-skin-base" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        @else
-                        <svg class="shrink-0 size-5 text-gray-400 dark:text-neutral-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+                        <div class="flex-1">
+                            <span class="text-sm text-gray-800 dark:text-neutral-200">{{ __('permissions.modules.'.$moduleName) }}</span>
+                            @if ($showLimit && $limitValue !== null)
+                                <span class="ml-2 text-xs font-semibold text-skin-base">
+                                    @if ($limitValue == -1)
+                                        (Unlimited)
+                                    @else
+                                        @if ($moduleName === 'Order')
+                                            ({{ number_format($limitValue) }} per day)
+                                        @else
+                                            ({{ number_format($limitValue) }})
+                                        @endif
+                                    @endif
+                                </span>
+                            @endif
+                        </div>
+                        @if (!$showLimit)
+                            @if($isEnabled)
+                            <svg class="shrink-0 size-5 text-skin-base" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            @else
+                            <svg class="shrink-0 size-5 text-gray-400 dark:text-neutral-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+                            @endif
                         @endif
                     </div>
                     @endforeach
@@ -77,7 +113,7 @@
                     <span class="sr-only">Toggle annual billing</span>
                     <span
                         class="inline-block h-4 w-4 transform rounded-full bg-white transition"
-                        :class="{ 'translate-x-6': isAnnual, 'translate-x-1': !isAnnual }">
+                        :class="{ 'translate-x-6 ltr:translate-x-6 rtl:-translate-x-6': isAnnual, 'translate-x-1 ltr:translate-x-1 rtl:-translate-x-1': !isAnnual }">
                     </span>
                 </button>
 
@@ -147,7 +183,7 @@
                 @foreach($modules as $moduleName)
                 <ul class="flex gap-6 relative">
                     <li class="lg:pb-1.5 lg:py-3 min-w-48 sticky left-0 bg-white dark:bg-gray-900 z-10">
-                        <span class="text-sm text-gray-800 dark:text-neutral-200">
+                        <span class="text-sm text-gray-800 dark:text-neutral-200 break-words w-48 inline-flex">
                             {{ __('permissions.modules.'.$moduleName) }}
                         </span>
                     </li>
@@ -158,11 +194,44 @@
                             $package->modules->pluck('name')->toArray(),
                             $package->additional_features ? json_decode($package->additional_features, true) : []
                         );
+                        $isEnabled = in_array($moduleName, $packageAllModules);
+                        $showLimit = false;
+                        $limitValue = null;
+                        
+                        // Check if this module should show limit count
+                        if ($isEnabled) {
+                            if ($moduleName === 'Menu Item') {
+                                $showLimit = true;
+                                $limitValue = $package->menu_items_limit;
+                            } elseif ($moduleName === 'Order') {
+                                $showLimit = true;
+                                $limitValue = $package->order_limit;
+                            } elseif ($moduleName === 'Staff') {
+                                $showLimit = true;
+                                $limitValue = $package->staff_limit;
+                            }
+                        }
                     @endphp
                     <li class="py-1.5 lg:py-3 px-4 lg:px-0 lg:text-center bg-gray-50 dark:bg-neutral-800 w-64" x-show="(!isAnnual && {{ $package->monthly_status ? 'true' : 'false' }} || isAnnual && {{ $package->annual_status ? 'true' : 'false' }} || {{ $package->package_type == \App\Enums\PackageType::LIFETIME ? 'true' : 'false' }} || {{ $package->package_type == \App\Enums\PackageType::FREE ? 'true' : 'false' }})">
                         <div class="grid grid-cols-6 lg:block">
-                            @if(in_array($moduleName,$packageAllModules))
-                            <svg class="shrink-0 lg:mx-auto size-5 text-skin-base" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            @if($isEnabled)
+                                @if ($showLimit && $limitValue !== null)
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span class="text-xs font-semibold text-skin-base">
+                                            @if ($limitValue == -1)
+                                                {{ __('modules.billing.unlimited') }}
+                                            @else
+                                                @if ($moduleName === 'Order')
+                                                    {{ number_format($limitValue) }} {{ __('modules.billing.perDay') }}
+                                                @else
+                                                    {{ number_format($limitValue) }} {{ __('modules.billing.perPlan') }}
+                                                @endif
+                                            @endif
+                                        </span>
+                                    </div>
+                                @else
+                                    <svg class="shrink-0 lg:mx-auto size-5 text-skin-base" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                @endif
                             @else
                             <svg class="shrink-0 lg:mx-auto size-5 text-gray-400 dark:text-neutral-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
                             @endif

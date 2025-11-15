@@ -58,9 +58,23 @@ class EditPackage extends Component
     public $branchLimit;
     public $flutterwaveAnnualPlanId;
     public $flutterwaveMonthlyPlanId;
+    public $paystackAnnualPlanId;
+    public $paystackMonthlyPlanId;
+    public $paystackLifetimePlanId;
+    public $menuItemsLimit;
+    public $orderLimit;
+    public $staffLimit;
+    public $paddleAnnualPriceId;
+    public $paddleMonthlyPriceId;
+    public $paddleLifetimePriceId;
+    public $smsCount; // Add SMS count field
+    public bool $carryForwardSms = false; // Add carry forward SMS field
+    public $hasSubscribers = false;
+    public $canEditCurrency = true;
 
     public function mount()
     {
+        $this->checkPackageSubscriptions();
         $this->initializePackageData();
         $this->initializeFormData();
     }
@@ -90,12 +104,20 @@ class EditPackage extends Component
         $this->stripeMonthlyPlanId = $this->package->stripe_monthly_plan_id;
         $this->razorpayAnnualPlanId = $this->package->razorpay_annual_plan_id;
         $this->razorpayMonthlyPlanId = $this->package->razorpay_monthly_plan_id;
-        // $this->stripeLifetimePlanId = $this->package->stripe_lifetime_plan_id;
-        // $this->razorpayLifetimePlanId = $this->package->razorpay_lifetime_plan_id;
         $this->flutterwaveAnnualPlanId = $this->package->flutterwave_annual_plan_id;
         $this->flutterwaveMonthlyPlanId = $this->package->flutterwave_monthly_plan_id;
+        $this->paystackAnnualPlanId = $this->package->paystack_annual_plan_id;
+        $this->paystackMonthlyPlanId = $this->package->paystack_monthly_plan_id;
+        $this->paddleAnnualPriceId = $this->package->paddle_annual_price_id;
+        $this->paddleMonthlyPriceId = $this->package->paddle_monthly_price_id;
+        $this->paddleLifetimePriceId = $this->package->paddle_lifetime_price_id;
         $this->selectedFeatures = $this->package->additional_features ? json_decode($this->package->additional_features, true) : [];
         $this->branchLimit = $this->package->branch_limit;
+        $this->menuItemsLimit = $this->package->menu_items_limit ?? -1;
+        $this->orderLimit = $this->package->order_limit ?? -1;
+        $this->staffLimit = $this->package->staff_limit ?? -1;
+        $this->smsCount = $this->package->sms_count; // Initialize SMS count
+        $this->carryForwardSms = $this->package->carry_forward_sms ?? false; // Initialize carry forward SMS
     }
 
     private function initializeFormData()
@@ -103,13 +125,31 @@ class EditPackage extends Component
         $this->selectedModules = $this->packageModules;
         $this->currencySymbol = GlobalCurrency::find($this->currencyID)->currency_symbol ?? null;
         $this->maxOrder = Package::count();
-        $this->packageTypes = array_filter(PackageType::cases(),
-            fn($type) => !in_array($type, [PackageType::TRIAL, PackageType::DEFAULT, PackageType::FREE]));
-        $this->modules = Module::all();
+        $this->packageTypes = array_filter(
+            PackageType::cases(),
+            fn($type) => !in_array($type, [PackageType::TRIAL, PackageType::DEFAULT, PackageType::FREE])
+        );
+        $this->modules = $this->getAvailableModules();
         $this->currencies = GlobalCurrency::all();
         $this->toggleSelectedModules = count($this->selectedModules) === $this->modules->count();
         $this->additionalFeatures = Package::ADDITIONAL_FEATURES;
         $this->paymentKey = SuperadminPaymentGateway::first();
+    }
+
+    /**
+     * Get available modules, filtering out disabled modules
+     */
+    private function getAvailableModules()
+    {
+        return Module::all()
+            ->filter(fn ($module) => $module->name !== 'Sms' || module_enabled('Sms'));
+    }
+
+    private function checkPackageSubscriptions()
+    {
+        // Check if any restaurants have subscribed to this package
+        $this->hasSubscribers = $this->package->restaurants()->exists();
+        $this->canEditCurrency = !$this->hasSubscribers;
     }
 
     public function updatedCurrencyID()
@@ -160,7 +200,15 @@ class EditPackage extends Component
             'isPrivate' => 'required|boolean',
             'isRecommended' => 'required|boolean',
             'packageType' => 'required_if:isFree,false',
-            'currencyID' => 'required_if:isFree,false',
+            'currencyID' => [
+                'required_if:isFree,false',
+                function ($attribute, $value, $fail) {
+                    // Prevent currency change if package has subscribers
+                    if (!$this->canEditCurrency && $value != $this->package->currency_id) {
+                        $fail('Currency cannot be changed because restaurants have already subscribed to this package.');
+                    }
+                },
+            ],
             'annualStatus' => 'required_if:packageType,standard|boolean',
             'monthlyStatus' => 'required_if:packageType,standard|boolean',
             'price' => 'required_if:packageType,lifetime|numeric|nullable',
@@ -186,6 +234,31 @@ class EditPackage extends Component
                 'min:-1',
                 Rule::requiredIf(fn() => in_array('Change Branch', $this->selectedFeatures))
             ],
+            'menuItemsLimit' => [
+                Rule::requiredIf(fn() => $this->isMenuItemModuleSelected()),
+                'nullable',
+                'integer',
+                'min:-1',
+            ],
+            'orderLimit' => [
+                Rule::requiredIf(fn() => $this->isOrderModuleSelected()),
+                'nullable',
+                'integer',
+                'min:-1',
+            ],
+            'staffLimit' => [
+                Rule::requiredIf(fn() => $this->isStaffModuleSelected()),
+                'nullable',
+                'integer',
+                'min:-1',
+            ],
+            'smsCount' => [
+                Rule::requiredIf(fn() => $this->isSmsModuleSelected()),
+                'nullable',
+                'integer',
+                'min:-1',
+            ],
+            'carryForwardSms' => 'boolean',
         ];
 
         if ($this->paymentKey->razorpay_status == 1) {
@@ -203,6 +276,17 @@ class EditPackage extends Component
             $validateRules['flutterwaveAnnualPlanId'] = $this->annualPrice ? 'required' : 'nullable';
         }
 
+        if ($this->paymentKey->paystack_status == 1) {
+            $validateRules['paystackMonthlyPlanId'] = $this->monthlyPrice ? 'required' : 'nullable';
+            $validateRules['paystackAnnualPlanId'] = $this->annualPrice ? 'required' : 'nullable';
+        }
+
+        if ($this->paymentKey->paddle_status == 1) {
+            $validateRules['paddleMonthlyPriceId'] = $this->monthlyPrice ? 'required' : 'nullable';
+            $validateRules['paddleAnnualPriceId'] = $this->annualPrice ? 'required' : 'nullable';
+            $validateRules['paddleLifetimePriceId'] = ($this->packageType === 'lifetime') ? 'required' : 'nullable';
+        }
+
         $validateMessages = [
             'packageName.unique' => 'The package name has already been taken.',
             'price.required_if' => 'The price field is required.',
@@ -214,14 +298,22 @@ class EditPackage extends Component
             'trialDays.required_if' => 'The trial days field is required.',
             'selectedModules.min' => 'Please select at least one module',
             'branchLimit.required_if' => 'The branch limit field is required when Change Branch is selected.',
+            'menuItemsLimit.required_if' => 'Menu items limit is required when Menu Item module is selected.',
+            'menuItemsLimit.min' => 'Menu items limit must be -1 or greater.',
+            'orderLimit.required_if' => 'Order limit is required when Order module is selected.',
+            'orderLimit.min' => 'Order limit must be -1 or greater.',
+            'staffLimit.required_if' => 'Staff limit is required when Staff module is selected.',
+            'staffLimit.min' => 'Staff limit must be -1 or greater.',
+            'smsCount.required_if' => 'SMS count is required when SMS module is enabled.',
+            'smsCount.min' => 'SMS count must be at least -1 (use -1 for unlimited).',
         ];
 
         $this->validate($validateRules, $validateMessages);
 
         if ($this->package->sort_order != $this->sortOrder) {
             Package::where('sort_order', '>=', $this->sortOrder)
-            ->where('id', '!=', $this->package->id)
-            ->increment('sort_order');
+                ->where('id', '!=', $this->package->id)
+                ->increment('sort_order');
         }
 
         $this->package->update([
@@ -250,14 +342,31 @@ class EditPackage extends Component
             'razorpay_lifetime_plan_id' => $this->packageType === PackageType::LIFETIME ? $this->razorpayLifetimePlanId : null,
             'flutterwave_annual_plan_id' => $this->flutterwaveAnnualPlanId,
             'flutterwave_monthly_plan_id' => $this->flutterwaveMonthlyPlanId,
+            'paystack_annual_plan_id' => $this->paystackAnnualPlanId,
+            'paystack_monthly_plan_id' => $this->paystackMonthlyPlanId,
+            'paystack_lifetime_plan_id' => $this->packageType === PackageType::LIFETIME ? $this->paystackLifetimePlanId : null,
+            'paddle_annual_price_id' => $this->paddleAnnualPriceId,
+            'paddle_monthly_price_id' => $this->paddleMonthlyPriceId,
+            'paddle_lifetime_price_id' => $this->packageType === PackageType::LIFETIME ? $this->paddleLifetimePriceId : null,
             'additional_features' => json_encode($this->selectedFeatures),
             'branch_limit' => $this->branchLimit,
+            'menu_items_limit' => $this->menuItemsLimit,
+            'order_limit' => $this->orderLimit,
+            'staff_limit' => $this->staffLimit,
+            'sms_count' => $this->smsCount ?? -1, // Ensure we always save a valid integer
+            'carry_forward_sms' => $this->carryForwardSms,
         ]);
 
         $this->package->modules()->sync($this->selectedModules);
 
         $this->package->restaurants->each(function ($restaurant) {
             clearRestaurantModulesCache($restaurant->id);
+            cache()->forget('restaurant_' . $restaurant->id . '_staff_stats');  
+            cache()->forget('restaurant_' . $restaurant->id . '_menu_item_stats');
+            // Clear order stats cache for all branches of this restaurant
+            $restaurant->branches->each(function ($branch) {
+                cache()->forget('branch_' . $branch->id . '_order_stats');
+            });
         });
 
 
@@ -278,6 +387,54 @@ class EditPackage extends Component
     public function render()
     {
         return view('livewire.forms.edit-package');
+    }
+
+    public function isSmsModuleSelected()
+    {
+        $smsModule = Module::where('name', 'Sms')->first();
+        return $smsModule && in_array($smsModule->id, $this->selectedModules);
+    }
+
+    public function isMenuItemModuleSelected()
+    {
+        $menuItemModule = Module::where('name', 'Menu Item')->first();
+        return $menuItemModule && in_array($menuItemModule->id, $this->selectedModules);
+    }
+
+    public function isOrderModuleSelected()
+    {
+        $orderModule = Module::where('name', 'Order')->first();
+        return $orderModule && in_array($orderModule->id, $this->selectedModules);
+    }
+
+    public function isStaffModuleSelected()
+    {
+        $staffModule = Module::where('name', 'Staff')->first();
+        return $staffModule && in_array($staffModule->id, $this->selectedModules);
+    }
+
+    public function updatedSelectedModules()
+    {
+        // Reset SMS count to default when SMS module is deselected
+        if (!$this->isSmsModuleSelected()) {
+            $this->smsCount = -1; // Default to -1 (unlimited)
+            $this->carryForwardSms = false; // Reset carry forward SMS
+        }
+
+        // Reset menu items limit when Menu Item module is deselected
+        if (!$this->isMenuItemModuleSelected()) {
+            $this->menuItemsLimit = -1;
+        }
+
+        // Reset order limit when Order module is deselected
+        if (!$this->isOrderModuleSelected()) {
+            $this->orderLimit = -1;
+        }
+
+        // Reset staff limit when Staff module is deselected
+        if (!$this->isStaffModuleSelected()) {
+            $this->staffLimit = -1;
+        }
     }
 
 }

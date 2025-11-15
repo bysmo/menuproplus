@@ -75,7 +75,7 @@
                                         <td class="py-2.5 px-4 text-gray-900 dark:text-white">
                                             {{ optional($expense->category)->name ?? '--' }}</td>
                                         <td class="py-2.5 px-4 text-gray-900 dark:text-white">
-                                            {{ currency_format($expense->amount) }}</td>
+                                            {{ currency_format($expense->amount, restaurant()->currency_id) }}</td>
                                         <td class="py-2.5 px-4 text-gray-900 dark:text-white">
                                             {{ $expense->expense_date->translatedFormat('d M, Y') }}
                                         </td>

@@ -27,8 +27,22 @@ class PackageTable extends Component
 
     public function mount()
     {
-        $this->allModules = Module::all();
+        $this->allModules = $this->getAvailableModules();
         $this->additionalFeatures = Package::ADDITIONAL_FEATURES;
+    }
+
+    public function getAvailableModules()
+    {
+        $allModules = Module::all();
+        
+        return $allModules->filter(function ($module) {
+            // If it's SMS module, check if it's enabled
+            if ($module->name === 'Sms') {
+                return module_enabled('Sms');
+            }
+            // For all other modules, include them
+            return true;
+        });
     }
 
     public function showDeletePackage($id)
@@ -40,7 +54,8 @@ class PackageTable extends Component
     public function deletePackage($id)
     {
         $checkIfPackageIsUsed = Restaurant::where('package_id', $id)->first();
-        if($checkIfPackageIsUsed){
+
+        if ($checkIfPackageIsUsed) {
             $this->alert('error', __('messages.packageIsUsed'), [
                 'toast' => false,
                 'position' => 'center',
@@ -50,6 +65,7 @@ class PackageTable extends Component
 
             return;
         }
+
         Package::destroy($id);
 
         $this->confirmDeletePackageModal = false;
@@ -61,15 +77,14 @@ class PackageTable extends Component
             'showCancelButton' => false,
             'cancelButtonText' => __('app.close')
         ]);
-
     }
 
     public function render()
     {
-        $query = Package::with('modules','currency')
-            ->where(function($q) {
-            $q->where('package_name', 'like', '%'.$this->search.'%')
-            ->orWhere('package_type', 'like', '%'.$this->search.'%');
+        $query = Package::with('modules', 'currency')
+            ->where(function ($q) {
+                $q->where('package_name', 'like', '%' . $this->search . '%')
+                    ->orWhere('package_type', 'like', '%' . $this->search . '%');
             })
             ->paginate(20);
 
@@ -77,5 +92,4 @@ class PackageTable extends Component
             'packages' => $query
         ]);
     }
-
 }

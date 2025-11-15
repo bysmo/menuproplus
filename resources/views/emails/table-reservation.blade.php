@@ -14,9 +14,9 @@
 
 **{{ __('modules.customer.name') }}**: {{ $reservation->customer->name }}
 
-**{{ __('app.date') }}**: {{ $reservation->reservation_date_time->format('d M (l)') }}
+**{{ __('app.date') }}**: {{ $reservation->reservation_date_time->translatedFormat('d M (l)') }}
 
-**{{ __('app.time') }}**: {{ $reservation->reservation_date_time->format('h:i A') }}
+**{{ __('app.time') }}**: {{ $reservation->reservation_date_time->translatedFormat('h:i A') }}
 
 **{{ __('modules.reservation.guests') }}**: {{ $reservation->party_size }}
 

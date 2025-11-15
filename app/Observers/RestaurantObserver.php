@@ -11,6 +11,7 @@ use App\Models\GlobalSubscription;
 use App\Models\NotificationSetting;
 use App\Models\PaymentGatewayCredential;
 use App\Models\GlobalCurrency;
+use App\Models\PredefinedAmount;
 use App\Events\NewRestaurantCreatedEvent;
 
 class RestaurantObserver
@@ -22,13 +23,60 @@ class RestaurantObserver
             $restaurant->hash = $this->createUniqueSlug($restaurant);
         }
 
+        if (!is_null($restaurant->address)) {
+            $restaurant->address = strip_tags($restaurant->address);
+        }
+
         if ($restaurant->isDirty(['package_id', 'package_type', 'license_expire_on'])) {
             clearRestaurantModulesCache($restaurant->id);
+        }
+
+        if ($restaurant->isDirty('package_id')) {
+
+            if (in_array('Sms', restaurant_modules()) && module_enabled('Sms')) {
+
+                $oldPackageId = $restaurant->getOriginal('package_id');
+                $oldPackage   = Package::find($oldPackageId);
+                $newPackage   = Package::find($restaurant->package_id);
+
+                $totalSms = $newPackage?->sms_count ?? 0;
+
+                if ($oldPackage && $newPackage && $oldPackage->sms_count != -1 && $newPackage->sms_count != -1 && $newPackage->carry_forward_sms) {
+                    $remaining = max(0, ($restaurant->getOriginal('total_sms') ?? 0) - ($restaurant->getOriginal('count_sms') ?? 0));
+
+                    $totalSms = $remaining + $newPackage->sms_count;
+                }
+
+                $restaurant->total_sms = $totalSms;
+
+                $restaurant->count_sms = 0;
+            }
+
+            // Update order limits for all branches when package changes
+            $newPackage = Package::find($restaurant->package_id);
+            if ($newPackage) {
+                $orderLimit = $newPackage->order_limit ?? -1;
+                // Update all branches' total_orders and reset count_orders
+                $restaurant->branches->each(function ($branch) use ($orderLimit) {
+                    $branch->total_orders = $orderLimit;
+                    $branch->count_orders = 0;
+                    $branch->saveQuietly();
+                    
+                    // Clear branch order stats cache
+                    cache()->forget('branch_' . $branch->id . '_order_stats');
+                });
+                cache()->forget('restaurant_' . $restaurant->id . '_menu_item_stats');
+                cache()->forget('restaurant_' . $restaurant->id . '_staff_stats');  
+            }
+
         }
     }
 
     public function created(Restaurant $restaurant)
     {
+        // Set default language for new restaurant
+        $restaurant->update(['customer_site_language' => 'en']);
+
         // Add Payment Gateway Settings
         PaymentGatewayCredential::create(['restaurant_id' => $restaurant->id]);
 
@@ -43,6 +91,9 @@ class RestaurantObserver
 
         // Add receipt Settings
         $restaurant->receiptSetting()->create();
+
+        // Add predefined amounts
+        $this->addPredefinedAmounts($restaurant);
 
         // Will be used in various module
         event(new NewRestaurantCreatedEvent($restaurant));
@@ -118,7 +169,21 @@ class RestaurantObserver
         $defaultCurrency = Currency::where('currency_code', global_setting()->defaultCurrency->currency_code)->where('restaurant_id', $restaurant->id)->first();
 
         $restaurant->currency_id = $defaultCurrency->id;
+        $restaurant->customer_site_language = 'en';
+
         $restaurant->save();
+    }
+
+    private function addPredefinedAmounts($restaurant)
+    {
+        $defaultAmounts = [50, 100, 500, 1000];
+
+        foreach ($defaultAmounts as $amount) {
+            PredefinedAmount::create([
+                'restaurant_id' => $restaurant->id,
+                'amount' => $amount,
+            ]);
+        }
     }
 
     public function addNotificationSettings($restaurant)
@@ -158,7 +223,17 @@ class RestaurantObserver
     {
         $name = $restaurant->name;
         // Generate initial slug
-        $slug = str()->slug($name);
+        if (auth()->check()) {
+            $slug = str()->slug($name, '-', auth()->user()->locale);
+        } else {
+            $slug = str()->slug($name, '-');
+        }
+
+        // Fallback if slug is empty or contains only hyphens (happens with non-Latin scripts)
+        if (empty($slug) || trim($slug, '-') === '') {
+            // Use transliteration or fallback to a unique identifier
+            $slug = uniqid();
+        }
 
         // Check if slug already exists in the database
         $count = 0;

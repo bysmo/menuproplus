@@ -51,7 +51,13 @@ class StaffTable extends Component
 
     public function deleteCustomer($id)
     {
+        $user = User::find($id);
+        $restaurantId = $user ? $user->restaurant_id : null;
         User::destroy($id);
+
+        if ($restaurantId) {
+            cache()->forget('restaurant_' . $restaurantId . '_staff_stats');    
+        }
 
         $this->confirmDeleteCustomerModal = false;
         $this->customer = null;

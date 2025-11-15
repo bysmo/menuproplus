@@ -18,5 +18,4 @@ class PaymentList extends Component
     {
         return view('livewire.payments.payment-list');
     }
-
 }

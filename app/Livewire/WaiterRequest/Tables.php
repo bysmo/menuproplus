@@ -12,7 +12,31 @@ class Tables extends Component
 {
     use LivewireAlert;
 
-    protected $listeners = ['newWaiterRequest' => 'render', 'attended' => 'render'];
+    protected $listeners = ['waiterRequestCreated' => 'render'];
+
+    public $pollingEnabled = true;
+    public $pollingInterval = 10;
+
+    public function mount()
+    {
+        // Load polling settings from cookies
+        $this->pollingEnabled = filter_var(request()->cookie('waiter_request_polling_enabled', 'true'), FILTER_VALIDATE_BOOLEAN);
+        $this->pollingInterval = (int)request()->cookie('waiter_request_polling_interval', 10);
+    }
+
+
+
+    public function updatedPollingEnabled($value)
+    {
+        cookie()->queue(cookie('waiter_request_polling_enabled', $value ? 'true' : 'false', 60 * 24 * 30)); // 30 days
+    }
+
+    public function updatedPollingInterval($value)
+    {
+        cookie()->queue(cookie('waiter_request_polling_interval', (int)$value, 60 * 24 * 30)); // 30 days
+    }
+
+
 
     public function showTableOrder($id)
     {
@@ -32,7 +56,7 @@ class Tables extends Component
         $count = WaiterRequest::where('status', 'pending')->count();
         session(['active_waiter_requests_count' => $count]);
 
-        $this->dispatch('newWaiterRequest');
+        $this->dispatch('$refresh');
 
         $this->alert('success', __('messages.waiterRequestCompleted'), [
             'toast' => true,

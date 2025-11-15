@@ -39,6 +39,11 @@ class EditFrontWithIconFeature extends Component
             ->toArray();
     }
 
+    public function updatedFeatureDescription()
+    {
+        $this->dispatch('description-updated', $this->featureDescription);
+    }
+
     public function selectIcon($icon)
     {
         $this->selectedIcon = $icon;
@@ -75,7 +80,7 @@ class EditFrontWithIconFeature extends Component
             'title' => $this->featureTitle,
             'description' => $this->featureDescription,
             'image' => $iconSvg,
-            'icon' => $this->selectedIcon, 
+            'icon' => $this->selectedIcon,
         ]);
 
          $this->alert('success', __('messages.settingsUpdated'), [

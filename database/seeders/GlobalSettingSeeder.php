@@ -25,6 +25,7 @@ class GlobalSettingSeeder extends Seeder
         $setting->instagram_link = 'https://www.instagram.com/';
         $setting->twitter_link = 'https://www.twitter.com/';
         $setting->default_currency_id = GlobalCurrency::first()->id;
+        $setting->timezone = 'Asia/Kolkata';
         $setting->save();
 
         StorageSetting::firstOrCreate([

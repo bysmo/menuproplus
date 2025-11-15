@@ -1,146 +1,236 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ isRtl() ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@lang('modules.order.kotTicket')</title>
+    <title>{{ $restaurant->name ?? 'Demo Restaurant' }} - @lang('modules.order.kotTicket')</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background-color: #ffffff;
+            box-sizing: border-box;
+            font-family: 'DejaVu Sans', 'Arial', sans-serif;
         }
-
-        .kot-container {
-            width: 100%;
-            max-width: 80mm; /* Matches 3-inch thermal printer width */
-            margin: 0 auto;
-            padding: 6.35mm;
-            border: 1px solid #000;
+        [dir="rtl"] { text-align: right; }
+        [dir="ltr"] { text-align: left; }
+        .receipt {
+            width: {{ $width - 10 }}mm;
+            padding: {{ $thermal ? '1mm' : '6.35mm' }};
+            page-break-after: always;
         }
-
         .header {
             text-align: center;
-            margin-bottom: 5mm;
+            margin-bottom: 3mm;
         }
-
-        .header h2 {
-            margin: 0;
-            font-size: 5mm;
+        .bold {
             font-weight: bold;
-            text-transform: uppercase;
         }
 
-        .header p {
-            margin: 1mm 0;
-            font-size: 4mm;
+        .restaurant-info {
+            font-size: {{ $width == 56 ? '8pt' : ($width == 80 ? '9pt' : '10pt') }};
+            margin-bottom: 1mm;
         }
-
-        table {
+        .order-info {
+            text-align: center;
+            border-top: 1px dashed #000;
+            border-bottom: 1px dashed #000;
+            padding: 2mm 0;
+            margin-bottom: 3mm;
+            font-size: {{ $width == 56 ? '8pt' : ($width == 80 ? '10pt' : '10pt') }};
+        }
+        .kot-title {
+            font-size: {{ $width == 56 ? '10pt' : ($width == 80 ? '14pt' : '16pt') }};
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 2mm;
+        }
+        .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 5mm;
+            margin-bottom: 3mm;
+            font-size: {{ $width == 56 ? '8pt' : ($width == 80 ? '10pt' : '10pt') }};
         }
-
-        th, td {
-            font-size: 4mm;
-            padding: 2mm;
-            text-align: left;
-            border-bottom: 1px dashed #000;
+        .items-table th {
+            padding: 1mm;
+            border-bottom: 1px solid #000;
         }
-
-        th {
-            font-weight: bold;
+        [dir="rtl"] .items-table th { text-align: right; }
+        [dir="ltr"] .items-table th { text-align: left; }
+        .items-table td {
+            padding: 1mm 0;
+            vertical-align: top;
         }
-
-        .footer {
-            margin-top: 5mm;
-            font-size: 4mm;
+        .qty {
+            width: {{ $width == 56 ? '20%' : ($width == 80 ? '15%' : '12%') }};
+            text-align: center;
         }
-
-        .footer p {
-            margin: 1mm 0;
+        .description {
+            width: {{ $width == 56 ? '80%' : ($width == 80 ? '85%' : '88%') }};
         }
-
-        .footer p.italic {
-            font-style: italic;
-        }
-
         .modifiers {
-            font-size: 10pt;
+            font-size: {{ $width == 56 ? '6pt' : ($width == 80 ? '8pt' : '9pt') }};
             color: #555;
         }
-
+        .footer {
+            text-align: center;
+            margin-top: 3mm;
+            font-size: {{ $width == 56 ? '7pt' : ($width == 80 ? '9pt' : '10pt') }};
+            padding-top: 2mm;
+            border-top: 1px dashed #000;
+        }
+        .italic {
+            font-style: italic;
+        }
+        .order-row {
+            width: 100%;
+            margin-bottom: {{ $width == 56 ? '3px' : '5px' }};
+        }
+        .order-row table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .order-left {
+            text-align: left;
+            width: 50%;
+        }
+        .order-right {
+            text-align: right;
+            width: 50%;
+        }
         @media print {
-            body {
-                background-color: #ffffff;
-            }
-
-            .kot-container {
-                border: none;
-                box-shadow: none;
+            @page {
+                margin: 0;
+                size: 80mm auto;
             }
         }
     </style>
 </head>
 <body>
-    <div class="kot-container">
-        <!-- Header -->
+    <div class="receipt">
         <div class="header">
-            <h2>@lang('modules.order.kitchenOrderTicket')</h2>
-            <strong>@lang('modules.order.orderNumber') #{{ $kot->order->order_number }}</strong>
-            @if($kot->order->table)
-            <p>@lang('modules.table.table') - <span class="text-skin-base font-bold">{{ $kot->order->table->table_code }}</span></p>
-            @endif
-            <p>@lang('app.date'): <span>{{ $kot->created_at->timezone(timezone())->format('d-m-Y') }}</span></p>
-            <p>@lang('app.time'): <span>{{ $kot->created_at->timezone(timezone())->format('h:i A') }}</span></p>
-        </div>
 
-        <!-- Items -->
-        <div>
-            <table>
+            @if(isset($kotPlace) && $kotPlace)
+                <div class="restaurant-info">{{ $kotPlace->name }}</div>
+            @endif
+        </div>
+        <div class="kot-title">
+            KOT <span class="bold">#{{ $kot->kot_number }}</span>
+            @if($kot->token_number)
+                <div style="font-size: {{ $width == 56 ? '9pt' : ($width == 80 ? '12pt' : '14pt') }}; margin-top: 1mm;">
+                    @lang('modules.order.tokenNumber'): <span class="bold">{{ $kot->token_number }}</span>
+                </div>
+            @endif
+        </div>
+        <div class="order-info" style="margin-bottom: 3mm;">
+            <div class="order-row">
+                <!-- Row 1: Order Number (left), Table (right) -->
+                <table>
+                    <tr>
+                        <td class="order-left">
+                            <span class="bold">
+                                {{ $kot->order->show_formatted_order_number }}
+                            </span>
+                        </td>
+                        <td class="order-right">
+                            <span>@lang('modules.table.table'): <span class="bold">{{ $kot->order->table ? $kot->order->table->table_code : '-' }}</span></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="order-row">
+                <!-- Row 2: Date (left), Time (right) -->
+                <table>
+                    <tr>
+                        <td class="order-left">
+                            @lang('app.date'): {{ $kot->created_at->timezone($kot->branch->restaurant->timezone)->format('d-m-Y') }}
+                        </td>
+                        <td class="order-right">
+                            @lang('app.time'): {{ $kot->created_at->timezone($kot->branch->restaurant->timezone)->format('h:i A') }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            @if($kot->order->waiter)
+            <div class="order-row">
+                <!-- Row 3: Waiter (left), empty (right) -->
+                <table>
+                    <tr>
+                        <td class="order-left">
+                            @lang('modules.order.waiter'): <span class="bold">{{ $kot->order->waiter->name }}</span>
+                        </td>
+                        <td class="order-right"></td>
+                    </tr>
+                </table>
+            </div>
+            @endif
+            @if($kot->order->order_type)
+            <div class="order-row">
+                <!-- Row 4: Order Type (left), Pickup Time if applicable (right) -->
+                <table>
+                    <tr>
+                        <td class="order-left">
+                            @lang('modules.settings.orderType'): <span class="bold">{{ Str::title(ucwords(str_replace('_', ' ', $kot->order->order_type))) }}</span>
+                        </td>
+                        <td class="order-right">
+                            @if($kot->order->order_type === 'pickup' && $kot->order->pickup_date)
+                                @lang('modules.order.pickupAt'): <span class="bold">{{ \Carbon\Carbon::parse($kot->order->pickup_date)->timezone($kot->branch->restaurant->timezone)->format('h:i A') }}</span>
+                            @endif
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            @endif
+        </div>
+        <table class="items-table">
             <thead>
                 <tr>
-                <th>@lang('modules.menu.itemName')</th>
-                <th style="text-align: right;">@lang('modules.order.qty')</th>
+                    <th class="description">@lang('modules.menu.itemName')</th>
+                    <th class="qty">@lang('modules.order.qty')</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($kot->items as $item)
-                <tr>
-                <td>
-                    {{ $item->menuItem->item_name }}
-                    @if (isset($item->menuItemVariation))
-                        <br><small>({{ $item->menuItemVariation->variation }})</small>
-                    @endif
-                    @foreach ($item->modifierOptions as $modifier)
-                    <div class="modifiers">• {{ $modifier->name }}</div>
-                    @endforeach
-                </td>
-
-                <td style="text-align: right;">{{ $item->quantity }}</td>
-                </tr>
+                @php
+                    $items = isset($kotPlaceId)
+                        ? $kot->items->filter(function($item) use($kotPlaceId) {
+                            return $item->menuItem && $item->menuItem->kot_place_id == $kotPlaceId;
+                        })
+                        : $kot->items;
+                @endphp
+                @foreach($items as $item)
+                    <tr>
+                        <td class="description">
+                            {{ $item->menuItem->item_name }}
+                            @if (isset($item->menuItemVariation))
+                                <br><small>({{ $item->menuItemVariation->variation }})</small>
+                            @endif
+                            @foreach ($item->modifierOptions as $modifier)
+                                <div class="modifiers">• {{ $modifier->name }}</div>
+                            @endforeach
+                            @if ($item->note)
+                                <div class="modifiers"><strong>@lang('modules.order.note'):</strong> {{ $item->note }}</div>
+                            @endif
+                        </td>
+                        <td class="qty">{{ $item->quantity }}</td>
+                    </tr>
                 @endforeach
             </tbody>
-            </table>
-        </div>
-
-        <!-- Footer -->
-
-        <div class="footer">
-            @if ($kot->note)
-            <p>@lang('modules.order.specialInstructions'):</p>
-            <p class="italic">{{$kot->note}}</p>
-            @endif
-
-        </div>
+        </table>
+        @if ($kot->note)
+            <div class="footer">
+                <strong>@lang('modules.order.specialInstructions'):</strong>
+                <div class="italic">{{$kot->note}}</div>
+            </div>
+        @endif
     </div>
 
-    <script>
+        <script >
         window.onload = function() {
-            window.print();
+            // Only call print if not in an iframe
+            if (window.self === window.top) {
+                window.print();
+            }
         }
     </script>
+
+
 </body>
 </html>

@@ -31,10 +31,41 @@
                 <label for="featureDescription" class="block text-sm font-medium text-gray-700">
                     @lang('modules.settings.featureDescription')
                 </label>
-                <textarea id="featureDescription"
-                          wire:model="featureDescription"
-                          rows="3"
-                          class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                <input x-ref="featureDescription" id="featureDescription" name="featureDescription" wire:model.lazy="featureDescription"
+                    value="{{ $featureDescription }}" type="hidden" />
+
+                <div wire:ignore class="mt-1">
+                    <trix-editor class="trix-content text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        input="featureDescription"
+                        data-gramm="false"
+                        placeholder="{{ __('placeholders.featureDescriptionPlaceHolder') }}"
+                        x-ref="trixEditor"
+                        x-init="
+                            // Load initial content with a small delay to ensure Livewire has set the value
+                            setTimeout(() => {
+                                if ($refs.trixEditor && $refs.featureDescription.value) {
+                                    $refs.trixEditor.editor.loadHTML($refs.featureDescription.value);
+                                }
+                            }, 100);
+
+                            // Prevent Livewire from interfering with Trix
+                            $el.addEventListener('trix-change', function(event) {
+                                $wire.set('featureDescription', event.target.value, false);
+                            });
+
+                            // Listen for Livewire updates
+                            $wire.on('description-updated', (value) => {
+                                if ($refs.trixEditor) {
+                                    $refs.trixEditor.editor.loadHTML(value);
+                                }
+                            });
+
+                            // Reset functionality
+                            window.addEventListener('reset-trix-editor', () => {
+                                $refs.trixEditor.editor.loadHTML('');
+                            });" >
+                    </trix-editor>
+                </div>
                 <x-input-error for="featureDescription" class="mt-2" />
             </div>
 
@@ -94,7 +125,7 @@
         </div>
 
         <!-- Buttons -->
-        <div class="flex w-full pb-4 space-x-4 mt-6">
+        <div class="flex w-full pb-4 space-x-4 mt-6 rtl:space-x-reverse">
             <x-button>@lang('app.save')</x-button>
             <x-button-cancel wire:click="$dispatch('closeModal')" wire:loading.attr="disabled">
                 @lang('app.cancel')

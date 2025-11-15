@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\FlutterwavePayment;
 use App\Events\SendNewOrderReceived;
 use App\Models\Restaurant;
-use App\Notifications\SendOrderBill;
+use App\Events\SendOrderBillEvent;
 
 class FlutterwavePaymentController extends Controller
 {
@@ -79,7 +79,7 @@ class FlutterwavePaymentController extends Controller
             $payment->save();
 
             $orderStatus = $payment->order->status;
-            $route = $orderStatus === 'draft' ? redirect()->back() : redirect()->route('order_success', $payment->order_id);
+            $route = $orderStatus === 'draft' ? redirect()->back() : redirect()->route('order_success', $payment->order->uuid);
             return $route->with([
                 'flash.banner' => __('messages.paymentFailed'),
                 'flash.bannerStyle' => 'danger',
@@ -113,9 +113,10 @@ class FlutterwavePaymentController extends Controller
             SendNewOrderReceived::dispatch($order);
 
             if ($order->customer_id) {
-                $order->customer->notify(new SendOrderBill($order));
+                SendOrderBillEvent::dispatch($order);
             }
-            return redirect()->route('order_success', $payment->order_id)->with([
+
+            return redirect()->route('order_success', $payment->order->uuid)->with([
                 'flash.banner' => __('messages.paymentDoneSuccessfully'),
                 'flash.bannerStyle' => 'success',
             ]);

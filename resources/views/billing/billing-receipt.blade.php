@@ -235,7 +235,32 @@
         <tbody>
             <!-- Table Row Start -->
             <tr>
-                <td style="vertical-align: top;"><img src="{{ global_setting()->logo_url }}" id="logo" />
+                <td style="vertical-align: top;">
+                    @php
+                        $logoUrl = global_setting()->logo_url;
+                        $logoBase64 = null;
+                        if ($logoUrl) {
+                            try {
+                                // If the URL is relative, prepend the app URL
+                                if (!preg_match('/^https?:\/\//', $logoUrl)) {
+                                    $logoUrl = url($logoUrl);
+                                }
+                                $logoImageContents = @file_get_contents($logoUrl);
+                                if ($logoImageContents !== false) {
+                                    $imageInfo = @getimagesizefromstring($logoImageContents);
+                                    $mimeType = $imageInfo ? $imageInfo['mime'] : 'image/png';
+                                    $logoBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($logoImageContents);
+                                }
+                            } catch (\Exception $e) {
+                                $logoBase64 = null;
+                            }
+                        }
+                    @endphp
+                    @if ($logoBase64)
+                        <img src="{{ $logoBase64 }}" id="logo" />
+                    @else
+                        <img src="{{ global_setting()->logo_url }}" id="logo" />
+                    @endif
                     <p class="line-height mb-0 f-11 text-black">
                         {{ global_setting()->name }}
                     </p>

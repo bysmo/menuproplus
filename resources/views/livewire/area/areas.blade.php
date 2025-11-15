@@ -39,11 +39,11 @@
 
                             @forelse ($areas as $item)
                             <tr class="hover:bg-gray-100 dark:hover:bg-gray-700" wire:key='menu-item-{{ $item->id . microtime() }}' wire:loading.class.delay='opacity-10'>
-                                
+
                                 <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
                                     {{ $item->area_name }}
                                 </td>
-                               
+
                                 <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">{{
                                     $item->tables_count }}</td>
 
@@ -66,7 +66,7 @@
 
                                     @if(user_can('Delete Area'))
                                     <x-danger-button-table  wire:click="showDeleteArea({{ $item->id }})">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" 
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
                                             xmlns="http://www.w3.org/2000/svg">
                                             <path fill-rule="evenodd"
                                                 d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -79,8 +79,9 @@
                             </tr>
                             @empty
                             <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                                <td class="py-2.5 px-4 space-x-6" colspan="3">
-                                    @lang('messages.noAreaAdded')
+                                <td class="py-8 px-4 text-center text-gray-900 dark:text-gray-400" colspan="3">
+                                    <svg class="mx-auto h-8 w-8" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12v2H6zm0 4h12v2H6zm12 4H6v2h12z" fill="currentColor"/></svg>
+                                    <p class="mt-2 text-base font-medium">@lang('messages.noAreaAdded')</p>
                                 </td>
                             </tr>
                             @endforelse

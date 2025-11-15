@@ -211,6 +211,10 @@
             <span class="text-red-500 text-sm">{{ $message }}</span>
             @enderror
 
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                @lang('modules.expenses.receiptUploadHelp')
+            </p>
+
             <!-- Preview -->
             <div class="mt-3" x-show="showPreview">
             <p class="text-sm text-gray-500">@lang('modules.expenses.receiptPreview')</p>
@@ -220,7 +224,7 @@
         </div>
 
 
-        <div class="flex w-full pb-4 space-x-4 mt-6">
+        <div class="flex w-full pb-4 space-x-4 mt-6 rtl:space-x-reverse">
             <x-button>@lang('app.save')</x-button>
             <x-button-cancel wire:click="$dispatch('hideAddExpenses')">@lang('app.cancel')</x-button-cancel>
         </div>

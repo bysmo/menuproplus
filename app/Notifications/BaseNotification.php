@@ -4,7 +4,6 @@ namespace App\Notifications;
 
 use App\Models\EmailSetting;
 use App\Models\GlobalSetting;
-use App\Models\Restaurant;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

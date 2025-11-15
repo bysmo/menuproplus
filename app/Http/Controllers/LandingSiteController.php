@@ -21,7 +21,7 @@ class LandingSiteController extends Controller
 
     public function showMenu()
     {
-        $customMenu = CustomMenu::all();
+        $customMenu = CustomMenu::orderBy('sort_order')->get();
         $footerSetting = FooterSetting::where('language_id', request()->get('language_id'))->first();
         return view('layouts.landing', compact('customMenu', 'footerSetting'));
     }

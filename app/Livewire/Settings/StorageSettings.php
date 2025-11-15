@@ -147,7 +147,7 @@ class StorageSettings extends Component
             'wasabiAccessKey' => 'required_if:storage,wasabi',
             'wasabiSecretKey' => 'required_if:storage,wasabi',
             'wasabiBucket' => 'required_if:storage,wasabi',
-            'wasabiRegion' => 'required_if:storage,wasabi   ',
+            'wasabiRegion' => 'required_if:storage,wasabi',
             'awsAccessKey' => 'required_if:storage,aws_s3',
             'awsSecretKey' => 'required_if:storage,aws_s3',
             'awsBucket' => 'required_if:storage,aws_s3',

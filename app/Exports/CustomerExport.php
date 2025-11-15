@@ -21,11 +21,11 @@ class CustomerExport implements WithMapping, FromCollection, WithHeadings, WithS
     public function headings(): array
     {
         return [
-            'User',
-            'Phone',
-            'Email',
-            'Total Orders',
-            'Total Amount Received',
+            __('modules.customer.name'),
+            __('modules.customer.phone'),
+            __('modules.customer.email'),
+            __('modules.order.totalOrder'),
+            __('modules.customer.totalAmountReceived'),
         ];
     }
 
@@ -36,7 +36,7 @@ class CustomerExport implements WithMapping, FromCollection, WithHeadings, WithS
             $customer->phone,
             $customer->email,
             $customer->orders->count(),
-            $customer->orders->sum('total'),
+            currency_format($customer->orders->sum('total'), restaurant()->currency_id),
         ];
     }
 

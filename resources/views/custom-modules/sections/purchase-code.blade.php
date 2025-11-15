@@ -1,7 +1,7 @@
 @if ($fetchSetting->purchase_code)
 
     <div class="flex items-center gap-2">
-        <code class="blur-sm purchase-code text-sm bg-gray-100 px-1 py-1 rounded"  onclick="copyPurchaseCode(this)" data-code="{{$fetchSetting->purchase_code}}">{{ $fetchSetting->purchase_code }} </code>
+        <code class="blur-sm purchase-code text-sm bg-gray-100 px-1 py-1 rounded text-[11px]"  onclick="copyPurchaseCode(this)" data-code="{{$fetchSetting->purchase_code}}">{{ $fetchSetting->purchase_code }} </code>
 
         <button type="button" class="text-gray-500 hover:text-gray-700 rounded-lg show-hide-purchase-code-{{ strtolower($module) }} group relative">
             <svg class="icon hidden w-4 h-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -13,12 +13,11 @@
                 <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
             </svg>
             <!-- Tooltip -->
-            <div class="pointer-events-none hidden group-hover:block absolute z-50 w-48 px- py-1
-                      bottom-full left-1/2 -translate-x-1/2 mb-2
+            <div class="pointer-events-none hidden group-hover:block absolute z-[9999] w-48 px-2 py-1
+                      bottom-full right-full mr-2
                       text-sm text-white bg-gray-900 rounded
-                      before:content-[''] before:absolute before:left-1/2 before:-translate-x-1/2
-                      before:top-full before:border-4 before:border-transparent
-                      before:border-t-gray-900">
+                      before:content-[''] before:absolute before:right-0 before:top-1/2 before:-translate-y-1/2
+                      before:border-4 before:border-transparent before:border-l-gray-900">
                 {{ __('messages.showHidePurchaseCode') }}
             </div>
         </button>
@@ -31,12 +30,11 @@
             width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
 
             <!-- Tooltip -->
-            <div class="pointer-events-none hidden group-hover:block absolute z-50 w-48  py-1
-                      bottom-full left-1/2 -translate-x-1/2 mb-2
+            <div class="pointer-events-none hidden group-hover:block absolute z-[9999] w-48 px-2 py-1
+                      bottom-full right-full mr-2
                       text-sm text-white bg-gray-900 rounded
-                      before:content-[''] before:absolute before:left-1/2 before:-translate-x-1/2
-                      before:top-full before:border-4 before:border-transparent
-                      before:border-t-gray-900">
+                      before:content-[''] before:absolute before:right-0 before:top-1/2 before:-translate-y-1/2
+                      before:border-4 before:border-transparent before:border-l-gray-900">
                 {{ __('messages.changePurchaseCode') }}
             </div>
         </button>

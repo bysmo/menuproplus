@@ -15,6 +15,7 @@ return [
 
     'name' => env('APP_NAME', 'TableTrack'),
     'main_application_subdomain' => env('MAIN_APPLICATION_SUBDOMAIN'),
+    'main_domain_name' => env('MAIN_DOMAIN_NAME', null),
     'short_domain_name' => env('SHORT_DOMAIN_NAME', false),
     'redirect_https' => env('REDIRECT_HTTPS', false),
 

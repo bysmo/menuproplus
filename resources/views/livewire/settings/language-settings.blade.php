@@ -76,7 +76,7 @@
                                         </td>
                                     @else
                                         <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white ltr:text-left rtl:text-right text-sm">
-                                            @lang('modules.language.defaultLanguage')
+                                            -
                                         </td>
                                     @endif
                                     @if ($item->language_code != global_setting()->locale)
@@ -109,7 +109,32 @@
                                     </td>
                                     @else
                                     <td class="py-2.5 px-4 space-x-2 whitespace-nowrap ltr:text-left rtl:text-right text-sm">
-                                        @lang('modules.language.defaultLanguage')
+                                        <div class="relative inline-block group">
+                                            <span
+                                                class="underline decoration-dotted text-gray-900 dark:text-white cursor-pointer"
+                                                tabindex="0"
+                                            >
+                                                @lang('modules.language.defaultLanguage')
+                                            </span>
+                                            <div
+                                                class="absolute left-1/2 -translate-x-1/2 mt-2 w-80 p-4 text-xs text-gray-700 bg-white border border-gray-200 rounded shadow-lg z-20 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 hidden group-hover:block group-focus-within:block"
+                                                style="min-width: 250px; white-space: normal;"
+                                            >
+                                                <div class="mb-1">@lang('modules.language.modifyDefaultLanguage')
+
+                                                    <a href='{{ route('superadmin.superadmin-settings.index') }}'
+                                                          wire:navigate class="text-blue-600 hover:underline dark:text-blue-400"
+                                                     target="_blank"
+                                                      tabindex="0">@lang('modules.settings.appSettings')
+                                                    </a>
+
+                                                . @lang('modules.language.currentLanguageDefault')
+                                                </div>
+
+
+
+                                            </div>
+                                        </div>
                                     </td>
                                     @endif
                                 </tr>
@@ -173,7 +198,9 @@
          </x-slot>
     </x-confirmation-modal>
 
-    @push('scripts')
-    @includeIf('languagepack::script')
-    @endpush
+
 </div>
+
+@push('scripts')
+    @includeIf('languagepack::script')
+@endpush

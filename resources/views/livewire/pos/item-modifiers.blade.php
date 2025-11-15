@@ -2,11 +2,13 @@
     <div class="flex flex-col">
         <!-- Item Header -->
         <div class="flex gap-4 mb-4">
-            <img class="w-16 h-16 rounded-md object-cover" src="{{ $selectedModifierItem->item_photo_url }}" alt="{{ $selectedModifierItem->item_name }}">
+            @if (restaurant() && !restaurant()->hide_menu_item_image_on_customer_site)
+                <img class="w-16 h-16 rounded-md object-cover" src="{{ $selectedModifierItem->item_photo_url }}" alt="{{ $selectedModifierItem->item_name }}">
+            @endif
             <div class="text-sm font-normal text-gray-500 dark:text-gray-400 space-y-1">
                 <div class="text-base font-semibold text-gray-900 dark:text-white inline-flex items-center">
                     <img src="{{ asset('img/'.$selectedModifierItem->type.'.svg') }}" class="h-4 mr-2"
-                         title="@lang('modules.menu.' . $selectedModifierItem->type)" alt="" />
+                        title="@lang('modules.menu.' . $selectedModifierItem->type)" alt="" />
                     {{ $selectedModifierItem->item_name }}
                     @if ($selectedVariationName) <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ms-1">({{ $selectedVariationName }})</span> @endif
                 </div>

@@ -11,7 +11,7 @@ class ReservationController extends Controller
     {
         abort_if(!in_array('Reservation', restaurant_modules()), 403);
         abort_if((!user_can('Show Reservation')), 403);
+
         return view('reservations.index');
     }
-
 }

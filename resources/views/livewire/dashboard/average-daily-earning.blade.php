@@ -19,7 +19,7 @@
                             </path>
                             @endif
                     </svg>
-                    {{ round($percentChange, 2) }}%
+                    {{ round($percentChange, 2), restaurant()->currency_id }}%
             </span>
             @lang('modules.dashboard.sincePreviousMonth')
         </p>

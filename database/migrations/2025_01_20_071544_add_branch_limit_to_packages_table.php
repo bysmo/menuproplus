@@ -13,7 +13,7 @@ return new class extends Migration
     {
         if (!Schema::hasColumn('packages', 'branch_limit')) {
             Schema::table('packages', function (Blueprint $table) {
-            $table->integer('branch_limit')->nullable()->after('additional_features');
+                $table->integer('branch_limit')->nullable()->after('additional_features')->default(-1);
             });
         }
     }

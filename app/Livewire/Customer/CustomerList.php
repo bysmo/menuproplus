@@ -43,23 +43,43 @@ class CustomerList extends Component
         $this->showAddCustomer = false;
     }
 
+    public function closeImportCustomer()
+    {
+        $this->reset(['file', 'showImportCustomer']);
+    }
+
+    public function refreshCustomerList()
+    {
+        $this->dispatch('refreshCustomers');
+    }
+
     public function importCustomerList()
     {
-
         $this->validate([
             'file' => 'required|mimes:xlsx,csv|max:10240',
         ]);
 
         $filePath = $this->file->store('customer-imports');
         Bus::dispatch(new ImportCustomerDataJob($filePath, restaurant()->id));
-          $this->alert('success', __('messages.customerAdded'), [
+
+        $this->alert('success', __('messages.customerImportStarted'), [
             'toast' => true,
             'position' => 'top-end',
             'showCancelButton' => false,
             'cancelButtonText' => __('app.close')
-             ]);
+        ]);
 
-             $this->redirect(route('customers.index'), navigate: true);
+        // Reset component state
+        $this->reset(['file', 'showImportCustomer']);
+
+        // Dispatch refresh event to update the customer table
+        $this->dispatch('refreshCustomers');
+
+        // Reset file input in the view
+        $this->dispatch('reset-file-input');
+
+        // Force re-render of the component
+        $this->render();
     }
 
     public function render()

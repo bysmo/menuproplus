@@ -16,7 +16,7 @@ use App\Models\StripePayment;
 use App\Models\RestaurantPayment;
 use App\Models\GlobalSubscription;
 use App\Events\SendNewOrderReceived;
-use App\Notifications\SendOrderBill;
+use App\Events\SendOrderBillEvent;
 use App\Models\SuperadminPaymentGateway;
 use App\Notifications\RestaurantUpdatedPlan;
 use Illuminate\Support\Facades\Notification;
@@ -32,20 +32,20 @@ class StripeController extends Controller
         $stripe = new \Stripe\StripeClient($paymentGateway->stripe_secret);
 
         $checkoutSession = $stripe->checkout->sessions->create([
-          'line_items' => [[
-            'price_data' => [
-              'currency' => $milestonePayment->order->branch->restaurant->currency->currency_code,
-              'product_data' => [
-                'name' => 'Order #' .$milestonePayment->order->order_number,
-              ],
-              'unit_amount' => floatval($milestonePayment->amount) * 100,
-            ],
-            'quantity' => 1,
-          ]],
-          'mode' => 'payment',
-          'success_url' => route('stripe.success').'?session_id={CHECKOUT_SESSION_ID}',
-          'cancel_url' => module_enabled('Subdomain') ? url('/') : route('shop_restaurant', ['hash' => $milestonePayment->order->branch->restaurant->hash]),
-          'client_reference_id' => $milestonePayment->id
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => $milestonePayment->order->branch->restaurant->currency->currency_code,
+                    'product_data' => [
+                        'name' => $milestonePayment->order->show_formatted_order_number,
+                    ],
+                    'unit_amount' => floatval($milestonePayment->amount) * 100,
+                ],
+                'quantity' => 1,
+            ]],
+            'mode' => 'payment',
+            'success_url' => route('stripe.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => module_enabled('Subdomain') ? url('/') : route('shop_restaurant', ['hash' => $milestonePayment->order->branch->restaurant->hash]),
+            'client_reference_id' => $milestonePayment->id
         ]);
 
         $milestonePayment->stripe_session_id = $checkoutSession->id;
@@ -91,13 +91,11 @@ class StripeController extends Controller
 
             $this->sendNotifications($order);
 
-            return redirect()->route('order_success', $payment->order_id);
-
+            return redirect()->route('order_success', $payment->order->uuid);
         } catch (Error $e) {
             http_response_code(500);
             logger(json_encode(['error' => $e->getMessage()]));
         }
-
     }
 
     public function licensePayment(Request $request)
@@ -218,6 +216,8 @@ class StripeController extends Controller
             $restaurant->status = 'active';
             $restaurant->license_expire_on = null;
             $restaurant->save();
+            // Ensure feature/module cache reflects new plan immediately
+            clearRestaurantModulesCache($restaurant->id);
 
             GlobalSubscription::where('restaurant_id', $restaurant->id)
                 ->where('subscription_status', 'active')
@@ -256,7 +256,7 @@ class StripeController extends Controller
                     ]
                 );
 
-                 if (!$invoice->pay_date) {
+                if (!$invoice->pay_date) {
                     $invoice->pay_date = now();
                 }
                 $nextPayDate = $subscription->package_type === 'monthly'
@@ -298,8 +298,7 @@ class StripeController extends Controller
         SendNewOrderReceived::dispatch($order);
 
         if ($order->customer_id) {
-            $order->customer->notify(new SendOrderBill($order));
+            SendOrderBillEvent::dispatch($order);
         }
     }
-
 }

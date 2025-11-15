@@ -37,10 +37,19 @@ class EditFrontFeature extends Component
         $titleKey = strtolower($this->frontDetail->title ?? '');
 
         if (!empty($this->frontDetail->image)) {
-            $this->existingImageUrl = $this->frontDetail->image_url;
+            $this->existingImageUrl = $this->frontDetail->image_url ?? null;
         } else {
-            $this->existingImageUrl = $defaults[$titleKey];
+            $this->existingImageUrl = $defaults[$titleKey] ?? null;
         }
+
+        // Dispatch event to initialize Trix editor with existing content
+        $this->dispatch('description-updated', $this->featureDescription);
+    }
+
+    public function updatedFeatureDescription()
+    {
+        // Dispatch event when description is updated to sync with Trix editor
+        $this->dispatch('description-updated', $this->featureDescription);
     }
 
     public function editFrontFeature()
@@ -58,12 +67,12 @@ class EditFrontFeature extends Component
 
         if ($this->featureImage) {
             $this->frontDetail->update([
-                'image' => Files::uploadLocalOrS3($this->featureImage, 'front_feature', width: 350),
+                'image' => Files::uploadLocalOrS3($this->featureImage, 'front_feature', width: 800),
             ]);
         }
         $this->showEditFrontFeatureModal = false;
 
-         $this->alert('success', __('messages.settingsUpdated'), [
+        $this->alert('success', __('messages.settingsUpdated'), [
             'toast' => true,
             'position' => 'top-end',
             'showCancelButton' => false,
@@ -75,6 +84,4 @@ class EditFrontFeature extends Component
     {
         return view('livewire.landing-site.edit-front-feature');
     }
-
-
 }

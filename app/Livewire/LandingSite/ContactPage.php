@@ -12,7 +12,7 @@ use Jantinnerezo\LivewireAlert\LivewireAlert;
 
 class ContactPage extends Component
 {
-    use LivewireAlert,WithFileUploads;
+    use LivewireAlert, WithFileUploads;
 
     public $languageSettingid;
     public $email;
@@ -22,25 +22,39 @@ class ContactPage extends Component
     public $contactCompany;
     public $contactImage;
     public $existingImageUrl;
+    public $tempImageUrl;
 
     public function mount()
     {
-
         if (!$this->languageSettingid) {
-            $defaultLanguage = LanguageSetting::where('active', 1)->first();
-            $this->languageSettingid = $defaultLanguage ? $defaultLanguage->id : null;
+            $userLocale = auth()->user()?->locale;
+
+            if ($userLocale) {
+                $userLanguage = LanguageSetting::where('language_code', $userLocale)
+                    ->where('active', 1)
+                    ->first();
+
+                if ($userLanguage) {
+                    $this->languageSettingid = $userLanguage->id;
+                }
+            }
 
             if (!$this->languageSettingid) {
-                $this->alert('error', __('messages.languageNotFound'), [
-                    'toast' => true,
-                    'position' => 'top-end',
-                    'showCancelButton' => false,
-                    'cancelButtonText' => __('app.close')
-                ]);
+                $defaultLanguage = LanguageSetting::where('active', 1)->first();
+                $this->languageSettingid = $defaultLanguage ? $defaultLanguage->id : null;
+
+                if (!$this->languageSettingid) {
+                    $this->alert('error', __('messages.languageNotFound'), [
+                        'toast' => true,
+                        'position' => 'top-end',
+                        'showCancelButton' => false,
+                        'cancelButtonText' => __('app.close')
+                    ]);
+                }
             }
+
             $this->loadLanguageContents();
         }
-
     }
 
     public function loadLanguageContents()
@@ -51,7 +65,7 @@ class ContactPage extends Component
         $this->email = $contacts ? $contacts->email : '';
         $this->address = $contacts ? $contacts->address : '';
         $this->contactCompany = $contacts ? $contacts->contact_company : '';
-        $this->existingImageUrl = $contacts->image_url;
+        $this->existingImageUrl = $contacts ? $contacts->image_url : null;
     }
 
     public function saveContact()
@@ -62,21 +76,21 @@ class ContactPage extends Component
             'contactCompany' => 'required',
             'contactImage' => $this->existingImageUrl ? '' : 'required|image|mimes:jpeg,png,jpg|max:2048'
         ]);
-            $contact = Contact::updateOrCreate(
-                ['language_setting_id' => $this->languageSettingid],
-                [
+        $contact = Contact::updateOrCreate(
+            ['language_setting_id' => $this->languageSettingid],
+            [
                 'email' => $this->email,
                 'contact_company' => $this->contactCompany,
                 'address' => $this->address,
-                ]
-            );
+            ]
+        );
 
-            if ($this->contactImage) {
-                $imageName = Files::uploadLocalOrS3($this->contactImage, 'contact_image', width: 350);
-                $contact->update([
+        if ($this->contactImage) {
+            $imageName = Files::uploadLocalOrS3($this->contactImage, 'contact_image', width: 350);
+            $contact->update([
                 'image' => $imageName,
-                ]);
-            }
+            ]);
+        }
         $this->alert('success', __('messages.contactSetting'), [
             'toast' => true,
             'position' => 'top-end',
@@ -88,6 +102,17 @@ class ContactPage extends Component
     public function updatedLanguageSettingid()
     {
         $this->loadLanguageContents();
+    }
+
+    public function updatedContactImage()
+    {
+        $this->validate([
+            'contactImage' => 'image|mimes:jpeg,png,jpg|max:2048'
+        ]);
+
+        if ($this->contactImage) {
+            $this->tempImageUrl = $this->contactImage->temporaryUrl();
+        }
     }
 
     public function saveContactHeading()
@@ -117,5 +142,4 @@ class ContactPage extends Component
             'languageEnable' => $languageEnable,
         ]);
     }
-
 }

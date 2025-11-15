@@ -23,8 +23,10 @@
                             @lang('app.export')
                         </a>
 
-                        @if(user_can('Create Staff Member'))
-                        <x-button type='button' wire:click="$set('showAddMember', true)" >@lang('modules.staff.addStaff')</x-button>
+                        @php $stats = getRestaurantStaffStats(user()->restaurant_id); @endphp
+
+                        @if(user_can('Create Staff Member') && ($stats['unlimited'] || $stats['current_count'] < $stats['staff_limit']))
+                            <x-button type='button' wire:click="$set('showAddMember', true)" >@lang('modules.staff.addStaff')</x-button>
                         @endif
 
                     </div>

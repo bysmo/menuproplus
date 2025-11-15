@@ -26,9 +26,13 @@ class HeaderPage extends Component
     {
         $this->loadLanguageContents();
 
-        if (!$this->languageSettingid) {
-            $defaultLanguage = LanguageSetting::where('active', 1)->first();
-            $this->languageSettingid = $defaultLanguage?->id;
+        $userLocale = auth()->user()?->locale;
+
+        if ($userLocale) {
+            $language = LanguageSetting::where('language_code', $userLocale)->where('active', 1)->first();
+            if ($language) {
+                $this->languageSettingid = $language->id;
+            }
         }
 
         $this->loadSelectedLanguageContent();
@@ -57,7 +61,7 @@ class HeaderPage extends Component
         if ($frontDetail) {
             $this->headerTitle = $frontDetail->header_title ?? '';
             $this->headerDescription = $frontDetail->header_description ?? '';
-            $this->existingImageUrl =  $frontDetail->image_url;
+            $this->existingImageUrl = $frontDetail->image_url ?? null;
         } else {
             $this->headerTitle = '';
             $this->headerDescription = '';
@@ -87,12 +91,12 @@ class HeaderPage extends Component
         if ($this->headerImage) {
             $imageName = Files::uploadLocalOrS3($this->headerImage, 'header');
             $frontDetail->update([
-            'image' => $imageName,
+                'image' => $imageName,
             ]);
             $this->headerImage = null;
         }
 
-        $this->existingImageUrl = $frontDetail->image_url;
+        $this->existingImageUrl = $frontDetail ? $frontDetail->image_url : null;
 
         $this->alert('success', __('messages.settingsUpdated'), [
             'toast' => true,
@@ -128,5 +132,4 @@ class HeaderPage extends Component
             'languageEnable' => $languageEnable
         ]);
     }
-
 }

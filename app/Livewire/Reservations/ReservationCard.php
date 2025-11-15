@@ -23,6 +23,12 @@ class ReservationCard extends Component
         $this->showTableModal = true;
     }
 
+    public function changeTable($reservationId)
+    {
+        $this->tableReservation = Reservation::find($reservationId);
+        $this->showTableModal = true;
+    }
+
     public function updatedReservationStatus($status)
     {
         $this->reservation->update(['reservation_status' => $status]);

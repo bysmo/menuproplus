@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms;
 
 use Livewire\Component;
+use App\Models\OrderType;
 use App\Models\RestaurantCharge;
 
 class AddCharges extends Component
@@ -18,27 +19,22 @@ class AddCharges extends Component
 
     public function mount()
     {
-        $this->orderTypes = [
-            'dine_in' => __('modules.order.dine_in'),
-            'pickup' => __('modules.order.pickup'),
-            'delivery' => __('modules.order.delivery'),
-        ];
+        // Get order types as [slug => order_type_name]
+        $this->orderTypes = OrderType::pluck('order_type_name', 'slug')->toArray();
 
         if ($this->selectedChargeId) {
             $charge = RestaurantCharge::find($this->selectedChargeId);
             $this->chargeName = $charge->charge_name;
             $this->chargeType = $charge->charge_type;
             $this->chargeValue = $charge->charge_value;
-            $this->selectedOrderTypes = array_unique($charge->order_types ?? []);
+            $this->selectedOrderTypes = array_unique($charge->order_types ?? []); // already slugs if migrated
             $this->isEnabled = $charge->is_enabled;
         }
     }
 
     public function toggleSelectOrderType($orderType)
     {
-        $this->selectedOrderTypes = in_array($orderType, $this->selectedOrderTypes)
-            ? array_values(array_diff($this->selectedOrderTypes, [$orderType]))
-            : array_unique([...$this->selectedOrderTypes, $orderType]);
+        $this->selectedOrderTypes = in_array($orderType, $this->selectedOrderTypes) ? array_values(array_diff($this->selectedOrderTypes, [$orderType])) : array_unique([...$this->selectedOrderTypes, $orderType]);
     }
 
     public function submitForm()
@@ -50,6 +46,10 @@ class AddCharges extends Component
             'isEnabled' => 'boolean',
         ]);
 
+        // Ensure only valid slugs are saved
+        $validSlugs = array_keys($this->orderTypes);
+        $selectedSlugs = array_values(array_unique(array_intersect($this->selectedOrderTypes, $validSlugs)));
+
         $charge = RestaurantCharge::updateOrCreate(
             ['id' => $this->selectedChargeId],
             [
@@ -57,7 +57,7 @@ class AddCharges extends Component
                 'charge_type' => $this->chargeType,
                 'charge_value' => $this->chargeValue,
                 'is_enabled' => $this->isEnabled,
-                'order_types' => array_values(array_unique($this->selectedOrderTypes)),
+                'order_types' => $selectedSlugs,
             ]
         );
 
@@ -68,4 +68,5 @@ class AddCharges extends Component
     {
         return view('livewire.forms.add-charges');
     }
+    
 }

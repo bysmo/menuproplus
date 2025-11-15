@@ -16,11 +16,13 @@ use App\Models\Customer;
 use App\Models\MenuItem;
 use App\Models\OrderTax;
 use App\Models\OrderItem;
+use App\Models\OrderType;
 use App\Models\OrderCharge;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Livewire\Attributes\On;
 use App\Models\ItemCategory;
+use App\Models\PaypalPayment;
 use App\Models\StripePayment;
 use App\Models\ModifierOption;
 use App\Events\NewOrderCreated;
@@ -29,17 +31,26 @@ use Illuminate\Validation\Rule;
 use App\Models\RestaurantCharge;
 use App\Models\MenuItemVariation;
 use App\Models\FlutterwavePayment;
+use App\Models\AdminPayfastPayment;
+use Illuminate\Support\Facades\Log;
 use App\Events\SendNewOrderReceived;
+use App\Models\AdminPaystackPayment;
+use App\Models\XenditPayment;
 use App\Notifications\SendOrderBill;
 use Illuminate\Support\Facades\Http;
 use App\Scopes\AvailableMenuItemScope;
 use App\Models\PaymentGatewayCredential;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use App\Events\OrderUpdated;
+use App\Traits\PrinterSetting;
+use App\Models\KotPlace;
+use App\Models\Printer;
 
 class Cart extends Component
 {
 
     use LivewireAlert;
+    use PrinterSetting;
 
     public $search;
     public $tableID;
@@ -76,6 +87,10 @@ class Cart extends Component
     public $restaurant;
     public $shopBranch;
     public $orderType;
+    public $orderTypeId; // Add orderTypeId for pricing context
+    public $orderTypeSlug; // Add orderTypeSlug
+    public $showOrderTypeModal = false; // Modal for order type selection
+    public $cameFromQR = false; // Track if user came from QR code
     public $payNow = false;
     public $offline_payment_status;
     public $menuId;
@@ -107,6 +122,24 @@ class Cart extends Component
     public $maxPreparationTime;
     public $etaMin;
     public $etaMax;
+    public $itemNotes = [];
+    public $orderItemTaxDetails = [];
+    public $totalTaxAmount = 0;
+    public $taxMode;
+    public $showPickupDateTimeModal = false;
+    public $pickupRange;
+    public $now;
+    public $minDate;
+    public $maxDate;
+    public $defaultDate;
+    public $deliveryDateTime;
+    public $showHalal;
+    public $headerType = 'text';
+    public $headerText;
+    public $headerImages = [];
+    public $isHeaderDisabled = false;
+    public $showLocationModal = false;
+    public $is_within_radius = true; // Flag for location radius check
 
     public function mount()
     {
@@ -129,14 +162,38 @@ class Cart extends Component
             abort(404);
         }
 
+        // Detect if user came from QR code
+        $this->cameFromQR = request()->query('hash') === $this->restaurant->hash ||
+                           request()->boolean('from_qr') ||
+                           !is_null($this->tableID);
         $this->paymentGateway = PaymentGatewayCredential::withoutGlobalScopes()->where('restaurant_id', $this->restaurant->id)->first();
         $this->taxes = Tax::withoutGlobalScopes()->where('restaurant_id', $this->restaurant->id)->get();
         $this->customer = customer();
-        $this->orderNumber = Order::generateOrderNumber($this->shopBranch);
+        $this->razorpayStatus = (bool)($this->paymentGateway->razorpay_status ?? false);
+        $this->stripeStatus = (bool)($this->paymentGateway->stripe_status ?? false);
 
-        $this->razorpayStatus = (bool)$this->paymentGateway->razorpay_status;
-        $this->stripeStatus = (bool)$this->paymentGateway->stripe_status;
-        $this->orderType = $this->restaurant->allow_dine_in_orders ? 'dine_in' : ($this->restaurant->allow_customer_delivery_orders ? 'delivery' : 'pickup');
+        // If came from QR code, auto-set to dine_in and don't show modal
+        if ($this->cameFromQR) {
+            $this->orderType = 'dine_in';
+            $this->setDefaultOrderType();
+            $this->showOrderTypeModal = false;
+        } else {
+            // For regular users, determine default order type but show modal first
+            $this->orderType = $this->restaurant->allow_dine_in_orders ? 'dine_in' : ($this->restaurant->allow_customer_delivery_orders ? 'delivery' : 'pickup');
+
+            // Check if we have multiple order types to show modal
+            $availableOrderTypes = OrderType::where('branch_id', $this->shopBranch->id)
+                ->where('is_active', true)
+                ->count();
+
+            // Show modal if more than one order type available
+            $this->showOrderTypeModal = $availableOrderTypes > 1;
+
+            // If only one order type, set it automatically
+            if ($availableOrderTypes == 1) {
+                $this->setDefaultOrderType();
+            }
+        }
 
         if (request()->has('current_order')) {
             $this->orderID = request()->get('current_order');
@@ -148,7 +205,301 @@ class Cart extends Component
 
         // Fetch QR code image from database
         $this->qrCodeImage = $this->restaurant->qr_code_image;
-        $this->UpdatedOrderType($this->orderType);
+
+        // Only call these if order type is already selected
+        if (!$this->showOrderTypeModal) {
+            $this->updatedOrderType($this->orderType);
+        }
+        $this->taxMode = $this->restaurant->tax_mode ?? 'order';
+
+        $this->pickupRange = restaurant()->pickup_days_range ?? 1;
+        $this->minDate = now()->format('Y-m-d\TH:i');
+        $this->maxDate = now()->addDays($this->pickupRange - 1)->endOfDay()->format('Y-m-d\TH:i');
+        $this->defaultDate = old('deliveryDateTime', $this->deliveryDateTime ?? $this->minDate);
+
+        $this->taxMode = $this->order?->tax_mode ?? ($this->restaurant->tax_mode ?? 'order');
+
+        // Initialize header settings
+        $this->initializeHeaderSettings();
+
+        // Handle location for QR orders only
+        if ($this->cameFromQR) {
+            // Check session first for stored location
+            $sessionLocation = session('customer_location');
+
+            if ($sessionLocation && !empty($sessionLocation['lat']) && !empty($sessionLocation['lng'])) {
+                // Load location from session
+                $this->addressLat = $sessionLocation['lat'];
+                $this->addressLng = $sessionLocation['lng'];
+                if (!empty($sessionLocation['address'])) {
+                    $this->deliveryAddress = $sessionLocation['address'];
+                }
+
+                // Re-validate radius if needed
+                if (!empty($this->restaurant->qr_order_radius_meters)) {
+                    $this->checkRadiusRestriction();
+                }
+            } else {
+                // Show location modal only if came from QR and no session location
+                if (empty($this->addressLat) || empty($this->addressLng)) {
+                    $this->showLocationModal = true;
+                }
+            }
+        }
+    }
+
+    /**
+     * Set default order type and ID
+     */
+    private function setDefaultOrderType()
+    {
+        // Get default order type for the current order type
+        $orderTypeModel = OrderType::where('branch_id', $this->shopBranch->id)
+            ->where('is_active', true)
+            ->first();
+
+        if ($orderTypeModel) {
+            $this->orderTypeId = $orderTypeModel->id;
+            $this->orderTypeSlug = $orderTypeModel->slug;
+        }
+    }
+
+    public function requestCustomerLocation()
+    {
+        $this->dispatch('requestGeolocation');
+    }
+    /**
+     * Haversine formula to calculate distance between two points (meters)
+     */
+    private function calculateDistance($lat1, $lng1, $lat2, $lng2)
+    {
+        $earthRadius = 6371000; // meters
+        $lat1 = deg2rad($lat1);
+        $lng1 = deg2rad($lng1);
+        $lat2 = deg2rad($lat2);
+        $lng2 = deg2rad($lng2);
+        $latDiff = $lat2 - $lat1;
+        $lngDiff = $lng2 - $lng1;
+        $a = sin($latDiff / 2) * sin($latDiff / 2) +
+            cos($lat1) * cos($lat2) * sin($lngDiff / 2) * sin($lngDiff / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        return $earthRadius * $c;
+    }
+
+    /**
+     * Check if customer is within allowed radius for QR orders
+     * Returns true if allowed, false if restricted
+     */
+    private function checkRadiusRestriction()
+    {
+        // Only check for QR orders with radius configured
+        if (!$this->cameFromQR || empty($this->restaurant->qr_order_radius_meters)) {
+            return true; // Allow if not QR order or no radius restriction
+        }
+
+        // Check if location is set
+        if (empty($this->addressLat) || empty($this->addressLng)) {
+            return false; // Location required
+        }
+
+        // Get branch coordinates
+        $branchLat = $this->shopBranch->lat ?? $this->shopBranch->latitude ?? null;
+        $branchLng = $this->shopBranch->lng ?? $this->shopBranch->longitude ?? null;
+
+        if (empty($branchLat) || empty($branchLng)) {
+            return true; // Allow if branch coordinates missing
+        }
+
+        // Calculate distance
+        $distance = $this->calculateDistance(
+            $this->addressLat, $this->addressLng,
+            $branchLat, $branchLng
+        );
+
+        // Update the flag
+        $this->is_within_radius = $distance <= $this->restaurant->qr_order_radius_meters;
+
+        return $this->is_within_radius;
+    }
+
+    public function setCustomerLocation($lat = null, $lng = null, $address = null)
+    {
+        if (is_null($lat) || is_null($lng)) {
+            return;
+        }
+
+        $this->addressLat = $lat;
+        $this->addressLng = $lng;
+        if ($address) {
+            $this->deliveryAddress = $address;
+        }
+
+        // Store location in session for current customer/order
+        session([
+            'customer_location' => [
+                'lat' => $lat,
+                'lng' => $lng,
+                'address' => $address,
+                'stored_at' => now()->toDateTimeString(),
+            ]
+        ]);
+
+        $this->showLocationModal = false;
+
+        // QR order radius enforcement
+        if ($this->cameFromQR && !empty($this->restaurant->qr_order_radius_meters)) {
+            // Check both lat/lng and latitude/longitude column names for branch
+            $branchLat = $this->shopBranch->lat ?? $this->shopBranch->latitude ?? null;
+            $branchLng = $this->shopBranch->lng ?? $this->shopBranch->longitude ?? null;
+
+            if (!empty($branchLat) && !empty($branchLng)) {
+                $distance = $this->calculateDistance(
+                    $lat, $lng,
+                    $branchLat,
+                    $branchLng
+                );
+                $this->is_within_radius = $distance <= $this->restaurant->qr_order_radius_meters;
+
+                if (!$this->is_within_radius) {
+                    $this->alert('error', __('app.outsideAllowedArea'), [
+                        'toast' => false,
+                        'position' => 'center',
+                    ]);
+
+                    // Clear any existing cart items if outside radius
+                    $this->orderItemList = [];
+                    $this->orderItemQty = [];
+                    $this->orderItemVariation = [];
+                    $this->orderItemAmount = [];
+                    $this->cartItemQty = [];
+                    $this->orderItemModifiersPrice = [];
+                    $this->itemModifiersSelected = [];
+                    $this->itemNotes = [];
+                    $this->calculateTotal();
+                }
+            } else {
+                // If branch coordinates are missing, allow by default
+                $this->is_within_radius = true;
+            }
+        } else {
+            $this->is_within_radius = true;
+        }
+
+        // Recalculate delivery-related estimates if needed
+        $this->calculateMaxPreparationTime();
+        $this->calculateTotal();
+    }
+
+    /**
+     * Handle order type change and update pricing context
+     */
+    public function updatedOrderTypeId($value)
+    {
+        if (!$value) {
+            return;
+        }
+
+        // Get the order type information
+        $orderType = OrderType::find($value);
+
+        if (!$orderType) {
+            return;
+        }
+
+        // Update the local variables
+        $this->orderType = $orderType->type;
+        $this->orderTypeSlug = $orderType->slug;
+
+        // Get extra charges for this order type
+        $mainExtraCharges = RestaurantCharge::withoutGlobalScopes()
+            ->whereJsonContains('order_types', $this->orderTypeSlug)
+            ->where('is_enabled', true)
+            ->where('restaurant_id', $this->restaurant->id)
+            ->get();
+
+        // Update extra charges
+        if (!$this->orderID) {
+            // Only clear delivery-related fields if the order type is not delivery
+            if ($this->orderTypeSlug !== 'delivery') {
+                $this->addressLat = null;
+                $this->addressLng = null;
+                $this->deliveryAddress = null;
+                $this->deliveryFee = null;
+            }
+
+            $this->calculateMaxPreparationTime();
+            $this->extraCharges = $mainExtraCharges;
+        } else {
+            // For existing orders, keep existing charges if order type is unchanged
+            $orderTypeFromOrder = $this->order->order_type_id
+                ? (OrderType::where('id', $this->order->order_type_id)->value('slug') ?? $this->order->order_type)
+                : $this->order->order_type;
+
+            $this->extraCharges = $orderTypeFromOrder === $this->orderTypeSlug ? $this->order->extraCharges : $mainExtraCharges;
+        }
+
+        // Recalculate prices for all items in cart when order type changes
+        foreach ($this->orderItemList ?? [] as $key => $item) {
+            if ($this->orderTypeId) {
+                $item->setPriceContext($this->orderTypeId, null);
+                if (isset($this->orderItemVariation[$key])) {
+                    $this->orderItemVariation[$key]->setPriceContext($this->orderTypeId, null);
+                }
+            }
+
+            // Recalculate modifier prices
+            if (isset($this->itemModifiersSelected[$key]) && is_array($this->itemModifiersSelected[$key])) {
+                $modifierPrice = 0;
+                foreach ($this->itemModifiersSelected[$key] as $modifierId) {
+                    $modifier = ModifierOption::find($modifierId);
+                    if ($modifier) {
+                        if ($this->orderTypeId) {
+                            $modifier->setPriceContext($this->orderTypeId, null);
+                        }
+                        $modifierPrice += $modifier->price;
+                    }
+                }
+                $this->orderItemModifiersPrice[$key] = $modifierPrice;
+            }
+
+            // Recalculate item amount
+            $basePrice = isset($this->orderItemVariation[$key]) ? $this->orderItemVariation[$key]->price : $item->price;
+            $this->orderItemAmount[$key] = $this->orderItemQty[$key] * ($basePrice + ($this->orderItemModifiersPrice[$key] ?? 0));
+        }
+
+        $this->calculateTotal();
+    }
+
+    /**
+     * Handle order type selection from modal
+     */
+    public function selectOrderTypeFromModal($orderTypeId)
+    {
+        if (!$orderTypeId) {
+            return;
+        }
+
+        // Set the order type ID which will trigger updatedOrderTypeId
+        $this->orderTypeId = $orderTypeId;
+        $this->orderTypeSlug = OrderType::find($orderTypeId)->slug;
+        $this->orderType = OrderType::find($orderTypeId)->type;
+
+        // Close the modal
+        $this->showOrderTypeModal = false;
+    }
+
+    public function initializeHeaderSettings()
+    {
+        $cartHeaderSetting = $this->restaurant->cartHeaderSetting;
+        if ($cartHeaderSetting) {
+            $this->headerType = $cartHeaderSetting->header_type;
+            $this->headerText = $cartHeaderSetting->header_text;
+            $this->headerImages = $cartHeaderSetting->images;
+            $this->isHeaderDisabled = $cartHeaderSetting->is_header_disabled ?? false;
+        } else {
+            $this->headerText = __('messages.frontHeroHeading');
+            $this->isHeaderDisabled = false;
+        }
     }
 
     public function filterMenuItems($id)
@@ -163,8 +514,27 @@ class Cart extends Component
         $this->menuItem = MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->where('show_on_customer_site', true)->findOrFail($id);
     }
 
-    public function addCartItems($id, $variationCount , $modifierCount)
+    public function addCartItems($id, $variationCount, $modifierCount)
     {
+        // Check radius restriction before allowing cart operations
+        if (!$this->checkRadiusRestriction()) {
+            // Check if location is set
+            if (empty($this->addressLat) || empty($this->addressLng)) {
+                $this->showLocationModal = true;
+                $this->alert('error', __('app.locationAccessRequired'), [
+                    'toast' => false,
+                    'position' => 'center',
+                ]);
+            } else {
+                $this->alert('error', __('app.outsideAllowedAreaMeters', ['meters' => $this->restaurant->qr_order_radius_meters]), [
+                    'toast' => false,
+                    'position' => 'center',
+                    'showCancelButton' => true,
+                    'cancelButtonText' => __('app.close')
+                ]);
+            }
+            return;
+        }
 
         if (!$this->canCreateOrder) {
             $this->alert('error', __('messages.CartAddPermissionDenied'), [
@@ -173,6 +543,12 @@ class Cart extends Component
                 'showCancelButton' => true,
                 'cancelButtonText' => __('app.close')
             ]);
+            return;
+        }
+
+        // Check order limit
+        $orderStats = $this->shopBranch ? getRestaurantOrderStats($this->shopBranch->id) : null;
+        if (!$orderStats || (!$orderStats['unlimited'] && $orderStats['current_count'] >= $orderStats['order_limit'])) {
             return;
         }
 
@@ -186,6 +562,11 @@ class Cart extends Component
             $this->showModifiersModal = true;
         } else {
             $this->syncCart($id);
+        }
+
+        // Ensure itemNotes key is initialized
+        if (!isset($this->itemNotes[$id])) {
+            $this->itemNotes[$id] = '';
         }
     }
 
@@ -203,26 +584,89 @@ class Cart extends Component
 
     public function syncCart($id)
     {
+        // Check radius restriction before adding items
+        if (!$this->checkRadiusRestriction()) {
+            if (empty($this->addressLat) || empty($this->addressLng)) {
+                $this->showLocationModal = true;
+                $this->alert('error', __('app.locationAccessRequired'), [
+                    'toast' => false,
+                    'position' => 'center',
+                ]);
+            } else {
+                $this->alert('error', __('app.outsideAllowedAreaMeters', ['meters' => $this->restaurant->qr_order_radius_meters]), [
+                    'toast' => false,
+                    'position' => 'center',
+                    'showCancelButton' => true,
+                    'cancelButtonText' => __('app.close')
+                ]);
+            }
+            return;
+        }
+
         if (!isset($this->orderItemList[$id])) {
 
             $this->orderItemList[$id] = $this->menuItem;
             $this->orderItemQty[$id] = $this->orderItemQty[$id] ?? 1;
+
+            // Set price context before using price
+            if ($this->orderTypeId) {
+                if (isset($this->orderItemVariation[$id])) {
+                    $this->orderItemVariation[$id]->setPriceContext($this->orderTypeId, null);
+                }
+                if (isset($this->orderItemList[$id])) {
+                    $this->orderItemList[$id]->setPriceContext($this->orderTypeId, null);
+                }
+            }
+
             $basePrice = $this->orderItemVariation[$id]->price ?? $this->orderItemList[$id]->price;
             $this->orderItemAmount[$id] = $this->orderItemQty[$id] * ($basePrice + ($this->orderItemModifiersPrice[$id] ?? 0));
             $this->cartItemQty[$id] = isset($this->cartItemQty[$this->menuItem->id]) ? ($this->cartItemQty[$this->menuItem->id] + 1) : 1;
             $this->calculateTotal();
-
         } else {
             $this->addQty($id);
+        }
+
+        if (!isset($this->itemNotes[$id])) {
+            $this->itemNotes[$id] = '';
         }
     }
 
     #[On('addQty')]
     public function addQty($id)
     {
+        // Check radius restriction before allowing quantity increase
+        if (!$this->checkRadiusRestriction()) {
+            if (empty($this->addressLat) || empty($this->addressLng)) {
+                $this->showLocationModal = true;
+                $this->alert('error', __('app.locationAccessRequired'), [
+                    'toast' => false,
+                    'position' => 'center',
+                ]);
+            } else {
+                $this->alert('error', __('app.outsideAllowedAreaMeters', ['meters' => $this->restaurant->qr_order_radius_meters]), [
+                    'toast' => false,
+                    'position' => 'center',
+                    'showCancelButton' => true,
+                    'cancelButtonText' => __('app.close')
+                ]);
+            }
+            return;
+        }
+
         $this->showCartVariationModal = false;
         $this->orderItemQty[$id] = isset($this->orderItemQty[$id]) ? ($this->orderItemQty[$id] + 1) : 1;
         $this->cartItemQty[$id] = isset($this->cartItemQty[$id]) ? ($this->cartItemQty[$id] + 1) : 1;
+
+        // Set price context before using price
+        if ($this->orderTypeId) {
+            if (isset($this->orderItemVariation[$id])) {
+                $this->orderItemVariation[$id]->setPriceContext($this->orderTypeId, null);
+            }
+            if (isset($this->orderItemList[$id])) {
+                $this->orderItemList[$id]->setPriceContext($this->orderTypeId, null);
+            }
+        }
+
         $basePrice = $this->orderItemVariation[$id]->price ?? $this->orderItemList[$id]->price;
         $this->orderItemAmount[$id] = $this->orderItemQty[$id] * ($basePrice + ($this->orderItemModifiersPrice[$id] ?? 0));
         $this->calculateTotal();
@@ -233,6 +677,17 @@ class Cart extends Component
     {
         $this->showCartVariationModal = false;
         $this->orderItemQty[$id] = (isset($this->orderItemQty[$id]) && $this->orderItemQty[$id] > 1) ? ($this->orderItemQty[$id] - 1) : 0;
+
+        // Set price context before using price
+        if ($this->orderTypeId) {
+            if (isset($this->orderItemVariation[$id])) {
+                $this->orderItemVariation[$id]->setPriceContext($this->orderTypeId, null);
+            }
+            if (isset($this->orderItemList[$id])) {
+                $this->orderItemList[$id]->setPriceContext($this->orderTypeId, null);
+            }
+        }
+
         $basePrice = $this->orderItemVariation[$id]->price ?? $this->orderItemList[$id]->price;
         $this->orderItemAmount[$id] = $this->orderItemQty[$id] * ($basePrice + ($this->orderItemModifiersPrice[$id] ?? 0));
         $menuID = explode('_', $id);
@@ -261,77 +716,113 @@ class Cart extends Component
     {
         $this->cartQty = 0;
 
-        foreach($this->orderItemQty as $qty) {
+        foreach ($this->orderItemQty ?? [] as $qty) {
             if ($qty > 0) {
                 $this->cartQty++;
             }
         }
 
-        if (is_array($this->orderItemAmount)) {
-            foreach ($this->orderItemAmount as $key => $value) {
-                $modifierTotal = 0;
-                $this->subTotal += $value + $modifierTotal;
-                $this->total += $value + $modifierTotal;
-            }
-        }
-
         $this->dispatch('updateCartCount', count: $this->cartQty);
-
 
         $this->total = 0;
         $this->subTotal = 0;
+        $this->totalTaxAmount = 0;
+        $this->orderItemTaxDetails = [];
 
-        foreach ($this->orderItemAmount as $value) {
-            $this->subTotal = ($this->subTotal + $value);
-            $this->total = ($this->total + $value);
+        if (is_array($this->orderItemAmount)) {
+            // Calculate item taxes first for proper subtotal calculation
+            if ($this->taxMode === 'item') {
+                $this->updateOrderItemTaxDetails();
+            }
+
+            foreach ($this->orderItemAmount as $key => $value) {
+                $this->total += $value;
+
+                // For inclusive taxes, subtract tax from subtotal
+                if ($this->taxMode === 'item' && isset($this->orderItemTaxDetails[$key])) {
+                    $taxDetail = $this->orderItemTaxDetails[$key];
+                    $isInclusive = $this->restaurant->tax_inclusive ?? false;
+
+                    if ($isInclusive) {
+                        // For inclusive tax: subtotal = item amount - tax amount
+                        $this->subTotal += ($value - ($taxDetail['tax_amount'] ?? 0));
+                    } else {
+                        // For exclusive tax: subtotal = item amount (tax will be added later)
+                        $this->subTotal += $value;
+                    }
+                } else {
+                    // No item taxes or order-level taxes
+                    $this->subTotal += $value;
+                }
+            }
         }
 
-        foreach ($this->taxes as $value) {
-            $this->total = ($this->total + (($value->tax_percent / 100) * $this->subTotal));
-        }
+        // Calculate taxes using centralized method
+        $this->recalculateTaxTotals();
 
-        foreach ($this->extraCharges as $charge) {
-            $this->total += $charge->getAmount($this->subTotal);
+        // Add extra charges
+        foreach ($this->extraCharges ?? [] as $charge) {
+            if (is_object($charge) && method_exists($charge, 'getAmount')) {
+                $this->total += $charge->getAmount($this->subTotal);
+            }
         }
-
         $this->total += (float)$this->deliveryFee ?: 0;
     }
 
-    public function UpdatedOrderType($value)
+    /**
+     * Legacy method kept for backward compatibility
+     * Use updatedOrderTypeId for new implementation
+     */
+    public function updatedOrderType($value)
     {
-        $mainExtraCharges = RestaurantCharge::withoutGlobalScopes()
-            ->whereJsonContains('order_types', $value)
-            ->where('is_enabled', true)
-            ->where('restaurant_id', $this->restaurant->id)
-            ->get();
 
-        // Early return for new orders
-        if (!$this->orderID) {
-            // Only clear delivery-related fields if the order type is not delivery
-            if ($value !== 'delivery') {
-                $this->addressLat = null;
-                $this->addressLng = null;
-                $this->deliveryAddress = null;
-                $this->deliveryFee = null;
+        // Find the order type by slug or type
+        $orderTypeModel = OrderType::where('branch_id', $this->shopBranch->id)
+            ->where('is_active', true)
+            ->where(function ($q) use ($value) {
+                $q->where('slug', $value)
+                    ->orWhere('type', $value);
+            })
+            ->first();
+
+        if ($orderTypeModel) {
+            $this->orderTypeId = $orderTypeModel->id;
+            $mainExtraCharges = RestaurantCharge::withoutGlobalScopes()
+                ->whereJsonContains('order_types', $value)
+                ->where('is_enabled', true)
+                ->where('restaurant_id', $this->restaurant->id)
+                ->get();
+            // Early return for new orders
+            if (!$this->orderID) {
+                // Only clear delivery-related fields if the order type is not delivery
+                if ($value !== 'delivery') {
+                    $this->addressLat = null;
+                    $this->addressLng = null;
+                    $this->deliveryAddress = null;
+                    $this->deliveryFee = null;
+                }
+
+                $this->calculateMaxPreparationTime();
+                $this->extraCharges = $mainExtraCharges;
+                $this->calculateTotal();
+                return;
             }
 
-            $this->calculateMaxPreparationTime();
-            $this->extraCharges = $mainExtraCharges;
+            // Early return if no valid order or order is paid
+            if (!$this->order || $this->order->status === 'paid') {
+                return;
+            }
+
+            // Efficiently get the slug from the order's order type
+            $orderTypeFromOrder = $this->order->order_type_id
+                ? (OrderType::where('id', $this->order->order_type_id)->value('slug') ?? $this->order->order_type)
+                : $this->order->order_type;
+
+            // Keep existing charges if order type is unchanged, otherwise set new ones
+            $this->extraCharges = $orderTypeFromOrder === $value ? $this->order->extraCharges : $mainExtraCharges;
+
             $this->calculateTotal();
-            return;
         }
-
-        // Early return if no valid order or order is paid
-        if (!$this->order || $this->order->status === 'paid') {
-            return;
-        }
-
-        // Keep existing charges if order type is unchanged, otherwise set new ones
-        $this->extraCharges = $this->order->order_type === $value
-            ? $this->order->extraCharges
-            : $mainExtraCharges;
-
-        $this->calculateTotal();
     }
 
     #[On('setPosVariation')]
@@ -339,6 +830,11 @@ class Cart extends Component
     {
         $this->showVariationModal = false;
         $menuItemVariation = MenuItemVariation::find($variationId);
+
+        // Set price context before using variation
+        if ($this->orderTypeId) {
+            $menuItemVariation->setPriceContext($this->orderTypeId, null);
+        }
 
         $modifiersAvailable = $menuItemVariation->menuItem->modifiers->count();
 
@@ -383,8 +879,9 @@ class Cart extends Component
     {
         $this->validate([
             'customerName' => 'required',
-            'customerPhone' => ['required',
-            Rule::unique('customers', 'phone')->ignore($this->customer->id ?? null),
+            'customerPhone' => [
+                'required',
+                Rule::unique('customers', 'phone')->ignore($this->customer->id ?? null),
             ],
         ]);
 
@@ -401,7 +898,7 @@ class Cart extends Component
         $this->placeOrder($this->payNow);
     }
 
-    public function selectTableOrder($tableID=null)
+    public function selectTableOrder($tableID = null)
     {
         if ($this->getTable) {
             $this->tableID = $tableID;
@@ -429,6 +926,26 @@ class Cart extends Component
         return true;
     }
 
+    /**
+     * Check if customer can create order based on radius restrictions
+     */
+    public function getCanCreateOrderProperty()
+    {
+        // For QR orders, check if within radius
+        if ($this->cameFromQR && !empty($this->restaurant->qr_order_radius_meters)) {
+            // If location is not set, allow for now (will be checked when adding items)
+            if (empty($this->addressLat) || empty($this->addressLng)) {
+                return true; // Allow to show UI, but will be blocked when adding itemss
+            }
+
+            // Return whether within radius
+            return $this->is_within_radius ?? true;
+        }
+
+        // For non-QR orders or if no radius restriction, allow
+        return true;
+    }
+
     public function getAvailableTable()
     {
         $this->tables = Area::where('branch_id', $this->shopBranch->id)->with(['tables' => function ($query) {
@@ -436,8 +953,62 @@ class Cart extends Component
         }])->get();
     }
 
+    public function savePickupDateTime()
+    {
+        $this->showPickupDateTimeModal = false;
+        $this->placeOrder();
+    }
+
+    public function showPickupDateTime()
+    {
+        $this->showPickupDateTimeModal = true;
+    }
+
     public function placeOrder($pay = false, $updateOrder = null, $method = null)
     {
+        // FINAL QR RADIUS CHECK - always validate fresh
+        if ($this->cameFromQR && !empty($this->restaurant->qr_order_radius_meters)) {
+            // Check both lat/lng and latitude/longitude column names for branch
+            $branchLat = $this->shopBranch->lat ?? $this->shopBranch->latitude ?? null;
+            $branchLng = $this->shopBranch->lng ?? $this->shopBranch->longitude ?? null;
+
+            if (!empty($branchLat) && !empty($branchLng)) {
+                // Require customer coordinates for QR orders with radius configured
+                if (empty($this->addressLat) || empty($this->addressLng)) {
+                    $this->showLocationModal = true;
+                    $this->alert('error', __('app.locationAccessRequiredRadius'), [
+                        'toast' => false,
+                        'position' => 'center',
+                    ]);
+                    return;
+                }
+
+                // Recalculate distance to ensure fresh check
+                $distance = $this->calculateDistance(
+                    $this->addressLat, $this->addressLng,
+                    $branchLat, $branchLng
+                );
+                $this->is_within_radius = $distance <= $this->restaurant->qr_order_radius_meters;
+
+                if (!$this->is_within_radius) {
+                    $this->alert('error', __('app.orderNotAllowedMeters', ['meters' => $this->restaurant->qr_order_radius_meters]), [
+                        'toast' => false,
+                        'position' => 'center',
+                    ]);
+                    return;
+                }
+            }
+        }
+
+        // Restrict QR order if outside allowed radius (double-check flag)
+        if ($this->cameFromQR && !$this->is_within_radius) {
+            $this->alert('error', __('app.orderNotAllowedMeters', ['meters' => $this->restaurant->qr_order_radius_meters]), [
+                'toast' => false,
+                'position' => 'center',
+            ]);
+            return;
+        }
+
         if ($updateOrder) {
             $this->order = Order::find($updateOrder);
 
@@ -451,6 +1022,7 @@ class Cart extends Component
             Order::where('id', $this->order->id)->update([
                 'status' => 'pending_verification',
             ]);
+            $this->printKot($this->order);
             $this->sendNotifications($this->order);
 
             $this->alert('success', __('messages.orderSaved'), [
@@ -460,7 +1032,7 @@ class Cart extends Component
                 'cancelButtonText' => __('app.close')
             ]);
 
-            $this->redirect(route('order_success', [$this->order->id]));
+            $this->redirect(route('order_success', [$this->order->uuid]));
             return;
         }
 
@@ -500,19 +1072,44 @@ class Cart extends Component
             if (!is_null($this->tableID)) {
                 $order->update(['table_id' => $table->id]);
             }
-
         } else {
+            $orderNumberData = Order::generateOrderNumber($this->shopBranch);
+
+            // Use the already selected order type ID if available
+            if ($this->orderTypeId) {
+                $orderTypeModel = OrderType::find($this->orderTypeId);
+                $orderTypeId = $orderTypeModel->id ?? null;
+                $orderTypeName = $orderTypeModel->order_type_name ?? $this->orderType;
+                // Ensure slug is set in case it wasn't already
+                if (!$this->orderTypeSlug && $orderTypeModel) {
+                    $this->orderTypeSlug = $orderTypeModel->slug;
+                }
+            } else {
+                // Fallback to finding default order type
+                $orderTypeModel = OrderType::where('is_default', 1)
+                    ->where('type', $this->orderType)
+                    ->first();
+
+                $orderTypeId = $orderTypeModel->id ?? null;
+                $orderTypeName = $orderTypeModel->order_type_name ?? $this->orderType;
+                $this->orderTypeSlug = $orderTypeModel->slug ?? $this->orderType;
+            }
+
             $order = Order::create([
-                'order_number' => $this->orderNumber,
+                'order_number' => $orderNumberData['order_number'],
+                'formatted_order_number' => $orderNumberData['formatted_order_number'],
                 'branch_id' => $this->shopBranch->id,
                 'table_id' => $table->id ?? null,
                 'date_time' => now(),
                 'customer_id' => $this->customer->id ?? null,
                 'sub_total' => $this->subTotal,
                 'total' => $this->total,
-                'order_type' => $this->orderType,
+                'order_type' => $this->orderTypeSlug ?? $this->orderType,
+                'order_type_id' => $orderTypeId,
+                'custom_order_type_name' => $orderTypeName,
+                'pickup_date' => $this->deliveryDateTime,
                 'delivery_address' => $this->customerAddress,
-                'status' => 'draft',
+                'status' => $this->restaurant->auto_confirm_orders ? 'kot' : 'draft',
                 'order_status' => $this->restaurant->auto_confirm_orders ? 'confirmed' : 'placed',
                 'customer_lat' => $this->addressLat ?? null,
                 'customer_lng' => $this->addressLng ?? null,
@@ -522,6 +1119,8 @@ class Cart extends Component
                 'delivered_at' => null,
                 'estimated_eta_min' => $this->etaMin ?? null,
                 'estimated_eta_max' => $this->etaMax ?? null,
+                'placed_via' => 'shop',
+                'tax_mode' => $this->taxMode,
             ]);
         }
 
@@ -533,31 +1132,35 @@ class Cart extends Component
         }
 
         $transactionId = uniqid('TXN_', true) . '_' . random_int(100000, 999999);
+
         session(['transaction_id' => $transactionId]);
 
         $kot = Kot::create([
             'branch_id' => $this->shopBranch->id,
             'kot_number' => (Kot::generateKotNumber($this->shopBranch) + 1),
             'order_id' => $order->id,
+            'order_type_id' => $order->order_type_id,
+            'token_number' => Kot::generateTokenNumber($this->shopBranch->id, $order->order_type_id),
             'note' => $this->orderNote,
             'transaction_id' => $transactionId
         ]);
 
-        foreach ($this->orderItemList as $key => $value) {
+        foreach ($this->orderItemList ?? [] as $key => $value) {
 
             $kotItem = KotItem::create([
                 'kot_id' => $kot->id,
                 'menu_item_id' => $this->orderItemVariation[$key]->menu_item_id ?? $this->orderItemList[$key]->id,
                 'menu_item_variation_id' => (isset($this->orderItemVariation[$key]) ? $this->orderItemVariation[$key]->id : null),
                 'quantity' => $this->orderItemQty[$key],
-                'transaction_id' => $transactionId
+                'transaction_id' => $transactionId,
+                'note' => $this->itemNotes[$key] ?? null,
             ]);
 
             $this->itemModifiersSelected[$key] = $this->itemModifiersSelected[$key] ?? [];
             $kotItem->modifierOptions()->sync($this->itemModifiersSelected[$key]);
         }
 
-        foreach ($this->orderItemList as $key => $value) {
+        foreach ($this->orderItemList ?? [] as $key => $value) {
             $orderItem = OrderItem::create([
                 'branch_id' => $this->shopBranch->id,
                 'order_id' => $order->id,
@@ -566,45 +1169,64 @@ class Cart extends Component
                 'quantity' => $this->orderItemQty[$key],
                 'price' => (isset($this->orderItemVariation[$key]) ? $this->orderItemVariation[$key]->price : $value->price),
                 'amount' => $this->orderItemAmount[$key],
-                'transaction_id' => $transactionId
+                'transaction_id' => $transactionId,
+                'note' => $this->itemNotes[$key] ?? null,
+                // Add tax fields for item-level tax mode
+                'tax_amount' => $this->orderItemTaxDetails[$key]['tax_amount'] ?? null,
+                'tax_percentage' => $this->orderItemTaxDetails[$key]['tax_percent'] ?? null,
+                'tax_breakup' => isset($this->orderItemTaxDetails[$key]['tax_breakup']) ? json_encode($this->orderItemTaxDetails[$key]['tax_breakup']) : null,
             ]);
 
             $this->itemModifiersSelected[$key] = $this->itemModifiersSelected[$key] ?? [];
-                $orderItem->modifierOptions()->sync($this->itemModifiersSelected[$key]);
+            $orderItem->modifierOptions()->sync($this->itemModifiersSelected[$key]);
         }
 
-        foreach ($this->taxes as $key => $value) {
-            OrderTax::firstOrCreate([
-                'order_id' => $order->id,
-                'tax_id' => $value->id
-            ]);
+        if ($this->taxMode === 'order') {
+            foreach ($this->taxes ?? [] as $key => $value) {
+                OrderTax::firstOrCreate([
+                    'order_id' => $order->id,
+                    'tax_id' => $value->id
+                ]);
+            }
         }
 
         if ($this->orderID) {
             $order->extraCharges()->detach();
         }
 
-        foreach ($this->extraCharges as $key => $value) {
+        foreach ($this->extraCharges ?? [] as $key => $value) {
             OrderCharge::create([
                 'order_id' => $order->id,
                 'charge_id' => $value->id
             ]);
         }
 
+        // Recalculate total for order-level or item-level tax
         $this->total = 0;
         $this->subTotal = 0;
+        $this->totalTaxAmount = 0;
 
         foreach ($order->load('items')->items as $value) {
             $this->subTotal = ($this->subTotal + $value->amount);
             $this->total = ($this->total + $value->amount);
         }
 
-        foreach ($this->taxes as $value) {
-            $this->total = ($this->total + (($value->tax_percent / 100) * $this->subTotal));
+        // Use centralized tax calculation
+        $this->recalculateTaxTotals();
+
+        if ($this->taxMode === 'item') {
+            if ($this->restaurant->tax_inclusive) {
+                $this->subTotal -= ($this->totalTaxAmount + $order?->total_tax_amount);
+            } else {
+                $this->total += $order?->total_tax_amount;
+            }
         }
 
-        foreach ($this->extraCharges as $value) {
-            $this->total += $value->getAmount($this->subTotal);
+        // Apply extra charges from the charges linked to the order
+        foreach (($this->extraCharges ?? []) as $charge) {
+            if (is_object($charge) && method_exists($charge, 'getAmount')) {
+                $this->total += $charge->getAmount($this->subTotal);
+            }
         }
 
         $this->total += (float)$this->deliveryFee ?: 0;
@@ -613,8 +1235,16 @@ class Cart extends Component
 
         Order::where('id', $order->id)->update([
             'sub_total' => $this->subTotal,
-            'total' => $this->total
+            'total' => $this->total,
+            'total_tax_amount' => $order->items->sum('tax_amount'),
+            'tax_mode' => $this->taxMode,
         ]);
+
+        if ($order->status != 'draft') {
+            $this->printKot($order, $kot);
+        }
+
+        event(new OrderUpdated($order, 'updated'));
 
         if (!is_null($this->tableID)) {
             $table->available_status = 'running';
@@ -624,7 +1254,6 @@ class Cart extends Component
         if ($pay) {
             $this->showPaymentModal = true;
             $this->paymentOrder = $order;
-
         } else {
             Order::where('id', $order->id)->update([
                 'status' => 'kot'
@@ -639,9 +1268,9 @@ class Cart extends Component
                 'cancelButtonText' => __('app.close')
             ]);
 
-            $this->redirect(route('order_success', [$order->id]), true);
+            cache()->forget('branch_' . $this->shopBranch->id . '_order_stats');
+            $this->redirect(route('order_success', [$order->uuid]));
         }
-
     }
 
     public function initiatePayment($id)
@@ -715,9 +1344,8 @@ class Cart extends Component
                 'cancelButtonText' => __('app.close')
             ]);
 
-            $this->redirect(route('order_success', $payment->order_id));
+            $this->redirect(route('order_success', $payment->order->uuid));
         }
-
     }
 
     public function initiateFlutterwavePayment($id)
@@ -726,27 +1354,27 @@ class Cart extends Component
             $paymentGateway = $this->restaurant->paymentGateways;
             $apiSecret = $paymentGateway->flutterwave_secret;
             $amount = $this->total;
-            $tx_ref = "txn_" . time();
+            $tx_ref = 'txn_' . time();
 
             $user = $this->customer ?? $this->restaurant;
 
 
             $data = [
-                "tx_ref" => $tx_ref,
-                "amount" => $amount,
-                "currency" => $this->restaurant->currency->currency_code,
-                "redirect_url" => route('flutterwave.success'),
-                "payment_options" => "card",
-                "customer" => [
-                    "email" => $user->email ?? 'no-email@example.com',
-                    "name" => $user->name ?? 'Guest',
-                    "phone_number" => $user->phone ?? '0000000000',
+                'tx_ref' => $tx_ref,
+                'amount' => $amount,
+                'currency' => $this->restaurant->currency->currency_code,
+                'redirect_url' => route('flutterwave.success'),
+                'payment_options' => 'card',
+                'customer' => [
+                    'email' => $user->email ?? 'no-email@example.com',
+                    'name' => $user->name ?? 'Guest',
+                    'phone_number' => $user->phone ?? '0000000000',
                 ],
             ];
             $response = Http::withHeaders([
-                "Authorization" => "Bearer $apiSecret",
-                "Content-Type" => "application/json"
-            ])->post("https://api.flutterwave.com/v3/payments", $data);
+                'Authorization' => "Bearer $apiSecret",
+                'Content-Type' => 'application/json'
+            ])->post('https://api.flutterwave.com/v3/payments', $data);
 
             $responseData = $response->json();
 
@@ -764,6 +1392,234 @@ class Cart extends Component
             }
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function initiatePaypalPayment($id)
+    {
+        $amount = $this->total;
+        $currency = strtoupper($this->restaurant->currency->currency_code);
+
+        $unsupportedCurrencies = ['INR'];
+        if (in_array($currency, $unsupportedCurrencies)) {
+            session()->flash('flash.banner', 'Currency not supported by PayPal.');
+            session()->flash('flash.bannerStyle', 'warning');
+            return redirect()->route('order_success', $id);
+        }
+
+        $clientId = $this->paymentGateway->paypal_client_id;
+        $secret = $this->paymentGateway->paypal_secret;
+
+        $paypalPayment = new PaypalPayment();
+        $paypalPayment->order_id = $id;
+        $paypalPayment->amount = $amount;
+        $paypalPayment->payment_status = 'pending';
+        $paypalPayment->save();
+
+        $returnUrl = route('paypal.success');
+        $cancelUrl = route('paypal.cancel');
+
+        $paypalData = [
+            'intent' => 'CAPTURE',
+            'purchase_units' => [[
+                'amount' => [
+                    'currency_code' => $currency,
+                    'value' => number_format($amount, 2, '.', '')
+                ],
+                'reference_id' => (string)$paypalPayment->id
+            ]],
+            'application_context' => [
+                'return_url' => $returnUrl,
+                'cancel_url' => $cancelUrl
+            ]
+        ];
+        info('Paypal Data: ' . json_encode($paypalData));
+
+        $auth = base64_encode("$clientId:$secret");
+
+        $response = Http::withHeaders([
+            'Authorization' => "Basic $auth",
+            'Content-Type' => 'application/json'
+        ])->post('https://api-m.sandbox.paypal.com/v2/checkout/orders', $paypalData);
+
+        if ($response->successful()) {
+            $paypalResponse = $response->json();
+
+            $paypalPayment->paypal_payment_id = $paypalResponse['id'];
+            $paypalPayment->payment_status = 'pending';
+            $paypalPayment->save();
+
+            $approvalLink = collect($paypalResponse['links'])->firstWhere('rel', 'approve')['href'];
+            return redirect($approvalLink);
+        }
+        $paypalPayment->payment_status = 'failed';
+        $paypalPayment->save();
+
+        return redirect()->route('paypal.cancel');
+    }
+
+    function generateSignature($data, $passPhrase)
+    {
+        $pfOutput = '';
+        foreach ($data as $key => $val) {
+            if ($val !== '') {
+                $pfOutput .= $key . '=' . urlencode(trim($val)) . '&';
+            }
+        }
+        $getString = substr($pfOutput, 0, -1);
+        if ($passPhrase !== null) {
+            $getString .= '&passphrase=' . urlencode(trim($passPhrase));
+        }
+
+        return md5($getString);
+    }
+
+    public function initiatePayfastPayment($id)
+    {
+        $paymentGateway = $this->restaurant->paymentGateways;
+        $isSandbox = $paymentGateway->payfast_mode === 'sandbox';
+        $merchantId = $isSandbox ? $paymentGateway->test_payfast_merchant_id : $paymentGateway->payfast_merchant_id;
+        $merchantKey = $isSandbox ? $paymentGateway->test_payfast_merchant_key : $paymentGateway->payfast_merchant_key;
+        $passphrase = $isSandbox ? $paymentGateway->test_payfast_passphrase : $paymentGateway->payfast_passphrase;
+        $amount = number_format($this->total, 2, '.', '');
+        $itemName = "Order Payment #$id";
+        $reference = 'pf_' . time();
+        $data = [
+            'merchant_id' => $merchantId,
+            'merchant_key' => $merchantKey,
+            'return_url' => route('payfast.success', ['reference' => $reference]),
+            'cancel_url' => route('payfast.failed', ['reference' => $reference]),
+            'notify_url' => route('payfast.notify', ['company' => $this->restaurant->hash, 'reference' => $reference]),
+
+            'name_first' => auth()->user()->name,
+            'email_address' => auth()->user()->email,
+            'm_payment_id' => $id, // Your internal ID
+            'amount' => $amount,
+            'item_name' => $itemName,
+        ];
+
+
+        $signature = $this->generateSignature($data, $passphrase);
+        $data['signature'] = $signature;
+
+        AdminPayfastPayment::create([
+            'order_id' => $id,
+            'payfast_payment_id' => $reference,
+            'amount' => $amount,
+            'payment_status' => 'pending',
+        ]);
+
+        $payfastBaseUrl = $isSandbox ? 'https://sandbox.payfast.co.za/eng/process' : 'https://api.payfast.co.za/eng/process';
+        $redirectUrl = $payfastBaseUrl . '?' . http_build_query($data);
+        return redirect($redirectUrl);
+    }
+
+    public function initiatePaystackPayment($id)
+    {
+        try {
+            $paymentGateway = $this->restaurant->paymentGateways;
+
+            $secretKey = $paymentGateway->paystack_secret_data;
+            $user = auth()->user();
+            $amount = $this->total;
+            $reference = 'psk_' . time();
+            $data = [
+                'reference' => $reference,
+                'amount' => (int)($amount * 100), // Paystack expects amount in kobo
+                'email' => $user->email,
+                'currency' => $this->restaurant->currency->currency_code,
+                'callback_url' => route('paystack.success'),
+                'metadata' => [
+                    'cancel_action' => route('paystack.failed', ['reference' => $reference])
+                ]
+
+            ];
+
+            $response = Http::withHeaders([
+                'Authorization' => "Bearer $secretKey",
+                'Content-Type' => 'application/json'
+            ])->post('https://api.paystack.co/transaction/initialize', $data);
+
+            $responseData = $response->json();
+            if (isset($responseData['status']) && $responseData['status'] === true) {
+                AdminPaystackPayment::create([
+                    'order_id' => $id,
+                    'paystack_payment_id' => $reference,
+                    'amount' => $amount,
+                    'payment_status' => 'pending',
+                ]);
+
+                return redirect($responseData['data']['authorization_url']);
+            } else {
+
+                session()->flash('error', 'Payment initiation failed.');
+                return redirect()->route('paystack.failed');
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function initiateXenditPayment($id)
+    {
+        try {
+            $paymentGateway = $this->restaurant->paymentGateways;
+            $secretKey = $paymentGateway->xendit_secret_key;
+            $amount = $this->total;
+            $externalId = 'xendit_' . time();
+
+            $user = $this->customer ?? auth()->user();
+
+            $data = [
+                'external_id' => $externalId,
+                'amount' => $amount,
+                'description' => 'Order Payment #' . $id,
+                'currency' => 'PHP',
+                'success_redirect_url' => route('xendit.success', ['external' => $externalId]),
+                'failure_redirect_url' => route('xendit.failed'),
+                'payment_methods' => ['CREDIT_CARD', 'BCA', 'BNI', 'BSI', 'BRI', 'MANDIRI', 'OVO', 'DANA', 'LINKAJA', 'SHOPEEPAY'],
+                'should_send_email' => true,
+                'customer' => [
+                    'given_names' => $user->name ?? 'Guest',
+                    'email' => $user->email ?? 'guest@example.com',
+                    'mobile_number' => $user->phone ?? '+6281234567890',
+                ],
+                'items' => [
+                    [
+                        'name' => 'Order #' . $id,
+                        'quantity' => 1,
+                        'price' => $amount,
+                        'category' => 'FOOD_AND_BEVERAGE'
+                    ]
+                ]
+            ];
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Basic ' . base64_encode($secretKey . ':'),
+                'Content-Type' => 'application/json'
+            ])->post('https://api.xendit.co/v2/invoices', $data);
+
+            $responseData = $response->json();
+            // dd($responseData);
+
+            if ($response->successful() && isset($responseData['id'])) {
+                XenditPayment::create([
+                    'order_id' => $id,
+                    'xendit_payment_id' => $externalId,
+                    'xendit_invoice_id' => $responseData['id'],
+                    'xendit_external_id' => $externalId,
+                    'amount' => $amount,
+                    'payment_status' => 'pending',
+                ]);
+
+                return redirect($responseData['invoice_url']);
+            } else {
+                session()->flash('error', 'Xendit payment initiation failed: ' . ($responseData['message'] ?? 'Unknown error'));
+                return redirect()->route('xendit.failed');
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', 'Xendit payment error: ' . $e->getMessage());
+            return redirect()->route('xendit.failed');
         }
     }
 
@@ -791,7 +1647,7 @@ class Cart extends Component
             try {
                 $order->customer->notify(new SendOrderBill($order));
             } catch (\Exception $e) {
-                \Log::error('Error sending order bill email: ' . $e->getMessage());
+                Log::error('Error sending order bill email: ' . $e->getMessage());
             }
         }
     }
@@ -816,6 +1672,25 @@ class Cart extends Component
     #[On('setPosModifier')]
     public function setPosModifier($modifierIds)
     {
+        // Check radius restriction before adding items with modifiers
+        if (!$this->checkRadiusRestriction()) {
+            if (empty($this->addressLat) || empty($this->addressLng)) {
+                $this->showLocationModal = true;
+                $this->alert('error', __('app.locationAccessRequired'), [
+                    'toast' => false,
+                    'position' => 'center',
+                ]);
+            } else {
+                $this->alert('error', __('app.outsideAllowedAreaMeters', ['meters' => $this->restaurant->qr_order_radius_meters]), [
+                    'toast' => false,
+                    'position' => 'center',
+                    'showCancelButton' => true,
+                    'cancelButtonText' => __('app.close')
+                ]);
+            }
+            return;
+        }
+
         $this->showModifiersModal = false;
 
         $sortNumber = Str::of(implode('', Arr::flatten($modifierIds)))
@@ -825,6 +1700,12 @@ class Cart extends Component
 
         if (isset(explode('_', $this->selectedModifierItem)[1])) {
             $menuItemVariation = MenuItemVariation::find(explode('_', $this->selectedModifierItem)[1]);
+
+            // Set price context on variation
+            if ($this->orderTypeId) {
+                $menuItemVariation->setPriceContext($this->orderTypeId, null);
+            }
+
             $this->orderItemVariation[$keyId] = $menuItemVariation;
             $this->selectedModifierItem = explode('_', $this->selectedModifierItem)[0];
             $this->orderItemAmount[$keyId] = 1 * ($this->orderItemVariation[$keyId]->price ?? $this->orderItemList[$keyId]->price);
@@ -833,10 +1714,19 @@ class Cart extends Component
         $this->cartItemQty[$keyId] = ($this->cartItemQty[$keyId] ?? 0) + 1;
         $this->itemModifiersSelected[$keyId] = Arr::flatten($modifierIds);
 
-        $modifierTotal = collect($this->itemModifiersSelected[$keyId])
-            ->sum(fn($modifierId) => $this->getModifierOptionsProperty()[$modifierId]->price);
+        // Set price context on modifiers before calculating total
+        $modifierTotal = 0;
+        foreach ($this->itemModifiersSelected[$keyId] ?? [] as $modifierId) {
+            $modifier = ModifierOption::find($modifierId);
+            if ($modifier) {
+                if ($this->orderTypeId) {
+                    $modifier->setPriceContext($this->orderTypeId, null);
+                }
+                $modifierTotal += $modifier->price;
+            }
+        }
 
-            $this->orderItemModifiersPrice[$keyId] = (1 * (isset($this->itemModifiersSelected[$keyId]) ? $modifierTotal : 0));
+        $this->orderItemModifiersPrice[$keyId] = $modifierTotal;
 
         $this->syncCart($keyId);
     }
@@ -869,9 +1759,109 @@ class Cart extends Component
 
     public function calculateMaxPreparationTime()
     {
-        $this->maxPreparationTime = $this->orderItemList
-            ? max(array_map(fn($item) => $item->preparation_time ?? 0, $this->orderItemList))
-            : 0;
+        $this->maxPreparationTime = !empty($this->orderItemList) ? max(array_map(fn($item) => $item->preparation_time ?? 0, $this->orderItemList)) : 0;
+    }
+
+    // Centralized tax calculation methods to eliminate code duplication
+    private function recalculateTaxTotals()
+    {
+        $this->totalTaxAmount = 0;
+
+        if ($this->taxMode === 'order') {
+            // Order-based taxation
+            foreach ($this->taxes ?? [] as $tax) {
+                $taxAmount = ($tax->tax_percent / 100) * $this->subTotal;
+                $this->totalTaxAmount += $taxAmount;
+                $this->total += $taxAmount;
+            }
+        } elseif ($this->taxMode === 'item' && !empty($this->orderItemAmount)) {
+            // Item-based taxation - taxes are already calculated in calculateTotal()
+            $totalInclusiveTax = 0;
+            $totalExclusiveTax = 0;
+            $isInclusive = $this->restaurant->tax_inclusive ?? false;
+
+            // Calculate total tax amounts
+            foreach ($this->orderItemTaxDetails ?? [] as $itemTaxDetail) {
+                $taxAmount = $itemTaxDetail['tax_amount'] ?? 0;
+
+                if ($isInclusive) {
+                    $totalInclusiveTax += $taxAmount;
+                } else {
+                    $totalExclusiveTax += $taxAmount;
+                }
+            }
+
+            $this->totalTaxAmount = $totalInclusiveTax + $totalExclusiveTax;
+
+            // For exclusive taxes, add them to the total
+            // (Inclusive taxes are already included in the item prices)
+            if ($totalExclusiveTax > 0) {
+                $this->total += $totalExclusiveTax;
+            }
+        }
+    }
+
+    public function updateOrderItemTaxDetails()
+    {
+        $this->orderItemTaxDetails = [];
+
+        if ($this->taxMode !== 'item' || !is_array($this->orderItemAmount)) {
+            return;
+        }
+
+        foreach ($this->orderItemAmount as $key => $value) {
+            $menuItem = isset($this->orderItemVariation[$key]) ? $this->orderItemVariation[$key]->menuItem : $this->orderItemList[$key];
+
+            // Set price context before using prices
+            if ($this->orderTypeId) {
+                $menuItem->setPriceContext($this->orderTypeId, null);
+                if (isset($this->orderItemVariation[$key])) {
+                    $this->orderItemVariation[$key]->setPriceContext($this->orderTypeId, null);
+                }
+            }
+
+            $qty = $this->orderItemQty[$key] ?? 1;
+            $basePrice = isset($this->orderItemVariation[$key]) ? $this->orderItemVariation[$key]->price : $menuItem->price;
+            $modifierPrice = $this->orderItemModifiersPrice[$key] ?? 0;
+            $itemPriceWithModifiers = $basePrice + $modifierPrice;
+            $taxes = $menuItem->taxes ?? collect();
+            $isInclusive = $this->restaurant->tax_inclusive;
+            $taxResult = MenuItem::calculateItemTaxes($itemPriceWithModifiers, $taxes, $isInclusive);
+            $this->orderItemTaxDetails[$key] = [
+                'tax_amount' => $taxResult['tax_amount'] * $qty,
+                'tax_percent' => $taxResult['tax_percentage'],
+                'tax_breakup' => $taxResult['tax_breakdown'],
+                'tax_type' => $taxResult['inclusive'],
+                'base_price' => $itemPriceWithModifiers,
+                'display_price' => $isInclusive ? ($itemPriceWithModifiers - ($taxResult['tax_amount'] ?? 0)) : $itemPriceWithModifiers,
+                'qty' => $qty,
+            ];
+        }
+    }
+
+    /**
+     * Get the display price for an item (base price without tax for inclusive items)
+     */
+    public function getItemDisplayPrice($key)
+    {
+        if ($this->taxMode === 'item' && isset($this->orderItemTaxDetails[$key])) {
+            return $this->orderItemTaxDetails[$key]['display_price'] ?? 0;
+        }
+
+        // Set price context before using price
+        if ($this->orderTypeId) {
+            if (isset($this->orderItemVariation[$key])) {
+                $this->orderItemVariation[$key]->setPriceContext($this->orderTypeId, null);
+            }
+            if (isset($this->orderItemList[$key])) {
+                $this->orderItemList[$key]->setPriceContext($this->orderTypeId, null);
+            }
+        }
+
+        // For non-item tax mode, return the original price
+        $basePrice = isset($this->orderItemVariation[$key]) ? $this->orderItemVariation[$key]->price : $this->orderItemList[$key]->price;
+        $modifierPrice = $this->orderItemModifiersPrice[$key] ?? 0;
+        return $basePrice + $modifierPrice;
     }
 
     public function render()
@@ -896,18 +1886,23 @@ class Cart extends Component
             $query = $query->where('menu_items.type', 'veg');
         }
 
+        if ($this->showHalal == 1) {
+            $query = $query->where('menu_items.type', 'halal');
+        }
+
         if (!empty($this->search)) {
             $query->where(function ($q) {
-            $q->where('item_name', 'like', '%' . $this->search . '%')
-                ->orWhereHas('translations', function ($q) {
-                $q->where('item_name', 'like', '%' . $this->search . '%');
-                });
+                $q->where('item_name', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('translations', function ($q) {
+                        $q->where('item_name', 'like', '%' . $this->search . '%');
+                    });
             });
         }
 
-        $query = $query->orderBy('item_categories.category_name')
+        $query = $query->orderBy('item_categories.sort_order')
             ->withCount('variations')
             ->withCount('modifierGroups')
+            ->orderBy('sort_order')
             ->get()
             ->groupBy(function ($item) use ($locale) {
                 return $item->category->getTranslation('category_name', $locale);
@@ -923,16 +1918,146 @@ class Cart extends Component
                 $q->where('menu_items.type', 'veg');
             }
 
-            return $q->where('menu_items.is_available', 1);
-        }])->where('branch_id', $this->shopBranch->id)->get();
+            if ($this->showHalal == 1) {
+                $q->where('menu_items.type', 'halal');
+            }
 
-        $menuList = Menu::withoutGlobalScopes()->where('branch_id', $this->shopBranch->id)->withCount('items')->get();
+            return $q->where('menu_items.is_available', 1);
+        }])->where('branch_id', $this->shopBranch->id)->orderBy('sort_order')->get();
+
+        $menuList = Menu::withoutGlobalScopes()->where('branch_id', $this->shopBranch->id)->withCount('items')->orderBy('sort_order')->get();
+
+        // Get available order types for customer (no delivery apps)
+        $orderTypes = OrderType::where('branch_id', $this->shopBranch->id)
+            ->where('is_active', true)
+            ->where('is_default', false) // Only custom order types
+            ->orderBy('order_type_name')
+            ->get();
+
+        // Also get default order types if no custom ones exist
+        if ($orderTypes->isEmpty()) {
+            $orderTypes = OrderType::where('branch_id', $this->shopBranch->id)
+                ->where('is_active', true)
+                ->orderBy('order_type_name')
+                ->get();
+        }
+
+        // Set price context on menu items in the query results
+        if ($this->orderTypeId) {
+            foreach ($query as $categoryItems) {
+                foreach ($categoryItems as $item) {
+                    $item->setPriceContext($this->orderTypeId, null);
+                    // Set price context on variations
+                    if ($item->relationLoaded('variations')) {
+                        foreach ($item->variations as $variation) {
+                            $variation->setPriceContext($this->orderTypeId, null);
+                        }
+                    }
+                }
+            }
+        }
 
         return view('livewire.shop.cart', [
             'menuItems' => $query,
             'categoryList' => $categoryList,
-            'menuList' => $menuList
+            'menuList' => $menuList,
+            'orderTypes' => $orderTypes,
         ]);
+    }
+
+
+    public function printKot($order, $kot = null, $kotIds = [])
+    {
+        // Check if the 'kitchen' package is enabled
+        if (in_array('Kitchen', restaurant_modules()) && in_array('kitchen', custom_module_plugins())) {
+            // Get all KOTs for this order (created above)
+
+            if ($kotIds) {
+                $kots = $order->kot()->whereIn('id', $kotIds)->with('items')->get();
+            } else {
+                $kots = $order->kot()->with('items')->get();
+            }
+
+            foreach ($kots as $kot) {
+                $kotPlaceItems = [];
+
+                foreach ($kot->items as $kotItem) {
+                    if ($kotItem->menuItem && $kotItem->menuItem->kot_place_id) {
+                        $kotPlaceId = $kotItem->menuItem->kot_place_id;
+
+                        if (!isset($kotPlaceItems[$kotPlaceId])) {
+                            $kotPlaceItems[$kotPlaceId] = [];
+                        }
+
+                        $kotPlaceItems[$kotPlaceId][] = $kotItem;
+                    }
+                }
+
+                // Get the kot places and their printer settings
+                $kotPlaceIds = array_keys($kotPlaceItems);
+                $kotPlaces = KotPlace::with('printerSetting')->whereIn('id', $kotPlaceIds)->get();
+
+                foreach ($kotPlaces as $kotPlace) {
+                    $printerSetting = $kotPlace->printerSetting;
+
+                    if ($printerSetting && $printerSetting->is_active == 0) {
+                        $printerSetting = Printer::where('is_default', true)->first();
+                    }
+
+                    // If no printer is set, fallback to print URL dispatch
+                    if (!$printerSetting) {
+                        $url = route('kot.print', [$kot->id, $kotPlace?->id]);
+                        $this->dispatch('print_location', $url);
+                        continue;
+                    }
+
+                    try {
+                        switch ($printerSetting->printing_choice) {
+                            case 'directPrint':
+                                $this->handleKotPrint($kot->id, $kotPlace->id);
+                                break;
+                            default:
+                        }
+                    } catch (\Throwable $e) {
+                        $this->alert('error', __('messages.printerNotConnected') . ' ' . $e->getMessage(), [
+                            'toast' => true,
+                            'position' => 'top-end',
+                            'showCancelButton' => false,
+                            'cancelButtonText' => __('app.close')
+                        ]);
+                    }
+                }
+            }
+        } else {
+            $kotPlace = KotPlace::where('is_default', 1)->first();
+            $printerSetting = $kotPlace->printerSetting;
+
+            // Get the KOT for this order
+            $kot = $kot ?? $order->kot()->first();
+
+            // If no printer is set, fallback to print URL dispatch
+            if (!$printerSetting) {
+                $url = route('kot.print', [$kot->id, $kotPlace?->id]);
+                $this->dispatch('print_location', $url);
+            }
+
+            try {
+                switch ($printerSetting->printing_choice) {
+                    case 'directPrint':
+                        $this->handleKotPrint($kot->id, $kotPlace->id);
+                        break;
+
+                    default:
+                }
+            } catch (\Throwable $e) {
+                $this->alert('error', __('messages.printerNotConnected') . ' ' . $e->getMessage(), [
+                    'toast' => true,
+                    'position' => 'top-end',
+                    'showCancelButton' => false,
+                    'cancelButtonText' => __('app.close')
+                ]);
+            }
+        }
     }
 
 }

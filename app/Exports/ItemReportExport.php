@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use App\Helper\Common;
 
 class ItemReportExport implements WithMapping, FromCollection, WithHeadings, WithStyles, ShouldAutoSize
 {
@@ -20,14 +21,14 @@ class ItemReportExport implements WithMapping, FromCollection, WithHeadings, Wit
     protected string $startTime, $endTime, $timezone, $searchTerm;
     protected $headingDateTime, $headingEndDateTime, $headingStartTime, $headingEndTime;
 
-    public function __construct(string $startDateTime, string $endDateTime, string $startTime, string $endTime, string $timezone, string $searchTerm = '')
+    public function __construct(string $startDateTime, string $endDateTime, string $startTime, string $endTime, string $timezone, ?string $searchTerm = '')
     {
         $this->startDateTime = $startDateTime;
         $this->endDateTime = $endDateTime;
         $this->startTime = $startTime;
         $this->endTime = $endTime;
         $this->timezone = $timezone;
-        $this->searchTerm = $searchTerm;
+        $this->searchTerm = $searchTerm ?? '';
 
         $this->headingDateTime = Carbon::parse($startDateTime)->setTimezone($timezone)->format('Y-m-d');
         $this->headingEndDateTime = Carbon::parse($endDateTime)->setTimezone($timezone)->format('Y-m-d');
@@ -44,11 +45,11 @@ class ItemReportExport implements WithMapping, FromCollection, WithHeadings, Wit
         return [
             [__('menu.itemReport') . ' ' . $headingTitle],
             [
-                'Item Name',
-                'Item Category Name',
-                'Quantity Sold',
-                'Selling Price',
-                'Total Revenue',
+                __('modules.menu.itemName'),
+                __('modules.menu.categoryName'),
+                __('modules.report.quantitySold'),
+                __('modules.report.sellingPrice'),
+                __('modules.report.totalRevenue'),
             ]
         ];
     }
@@ -102,33 +103,36 @@ class ItemReportExport implements WithMapping, FromCollection, WithHeadings, Wit
     }
 
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return \Illuminate\Support\Collection
+     */
     public function collection()
     {
         return MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->with(['orders' => function ($q) {
             return $q->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->whereBetween('orders.date_time', [$this->startDateTime, $this->endDateTime])
-            ->where('orders.status', 'paid')
-            ->where(function ($q) {
-                if ($this->startTime < $this->endTime) {
-                $q->whereRaw("TIME(orders.date_time) BETWEEN ? AND ?", [$this->startTime, $this->endTime]);
-                } else {
-                $q->where(function ($sub) {
-                    $sub->whereRaw("TIME(orders.date_time) >= ?", [$this->startTime])
-                    ->orWhereRaw("TIME(orders.date_time) <= ?", [$this->endTime]);
+                ->whereBetween('orders.date_time', [$this->startDateTime, $this->endDateTime])
+                ->where('orders.status', 'paid')
+                ->where(function ($q) {
+                    if ($this->startTime < $this->endTime) {
+                        $q->whereRaw("TIME(orders.date_time) BETWEEN ? AND ?", [$this->startTime, $this->endTime]);
+                    } else {
+                        $q->where(function ($sub) {
+                            $sub->whereRaw("TIME(orders.date_time) >= ?", [$this->startTime])
+                                ->orWhereRaw("TIME(orders.date_time) <= ?", [$this->endTime]);
+                        });
+                    }
                 });
+        }, 'category', 'variations'])
+            ->where(function ($query) {
+                if ($this->searchTerm) {
+                    $query->where(function ($q) {
+                        $safeTerm = Common::safeString($this->searchTerm);
+
+                        $q->where('item_name', 'like', '%' . $safeTerm . '%')
+                            ->orWhereHas('category', function ($q) use ($safeTerm) {
+                                $q->where('category_name', 'like', '%' . $safeTerm . '%');
+                            });
+                    });
                 }
-            });
-        }, 'category', 'variations'])->where(function ($query) {
-            if ($this->searchTerm) {
-            $query->where(function ($q) {
-                $q->where('item_name', 'like', '%' . $this->searchTerm . '%')
-                ->orWhereHas('category', function ($q) {
-                    $q->where('category_name', 'like', '%' . $this->searchTerm . '%');
-                });
-            });
-            }
-        })->get();
+            })->get();
     }
 }

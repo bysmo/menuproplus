@@ -15,21 +15,65 @@ class ItemModifiers extends Component
     public $modifiers = [];
     public $requiredModifiers = [];
     public $selectedVariationName;
+    public $orderTypeId;
+    public $deliveryAppId;
 
     public function mount()
     {
+        $variationId = null;
 
-        $this->selectedModifierItem = MenuItem::with(['modifierGroups', 'modifierGroups.options'])
-            ->findOrFail($this->menuItemId);
+        $this->deliveryAppId = ($this->deliveryAppId === 'default') ? null : $this->deliveryAppId;
 
         if (strpos($this->menuItemId, '_') !== false) {
-            [$this->menuItemId, $variationId] = explode('_', $this->menuItemId);
+            [$itemId, $variationId] = explode('_', $this->menuItemId);
+            $this->menuItemId = $itemId;
             $menuItemVariation = MenuItemVariation::find($variationId);
             $this->selectedVariationName = $menuItemVariation->variation ?? null;
         }
 
-        $this->modifiers = $this->selectedModifierItem->modifierGroups;
+        $this->selectedModifierItem = MenuItem::with(['modifierGroups', 'modifierGroups.options'])
+            ->findOrFail($this->menuItemId);
 
+        // New logic for modifiers
+        // Get all modifiers that apply to this item (base modifiers where variation_id is null)
+        $baseModifiers = \App\Models\ModifierGroup::whereHas('itemModifiers', function($query) {
+            $query->where('menu_item_id', $this->menuItemId)
+                ->whereNull('menu_item_variation_id');
+        })->with(['options', 'itemModifiers' => function($query) {
+            $query->where('menu_item_id', $this->menuItemId)
+                ->whereNull('menu_item_variation_id');
+        }])->get();
+
+        $this->modifiers = $baseModifiers;
+
+        // If we have a variation, add variation-specific modifiers
+        if ($variationId) {
+            $variationSpecificModifiers = \App\Models\ModifierGroup::whereHas('itemModifiers', function($query) use ($variationId) {
+                $query->where('menu_item_id', $this->menuItemId)
+                    ->where('menu_item_variation_id', $variationId);
+            })->with(['options', 'itemModifiers' => function($query) use ($variationId) {
+                $query->where('menu_item_id', $this->menuItemId)
+                    ->where('menu_item_variation_id', $variationId);
+            }])->get();
+
+            foreach ($variationSpecificModifiers as $modifier) {
+                // Mark this modifier as variation-specific
+                $modifier->variationSpecific = true;
+                $modifier->menu_item_variation_id = $variationId;
+            }
+
+            // Merge variation-specific modifiers with base modifiers
+            $this->modifiers = collect($baseModifiers)->concat($variationSpecificModifiers);
+        }
+
+        // Set price context on all modifier options
+        $this->applyPriceContext();
+    }
+
+    public function hydrate()
+    {
+        // Re-apply price context after each Livewire request to maintain contextual pricing
+        $this->applyPriceContext();
     }
 
     public function toggleSelection($groupId, $optionId)
@@ -55,12 +99,25 @@ class ItemModifiers extends Component
                 }
             }
         }
+
+        // Re-apply price context after toggle to ensure prices remain contextual
+        $this->applyPriceContext();
+    }
+
+    private function applyPriceContext()
+    {
+        if ($this->orderTypeId) {
+            foreach ($this->modifiers as $modifierGroup) {
+                foreach ($modifierGroup->options as $option) {
+                    $option->setPriceContext($this->orderTypeId, $this->deliveryAppId);
+                }
+            }
+        }
     }
 
     public function saveModifiers()
     {
         $this->validateRequiredModifiers();
-
         $this->finalModifiers = [
             $this->menuItemId => array_keys(array_filter($this->selectedModifiers))
         ];
@@ -73,19 +130,21 @@ class ItemModifiers extends Component
         $rules = [];
         $messages = [];
 
-        $modifierGroups = $this->selectedModifierItem->modifierGroups()
-            ->withPivot(['is_required'])
-            ->get();
+        // Use the already loaded modifiers instead of querying the database again
+        foreach ($this->modifiers as $modifierGroup) {
 
-        foreach ($modifierGroups as $modifierGroup) {
-            if ($modifierGroup->pivot->is_required) {
+            $isRequired = $modifierGroup->itemModifiers->isNotEmpty()
+                ? ($modifierGroup->itemModifiers->first()->is_required ?? false)
+                : false;
+
+            if ($isRequired) {
                 $selectedOptions = array_keys(array_filter($this->selectedModifiers, function ($selected, $optionId) use ($modifierGroup) {
                     return $selected && $modifierGroup->options->contains('id', $optionId);
                 }, ARRAY_FILTER_USE_BOTH));
 
                 if (empty($selectedOptions)) {
                     $rules["requiredModifiers.{$modifierGroup->id}"] = 'required';
-                    $messages["requiredModifiers.{$modifierGroup->id}.required"] = "This modifier group is required and you must select at least one option.";
+                    $messages["requiredModifiers.{$modifierGroup->id}.required"] = __('validation.requiredModifierGroup', ['name' => $modifierGroup->name]);
                 }
             }
         }

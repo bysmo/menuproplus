@@ -13,6 +13,7 @@ use App\Models\Restaurant;
 use Illuminate\Support\Facades\Http;
 use App\Notifications\WelcomeRestaurantEmail;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Log;
 
 class AddRestaurant extends Component
 {
@@ -34,6 +35,15 @@ class AddRestaurant extends Component
     public $showUserForm = true;
     public $showBranchForm = false;
     public $domain;
+    public $phoneCode;
+    public $phone;
+    public $restaurantPhoneNumber;
+    public $restaurantPhoneCode;
+    public $phoneCodeSearch = '';
+    public $phoneCodeIsOpen = false;
+    public $allPhoneCodes;
+    public $filteredPhoneCodes;
+    public $isSubmitting = false;
 
     public function mount()
     {
@@ -43,7 +53,46 @@ class AddRestaurant extends Component
         $ipCountry = (new User)->getCountryFromIp();
 
         $defaultCountry = Country::where('countries_code', $ipCountry)->first();
+        if (!$defaultCountry) {
+            $defaultCountry = Country::first();
+        }
         $this->country = $defaultCountry->id;
+        $this->phoneCode = user()?->phone_code ?? $defaultCountry->phonecode;
+        $this->restaurantPhoneCode = $this->phoneCode; // Set default for select box
+        $this->status = 1; // Set default status to active
+
+        // Initialize phone codes
+        $this->allPhoneCodes = collect(Country::pluck('phonecode')->unique()->filter()->values());
+        $this->filteredPhoneCodes = $this->allPhoneCodes;
+    }
+
+    public function updatedCountry($value)
+    {
+        $country = Country::find($value);
+        $this->phoneCode = $country->phonecode;
+    }
+
+    public function updatedPhoneCodeIsOpen($value)
+    {
+        if (!$value) {
+            $this->reset(['phoneCodeSearch']);
+            $this->updatedPhoneCodeSearch();
+        }
+    }
+
+    public function updatedPhoneCodeSearch()
+    {
+        $this->filteredPhoneCodes = $this->allPhoneCodes->filter(function ($phonecode) {
+            return str_contains($phonecode, $this->phoneCodeSearch);
+        })->values();
+    }
+
+    public function selectPhoneCode($phonecode)
+    {
+        $this->restaurantPhoneCode = $phonecode;
+        $this->phoneCodeIsOpen = false;
+        $this->phoneCodeSearch = '';
+        $this->updatedPhoneCodeSearch();
     }
 
     public function submitForm()
@@ -56,7 +105,11 @@ class AddRestaurant extends Component
             'restaurantName' => 'required',
             'fullName' => 'required',
             'email' => 'required|unique:users,email',
-            'password' => 'required'
+            'password' => 'required',
+            'restaurantPhoneNumber' => [
+                'required',
+                'regex:/^[0-9\s]{8,20}$/',
+            ],
         ]);
 
         $this->showUserForm = false;
@@ -65,15 +118,22 @@ class AddRestaurant extends Component
 
     public function submitForm2()
     {
+        // Prevent double submission
+        if ($this->isSubmitting) {
+            return;
+        }
+
+        $this->isSubmitting = true;
 
         $timezone = (new User)->getTimezoneFromIp();
 
-        $this->validate([
-            'address' => 'required',
-            'branchName' => 'required'
-        ]);
+        try {
+            $this->validate([
+                'address' => 'required',
+                'branchName' => 'required',
+            ]);
 
-        $restaurant = new Restaurant();
+            $restaurant = new Restaurant();
         $restaurant->name = $this->restaurantName;
         $package = Package::firstWhere('package_type', PackageType::DEFAULT);
 
@@ -89,11 +149,13 @@ class AddRestaurant extends Component
         $restaurant->email = $this->email;
         $restaurant->country_id = $this->country;
         $restaurant->license_type = $this->licenseType;
-        $restaurant->is_active = (bool) $this->status;
+        $restaurant->phone_number = $this->restaurantPhoneNumber;
+        $restaurant->phone_code = $this->restaurantPhoneCode;
+        $restaurant->is_active = (bool)$this->status;
         $restaurant->facebook_link = $this->facebook;
         $restaurant->instagram_link = $this->instagram;
         $restaurant->twitter_link = $this->twitter;
-        $restaurant->is_active = true;
+        $restaurant->customer_site_language = 'en';
         $restaurant->save();
 
         $branch = Branch::create([
@@ -105,6 +167,8 @@ class AddRestaurant extends Component
         $user = User::create([
             'name' => $this->fullName,
             'email' => $this->email,
+            'phone_number' => $this->restaurantPhoneNumber,
+            'phone_code' => $this->restaurantPhoneCode,
             'password' => bcrypt($this->password),
             'facebook' => $this->facebook,
             'instagram' => $this->instagram,
@@ -128,19 +192,26 @@ class AddRestaurant extends Component
 
 
         try {
-            $user->notify(new WelcomeRestaurantEmail($restaurant));
+            $user->notify(new WelcomeRestaurantEmail($restaurant, $this->password));
         } catch (\Exception $e) {
-            \Log::error('Error sending restaurant welcome email: ' . $e->getMessage());
+            Log::error('Error sending restaurant welcome email: ' . $e->getMessage());
         }
 
-        return $this->redirect(route('superadmin.restaurants.index'), navigate: true);
+            // Reset isSubmitting and redirect with page reload
+            $this->isSubmitting = false;
+            return $this->redirect(route('superadmin.restaurants.index'), navigate: false);
+        } catch (\Exception $e) {
+            $this->isSubmitting = false;
+            throw $e;
+        }
     }
 
     public function render()
     {
-        return view('livewire.forms.add-restaurant');
+        return view('livewire.forms.add-restaurant', [
+            'phonecodes' => $this->filteredPhoneCodes,
+        ]);
     }
-
 
     /**
      * Validate the subdomain input
@@ -179,4 +250,5 @@ class AddRestaurant extends Component
 
         return true;
     }
+
 }

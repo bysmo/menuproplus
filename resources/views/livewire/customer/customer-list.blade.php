@@ -71,7 +71,7 @@
 
     @props(['id' => null, 'maxWidth' => null])
 
-    <x-modal :id="$id" :maxWidth="$maxWidth" {{ $attributes }} wire:model="showImportCustomer">
+    <x-modal :id="$id" :maxWidth="$maxWidth" {{ $attributes }} wire:model="showImportCustomer" wire:close="closeImportCustomer">
     <div class="px-6 py-4">
         <div class="text-lg font-medium text-gray-900 dark:text-gray-100">
             {{ __('modules.customer.importCustomer') }}
@@ -91,7 +91,9 @@
         <form wire:submit.prevent="importCustomerList" class="flex items-center space-x-2">
             <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
                 <input type="file" wire:model="file" accept=".xlsx,.xls,.csv" id="file"
-                    class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                    class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                    x-data="{ resetFile() { this.value = ''; } }"
+                    x-on:reset-file-input.window="resetFile()">
                 @error('file') <span class="text-red-500">{{ $message }}</span> @enderror
             </div>
         </div>
@@ -101,6 +103,9 @@
         @endif
 
         <div class="flex flex-row justify-end px-6 py-4 bg-gray-100 dark:bg-gray-800 text-end">
+            <x-secondary-button wire:click="closeImportCustomer" class="mr-2">
+                @lang('app.cancel')
+            </x-secondary-button>
             <x-button type="submit"> @lang('app.import') </x-button>
         </div>
         </form>

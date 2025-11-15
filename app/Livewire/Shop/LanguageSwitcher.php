@@ -10,10 +10,10 @@ class LanguageSwitcher extends Component
 
     public function setLanguage($locale)
     {
-        session(['locale' => $locale]);
+        session(['customer_locale' => $locale]);
         $language = LanguageSetting::where('language_code', $locale)->first();
         $isRtl = ($language->is_rtl == 1);
-        session(['isRtl' => $isRtl]);
+        session(['customer_is_rtl' => $isRtl]);
 
         $this->js('window.location.reload()');
 
@@ -21,7 +21,7 @@ class LanguageSwitcher extends Component
 
     public function render()
     {
-        $locale = session('locale') ?? global_setting()->locale;
+        $locale = session('customer_locale') ?? global_setting()->locale;
 
         $activeLanguage = LanguageSetting::where('language_code', $locale)->first();
 

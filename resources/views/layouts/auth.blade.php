@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ session('locale') ?? global_setting()->locale }}">
+<html lang="{{ session('customer_locale') ?? global_setting()->locale }}" dir="{{ session('customer_is_rtl') ? 'rtl' : 'ltr' }}">
 
 <head>
     <link rel="manifest" href="{{ asset('manifest.json') }}" crossorigin="use-credentials">
@@ -68,23 +68,29 @@
         </button>
         <div id="tooltip-toggle" role="tooltip"
             class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip">
-            Toggle dark mode
+            @lang('app.toggleDarkMode')
             <div class="tooltip-arrow" data-popper-arrow></div>
         </div>
 
         <div
-            class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gradient-to-br from-secondary to-skin-base">
+            class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
             <div class="flex flex-col justify-center items-center space-y-4">
                 <a class="flex gap-2 items-center text-xl font-medium dark:text-white app-logo">
-                    <img src="{{ $appTheme->logoUrl }}" class="h-8" alt="{{ global_setting()->name }} Logo" />
+                    <img src="{{ $appTheme->logoUrl }}" class="h-8" alt="Logo" />
                     @if ($appTheme->show_logo_text)
                         {{ $appTheme->name }}
                     @endif
                 </a>
-
-
             </div>
+
             {{ $slot }}
+
+
+            @if (languages()->count() > 1)
+                <div class="mt-4">
+                    @livewire('shop.languageSwitcher')
+                </div>
+            @endif
         </div>
     </div>
 
@@ -138,7 +144,7 @@
             if ((isIOS && !isInStandaloneMode) || deferredPrompt) {
                 const lastPrompt = localStorage.getItem('iosPromptLastShown');
                 const now = new Date().getTime();
-                
+
                 if (!lastPrompt || (now - parseInt(lastPrompt)) > 24 * 60 * 60 * 1000) {
                     ['scroll', 'click'].forEach(event => {
                         window.addEventListener(event, showIOSInstallInstructions, { once: true });
@@ -173,3 +179,5 @@
         })
     </script>
 @endif
+
+

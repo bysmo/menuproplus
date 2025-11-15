@@ -1,5 +1,5 @@
 <div>
-    <div class="flex flex-col my-4 grid gap-6 grid-cols-3">
+    <div class="my-4 grid gap-6 grid-cols-3">
         <!-- Card Section -->
         <div class="space-y-8 col-span-2">
             @foreach ($tables as $area)
@@ -12,33 +12,47 @@
 
                     <div class="grid sm:grid-cols-3 gap-3 sm:gap-4">
                         @foreach ($area->tables as $item)
-                        <a
-                        @class(['group flex items-center justify-center border shadow-sm rounded-lg hover:shadow-md transition dark:bg-gray-700 dark:border-gray-600', 'bg-red-50' => ($item->status == 'inactive'), 'bg-white' => ($item->status == 'active')]) wire:click='setReservationTable({{ $item->id }})'
-                        wire:key='table-{{ $item->id . microtime() }}'
-                            href="javascript:;">
-                            <div class="p-3">
-                                <div class="flex flex-col space-y-2 items-center justify-center">
-                                    @if ($item->status == 'inactive')
-                                        <div class="inline-flex text-xs gap-1 text-red-600 font-semibold">
-                                            @lang('app.inactive')
+                        @php
+                            $isAvailable = $this->isTableAvailable($item->id);
+                            $conflictingInfo = $this->getConflictingReservationInfo($item->id);
+                        @endphp
+
+                        <div class="relative">
+                            <div
+                            @class([
+                                'group flex items-center justify-center border shadow-sm rounded-lg transition dark:bg-gray-700 dark:border-gray-600', 'bg-red-50 border-red-200 hover:shadow-md cursor-pointer' => ($item->status == 'inactive'),
+                                'bg-white hover:shadow-md cursor-pointer' => ($item->status == 'active' && $isAvailable),
+                                'bg-gray-100 border-gray-300 cursor-not-allowed opacity-60' => ($item->status == 'active' && !$isAvailable),
+                            ])
+                            @if($isAvailable && $item->status == 'active')
+                                wire:click='setReservationTable({{ $item->id }})'
+                            @endif
+                            wire:key='table-{{ $item->id . microtime() }}'
+                            title="{{ !$isAvailable && $item->status == 'active' ? 'Table is already reserved for this time' : '' }}">
+                                <div class="p-3">
+                                    <div class="flex flex-col space-y-2 items-center justify-center">
+                                        @if ($item->status == 'inactive')
+                                            <div class="inline-flex text-xs gap-1 text-red-600 font-semibold">
+                                                @lang('app.inactive')
+                                            </div>
+                                        @endif
+                                        <div @class(['p-2 rounded-lg tracking-wide ',
+                                        'bg-green-100 text-green-600' => ($item->available_status == 'available' && $isAvailable),
+                                        'bg-red-100 text-red-600' => ($item->available_status == 'reserved' || !$isAvailable),
+                                        'bg-blue-100 text-blue-600' => ($item->available_status == 'running')])>
+                                            <h3 wire:loading.class.delay='opacity-50'
+                                                @class(['font-semibold'])>
+                                                {{ $item->table_code }}
+                                            </h3>
                                         </div>
-                                    @endif
-                                    <div @class(['p-2 rounded-lg tracking-wide ',
-                                    'bg-green-100 text-green-600' => ($item->available_status == 'available'),
-                                    'bg-red-100 text-red-600' => ($item->available_status == 'reserved'),
-                                    'bg-blue-100 text-blue-600' => ($item->available_status == 'running')])>
-                                        <h3 wire:loading.class.delay='opacity-50'
-                                            @class(['font-semibold'])>
-                                            {{ $item->table_code }}
-                                        </h3>
+                                        <p
+                                        @class(['text-xs font-medium dark:text-neutral-200 text-gray-500'])>
+                                            {{ $item->seating_capacity }} @lang('modules.table.seats')
+                                        </p>
                                     </div>
-                                    <p
-                                    @class(['text-xs font-medium dark:text-neutral-200 text-gray-500'])>
-                                        {{ $item->seating_capacity }} @lang('modules.table.seats')
-                                    </p>
                                 </div>
                             </div>
-                        </a>
+                        </div>
                         <!-- End Card -->
                         @endforeach
                     </div>
@@ -51,6 +65,18 @@
 
         <div class="col-span-1 space-y-3 bg-gray-50 dark:bg-neutral-900/30 rounded-md p-3">
             <h4 class="text-xs font-semibold">@lang('modules.reservation.reservedTables'): {{ $reservation->reservation_date_time->translatedFormat('d F') }}</h4>
+
+            @if ($reservation->table_id)
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+                <h5 class="text-xs font-semibold text-blue-800 dark:text-blue-200 mb-2">@lang('modules.reservation.currentTable')</h5>
+                <div class="flex items-center gap-2">
+                    <div class="p-2 rounded-md bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200">
+                        <span class="font-semibold text-sm">{{ $reservation->table->table_code }}</span>
+                    </div>
+                    <span class="text-xs text-blue-600 dark:text-blue-300">{{ $reservation->table->seating_capacity }} @lang('modules.table.seats')</span>
+                </div>
+            </div>
+            @endif
 
             @forelse ($reservations as $item)
             <div class="flex flex-col bg-white border shadow-sm rounded-xl dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70 p-2">

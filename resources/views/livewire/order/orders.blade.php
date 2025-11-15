@@ -4,18 +4,41 @@
             <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">@lang('menu.orders') ({{ $orders->count() }})</h1>
             <div class="ml-auto flex items-center gap-4">
                 <div class="flex items-center gap-2">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" class="sr-only peer" wire:model.live="pollingEnabled">
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">@lang('app.autoRefresh')</span>
-                    </label>
-                    <x-select class="w-32 text-sm" wire:model.live="pollingInterval" :disabled="!$pollingEnabled">
-                        <option value="5">5 @lang('app.seconds')</option>
-                        <option value="10">10 @lang('app.seconds')</option>
-                        <option value="15">15 @lang('app.seconds')</option>
-                        <option value="30">30 @lang('app.seconds')</option>
-                        <option value="60">1 @lang('app.minute')</option>
+                    @if(pusherSettings()->is_enabled_pusher_broadcast)
+                        <div class="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                            <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                            @lang('app.realTime')
+                        </div>
+                    @else
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" wire:model.live="pollingEnabled">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">@lang('app.autoRefresh')</span>
+                        </label>
+                        <x-select class="w-32 text-sm" wire:model.live="pollingInterval" :disabled="!$pollingEnabled">
+                            <option value="5">5 @lang('app.seconds')</option>
+                            <option value="10">10 @lang('app.seconds')</option>
+                            <option value="15">15 @lang('app.seconds')</option>
+                            <option value="30">30 @lang('app.seconds')</option>
+                            <option value="60">1 @lang('app.minute')</option>
+                        </x-select>
+                    @endif
+
+                    <x-select class="w-32 text-sm" wire:model.live.debounce.250ms='filterOrderType'>
+                        <option value="">@lang('modules.order.all')</option>
+                        <option value="dine_in">@lang('modules.order.dine_in')</option>
+                        <option value="delivery">@lang('modules.order.delivery')</option>
+                        <option value="pickup">@lang('modules.order.pickup')</option>
                     </x-select>
+
+                    <x-select class="w-40 text-sm" wire:model.live.debounce.250ms='filterDeliveryApp'>
+                        <option value="">@lang('modules.report.allDeliveryApps')</option>
+                        <option value="direct">@lang('modules.report.directDelivery')</option>
+                        @foreach ($deliveryApps as $app)
+                            <option value="{{ $app->id }}">{{ $app->name }}</option>
+                        @endforeach
+                    </x-select>
+
                 </div>
             </div>
         </div>
@@ -23,7 +46,7 @@
         <div class="items-center justify-between block sm:flex ">
             <div class="lg:flex items-center mb-4 sm:mb-0">
                 <form class="ltr:sm:pr-3 rtl:sm:pl-3" action="#" method="GET">
-                    
+
                     <div class="lg:flex gap-2 items-center">
                         <x-select id="dateRangeType" class="block w-fit" wire:model="dateRangeType"
                          wire:change="setDateRange">
@@ -72,30 +95,60 @@
                         <option value="delivered">@lang('modules.order.delivered') ({{ $deliveredOrdersCount }})</option>
                     </x-select>
 
+                    @if(!user()->hasRole('Waiter_' . user()->restaurant_id))
                     <x-select class="text-sm w-full" wire:model.live.debounce.250ms='filterWaiter'>
                         <option value="">@lang('app.showAll') @lang('modules.order.waiter')</option>
                         @foreach ($waiters as $waiter)
                             <option value="{{ $waiter->id }}">{{ $waiter->name }}</option>
                         @endforeach
                     </x-select>
+                    @endif
+
                 </div>
-                
+
             </div>
 
-            @if(user_can('Create Order'))
+            @php
+                $orderStats = getRestaurantOrderStats(branch()->id);
+                $canCreateOrder = user_can('Create Order');
+                $orderLimitExceeded = $canCreateOrder && $orderStats && !$orderStats['unlimited'] && $orderStats['current_count'] >= $orderStats['order_limit'];
+            @endphp
+            @if($canCreateOrder && $orderStats && !$orderStats['unlimited'] && $orderStats['current_count'] < $orderStats['order_limit'])
                 <x-primary-link wire:navigate href="{{ route('pos.index') }}">@lang('modules.order.newOrder')</x-primary-link>
             @endif
 
+           
+
         </div>
+        @if($orderLimitExceeded)
+            <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+                <div class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-semibold text-red-800 dark:text-red-300">
+                            @lang('modules.order.orderLimitExceeded')
+                        </h3>
+                        <p class="mt-1 text-sm text-red-700 dark:text-red-400">
+                            @lang('modules.order.orderLimitExceededMessage', [
+                                'current' => number_format($orderStats['current_count']),
+                                'limit' => number_format($orderStats['order_limit'])
+                            ])
+                        </p>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     <div class="flex flex-col my-4 px-4">
 
         <!-- Card Section -->
         <div class="space-y-4">
-        
-            
-            <div wire:loading> 
+
+
+            <div wire:loading>
                 <div class="grid sm:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4">
                     @for ($i = 0; $i < 6; $i++)
                         <div class="flex-col gap-3 items-center border bg-white shadow-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 p-3 animate-pulse">
@@ -104,14 +157,14 @@
                                     <div class="flex gap-3 space-y-1">
                                         <!-- Table/Order Type Icon -->
                                         <div class="p-3 rounded-lg bg-gray-200 dark:bg-gray-600 w-10 h-10"></div>
-                                        
+
                                         <!-- Customer Info -->
                                         <div>
                                             <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded w-32 mb-1"></div>
                                             <div class="h-3 bg-gray-200 dark:bg-gray-600 rounded w-24"></div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Status -->
                                     <div class="ltr:text-right rtl:text-left">
                                         <div class="h-5 bg-gray-200 dark:bg-gray-600 rounded w-20 mb-1"></div>
@@ -135,8 +188,8 @@
                     @endfor
                 </div>
             </div>
-            
-            <div class="grid sm:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4" wire:loading.remove>                
+
+            <div class="grid sm:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4" wire:loading.remove>
                 @foreach ($orders as $item)
                     <x-order.order-card :order='$item' wire:key='order-{{ $item->id . microtime() }}' />
                 @endforeach
@@ -146,6 +199,13 @@
 
 
     </div>
+
+    {{-- Sound notification for new orders --}}
+    @if ($playSound)
+    <script>    
+        new Audio("{{ asset('sound/new_order.wav')}}").play();
+    </script>
+    @endif
 
     @script
     <script>
@@ -163,43 +223,460 @@
 
         // Handle polling
         let pollingInterval = null;
+        let pusherChannel = null;
 
         function startPolling() {
+            console.log('🔄 Starting polling for orders...');
             if (pollingInterval) {
+                console.log('🔄 Clearing existing polling interval');
                 clearInterval(pollingInterval);
             }
             const interval = $wire.get('pollingInterval') * 1000;
+            console.log('📊 Orders polling settings:', {
+                interval: interval,
+                intervalSeconds: $wire.get('pollingInterval'),
+                pollingEnabled: $wire.get('pollingEnabled')
+            });
             pollingInterval = setInterval(() => {
                 if ($wire.get('pollingEnabled')) {
+                    console.log('🔄 Orders polling: Refreshing data...');
                     $wire.$refresh();
+                } else {
+                    console.log('⏸️ Orders polling: Disabled, stopping...');
+                    stopPolling();
                 }
             }, interval);
+            console.log('✅ Orders polling started');
         }
 
         function stopPolling() {
+            console.log('🛑 Stopping polling for orders...');
             if (pollingInterval) {
                 clearInterval(pollingInterval);
                 pollingInterval = null;
+                console.log('✅ Orders polling stopped');
+            } else {
+                console.log('⚠️ Orders polling was already stopped');
             }
         }
 
-        // Initialize polling
-        if ($wire.get('pollingEnabled')) {
-            startPolling();
+        function initializePusher() {
+            try {
+                console.log('🚀 Initializing Pusher for orders...');
+
+                if (typeof window.PUSHER === 'undefined') {
+                    console.error('❌ PUSHER is not defined for orders');
+                    return;
+                }
+
+                console.log('📊 Pusher orders connection state:', window.PUSHER.connection.state);
+                console.log('🔗 Pusher orders connection options:', {
+                    encrypted: window.PUSHER.connection.options.encrypted,
+                    cluster: window.PUSHER.connection.options.cluster,
+                    key: window.PUSHER.connection.options.key ? '***' + window.PUSHER.connection.options.key.slice(-4) : 'undefined'
+                });
+
+                // Add comprehensive connection event listeners
+                window.PUSHER.connection.bind('connected', () => {
+                    console.log('✅ Pusher orders connected successfully!');
+                    console.log('📊 Pusher orders connection ID:', window.PUSHER.connection.connection_id);
+                    console.log('🔗 Pusher orders socket ID:', window.PUSHER.connection.socket_id);
+                });
+
+                window.PUSHER.connection.bind('disconnected', () => {
+                    console.log('❌ Pusher orders disconnected!');
+                });
+
+
+
+                window.PUSHER.connection.bind('connecting', () => {
+                    console.log('🔄 Pusher orders connecting...');
+                });
+
+                window.PUSHER.connection.bind('reconnecting', () => {
+                    console.log('🔄 Pusher orders reconnecting...');
+                });
+
+                // Listen for Livewire events for new orders (works even without Pusher)
+                Livewire.on('newOrderCreated', (data) => {
+                    console.log('✅ Livewire event received for new order!', data);
+                    // Play sound immediately for new order
+                    new Audio("{{ asset('sound/new_order.wav')}}").play();
+                    // Refresh the component to show new order
+                    $wire.call('refreshNewOrders');
+                });
+
+                window.PUSHER.connection.bind('reconnected', () => {
+                    console.log('✅ Pusher orders reconnected!');
+                    console.log('📊 Pusher orders reconnection details:', {
+                        socketId: window.PUSHER.connection.socket_id,
+                        connectionId: window.PUSHER.connection.connection_id,
+                        state: window.PUSHER.connection.state
+                    });
+                });
+
+                // Add connection retry logic
+                let connectionRetryCount = 0;
+                const maxRetries = 3;
+
+                    window.PUSHER.connection.bind('error', (error) => {
+                    connectionRetryCount++;
+                    console.error(`❌ Pusher orders connection error (attempt ${connectionRetryCount}/${maxRetries}):`, error);
+                    console.error('❌ Pusher orders error details:', {
+                        type: error.type,
+                        error: error.error,
+                        data: error.data,
+                        message: error.message,
+                        code: error.code
+                    });
+
+                    // Log additional debugging info
+                    console.error('🔍 Pusher orders debugging info:', {
+                        connectionState: window.PUSHER.connection.state,
+                        socketId: window.PUSHER.connection.socket_id,
+                        connectionId: window.PUSHER.connection.connection_id,
+                        options: window.PUSHER.connection.options,
+                        url: window.PUSHER.connection.options.wsHost || 'default',
+                        encrypted: window.PUSHER.connection.options.encrypted,
+                        cluster: window.PUSHER.connection.options.cluster
+                    });
+
+                    // Check if it's a WebSocket error
+                    if (error.type === 'WebSocketError') {
+                        console.error('🌐 WebSocket specific error:', {
+                            wsError: error.error,
+                            wsErrorType: error.error?.type,
+                            wsErrorData: error.error?.data
+                        });
+
+                        // Check for quota exceeded error
+                        if (error.error?.data?.code === 4004) {
+                            console.error('❌ PUSHER QUOTA EXCEEDED: Account has exceeded its usage limits');
+                            console.error('💡 Solutions:');
+                            console.error('   1. Upgrade your Pusher plan');
+                            console.error('   2. Reduce connection count');
+                            console.error('   3. Switch to polling mode temporarily');
+
+                            // Automatically fall back to polling after quota error
+                            if (connectionRetryCount >= 2) {
+                                console.error('🔄 Falling back to polling due to quota exceeded');
+                                stopPusher();
+                                if ($wire.get('pollingEnabled')) {
+                                    startPolling();
+                                }
+                            }
+                        }
+                    }
+
+                    if (connectionRetryCount >= maxRetries) {
+                        console.error('❌ Pusher orders: Max retry attempts reached, falling back to polling');
+                        // Fall back to polling
+                        stopPusher();
+                        if ($wire.get('pollingEnabled')) {
+                            startPolling();
+                        }
+                    }
+                });
+
+                window.PUSHER.connection.bind('connected', () => {
+                    connectionRetryCount = 0; // Reset retry count on successful connection
+                    console.log('✅ Pusher orders connected successfully!');
+                    console.log('📊 Pusher orders connection ID:', window.PUSHER.connection.connection_id);
+                    console.log('🔗 Pusher orders socket ID:', window.PUSHER.connection.socket_id);
+
+                    // Log connection for monitoring (optional - remove if not needed)
+                    try {
+                        fetch('/api/log-pusher-connection', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                socket_id: window.PUSHER.connection.socket_id,
+                                connection_id: window.PUSHER.connection.connection_id,
+                                component: 'orders',
+                                timestamp: new Date().toISOString()
+                            })
+                        }).catch(err => console.log('📊 Connection logging failed (optional):', err));
+                    } catch (err) {
+                        console.log('📊 Connection logging not available');
+                    }
+                });
+
+                // Subscribe to orders channel
+                console.log('📡 Subscribing to orders channel...');
+                pusherChannel = window.PUSHER.subscribe('orders');
+
+                // Add comprehensive subscription event listeners
+                pusherChannel.bind('pusher:subscription_succeeded', () => {
+                    console.log('✅ Pusher orders: Successfully subscribed to orders channel!');
+                    console.log('📊 Pusher orders channel state:', {
+                        subscribed: pusherChannel.subscribed,
+                        subscriptionPending: pusherChannel.subscriptionPending,
+                        name: pusherChannel.name
+                    });
+                });
+
+                pusherChannel.bind('pusher:subscription_error', (error) => {
+                    console.error('❌ Pusher orders subscription error:', error);
+                    console.error('❌ Pusher orders subscription error details:', {
+                        error: error.error,
+                        type: error.type,
+                        data: error.data
+                    });
+                });
+
+                // Bind to order events
+                pusherChannel.bind('order.updated', function(data) {
+                    console.log('🎉 Pusher orders: Order updated via Pusher:', data);
+                    console.log('📊 Pusher orders: Order update details:', {
+                        order_id: data.order_id,
+                        timestamp: new Date().toISOString(),
+                        event_type: 'order.updated'
+                    });
+                    $wire.$refresh();
+                });
+
+                pusherChannel.bind('order.created', function(data) {
+                    console.log('🎉 Pusher orders: New order created via Pusher:', data);
+                    console.log('📊 Pusher orders: Order creation details:', {
+                        order_id: data.order_id,
+                        order_number: data.order_number,
+                        timestamp: new Date().toISOString(),
+                        event_type: 'order.created'
+                    });
+                    // Play sound for new order
+                    new Audio("{{ asset('sound/new_order.wav')}}").play();
+                    // Trigger handleNewOrder to show popup
+                    $wire.call('handleNewOrder', data);
+                });
+
+                // Debug: show all event bindings on the channel
+                if (pusherChannel && typeof pusherChannel.eventNames === 'function') {
+                    console.log('📋 Pusher orders channel event bindings:', pusherChannel.eventNames());
+                }
+
+                // Check if the channel is actually subscribed
+                if (pusherChannel && typeof pusherChannel.subscriptionPending !== 'undefined') {
+                    if (pusherChannel.subscriptionPending) {
+                        console.log('⏳ Pusher orders subscription is pending...');
+                    } else if (pusherChannel.subscribed) {
+                        console.log('✅ Pusher orders channel is subscribed.');
+                    } else {
+                        console.log('❌ Pusher orders channel is not subscribed yet.');
+                    }
+                }
+
+                // Log channel properties
+                console.log('📊 Pusher orders channel properties:', {
+                    name: pusherChannel.name,
+                    subscribed: pusherChannel.subscribed,
+                    subscriptionPending: pusherChannel.subscriptionPending,
+                    eventNames: typeof pusherChannel.eventNames === 'function' ? pusherChannel.eventNames() : 'N/A'
+                });
+
+                // Log connection details
+                console.log('📊 Pusher orders connection details:', {
+                    state: window.PUSHER.connection.state,
+                    socket_id: window.PUSHER.connection.socket_id,
+                    connection_id: window.PUSHER.connection.connection_id,
+                    options: {
+                        encrypted: window.PUSHER.connection.options.encrypted,
+                        cluster: window.PUSHER.connection.options.cluster,
+                        key: window.PUSHER.connection.options.key ? '***' + window.PUSHER.connection.options.key.slice(-4) : 'undefined'
+                    }
+                });
+
+                console.log('✅ Pusher orders initialized successfully');
+
+            } catch (error) {
+                console.error('❌ Pusher orders initialization failed:', error);
+                console.error('❌ Pusher orders error stack:', error.stack);
+            }
         }
+
+        function stopPusher() {
+            console.log('🛑 Stopping Pusher for orders...');
+            if (pusherChannel) {
+                console.log('📊 Pusher orders channel state before unsubscribe:', {
+                    name: pusherChannel.name,
+                    subscribed: pusherChannel.subscribed,
+                    subscriptionPending: pusherChannel.subscriptionPending
+                });
+                pusherChannel.unsubscribe();
+                console.log('✅ Pusher orders channel unsubscribed');
+                pusherChannel = null;
+            } else {
+                console.log('⚠️ Pusher orders channel was already null');
+            }
+
+            // Clean up any event listeners
+            if (window.PUSHER && window.PUSHER.connection) {
+                try {
+                    window.PUSHER.connection.unbind('connected');
+                    window.PUSHER.connection.unbind('disconnected');
+                    window.PUSHER.connection.unbind('error');
+                    window.PUSHER.connection.unbind('connecting');
+                    window.PUSHER.connection.unbind('reconnecting');
+                    window.PUSHER.connection.unbind('reconnected');
+                    console.log('🧹 Pusher orders connection event listeners cleaned up');
+                } catch (err) {
+                    console.log('⚠️ Error cleaning up Pusher event listeners:', err);
+                }
+            }
+        }
+
+                function testPusherConnection() {
+            console.log('🧪 Testing Pusher connection...');
+            console.log('📊 Pusher settings:', {
+                defined: typeof window.PUSHER !== 'undefined',
+                settingsDefined: typeof window.PUSHER_SETTINGS !== 'undefined',
+                broadcastEnabled: typeof window.PUSHER_SETTINGS !== 'undefined' ? window.PUSHER_SETTINGS.is_enabled_pusher_broadcast : 'undefined'
+            });
+
+            if (typeof window.PUSHER_SETTINGS !== 'undefined') {
+                console.log('📊 PUSHER_SETTINGS details:', {
+                    pusher_key: window.PUSHER_SETTINGS.pusher_key,
+                    pusher_cluster: window.PUSHER_SETTINGS.pusher_cluster,
+                    pusher_app_id: window.PUSHER_SETTINGS.pusher_app_id,
+                    is_enabled_pusher_broadcast: window.PUSHER_SETTINGS.is_enabled_pusher_broadcast
+                });
+            }
+
+            if (typeof window.PUSHER !== 'undefined') {
+                console.log('📊 Pusher connection state:', window.PUSHER.connection.state);
+                console.log('📊 Pusher connection options:', window.PUSHER.connection.options);
+            }
+        }
+
+        function refreshPusherSettings() {
+            console.log('🔄 Refreshing Pusher settings...');
+            // Clear any cached settings and reload
+            if (typeof window.PUSHER_SETTINGS !== 'undefined') {
+                delete window.PUSHER_SETTINGS;
+            }
+            if (typeof window.PUSHER !== 'undefined') {
+                delete window.PUSHER;
+            }
+            console.log('✅ Pusher settings cleared, reload page to refresh');
+        }
+
+                function disablePusherTemporarily() {
+            console.log('🛑 Temporarily disabling Pusher due to quota issues...');
+            // Send request to disable Pusher temporarily
+            fetch('/api/disable-pusher-temporarily', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            }).then(() => {
+                console.log('✅ Pusher disabled, switching to polling...');
+                stopPusher();
+                if ($wire.get('pollingEnabled')) {
+                    startPolling();
+                }
+            }).catch(err => {
+                console.log('❌ Failed to disable Pusher:', err);
+            });
+        }
+
+        function forceDisconnectAllConnections() {
+            console.log('🛑 Force disconnecting all Pusher connections...');
+
+            // Disconnect global Pusher
+            if (window.GLOBAL_PUSHER) {
+                window.GLOBAL_PUSHER.disconnect();
+                console.log('✅ Global Pusher disconnected');
+            }
+
+            // Disconnect local Pusher
+            if (window.PUSHER) {
+                window.PUSHER.disconnect();
+                console.log('✅ Local Pusher disconnected');
+            }
+
+            // Clear all references
+            window.GLOBAL_PUSHER = null;
+            window.PUSHER = null;
+            pusherChannel = null;
+
+            console.log('🧹 All Pusher connections cleared');
+            console.log('💡 Reload the page to reconnect with fresh connections');
+        }
+
+                // Listen for Livewire events on document level for new order notifications
+                document.addEventListener('livewire:init', () => {
+                    console.log('🔧 Setting up new order event listeners...');
+
+                    Livewire.on('newOrderCreated', (data) => {
+                        console.log('✅ Livewire event received for new order!', data);
+                        // Play sound immediately for new order
+                        new Audio("{{ asset('sound/new_order.wav')}}").play();
+                        // This ensures the event is caught even if the component listener fails
+                    });
+
+                    console.log('🔧 Order component event listeners ready!');
+                });
+
+                // Initialize real-time updates
+                document.addEventListener('livewire:initialized', () => {
+            console.log('🚀 Livewire orders component initialized');
+            console.log('📊 Pusher settings check:', {
+                pusherSettingsDefined: typeof window.PUSHER_SETTINGS !== 'undefined',
+                pusherBroadcastEnabled: typeof window.PUSHER_SETTINGS !== 'undefined' ? window.PUSHER_SETTINGS.is_enabled_pusher_broadcast : 'undefined'
+            });
+
+            // Test Pusher connection for debugging
+            testPusherConnection();
+
+            // Add manual refresh option for debugging
+            window.refreshPusherSettings = refreshPusherSettings;
+            window.disablePusherTemporarily = disablePusherTemporarily;
+            window.forceDisconnectAllConnections = forceDisconnectAllConnections;
+            console.log('🛠️ Debug: Use refreshPusherSettings() in console to clear cached settings');
+            console.log('🛠️ Debug: Use disablePusherTemporarily() in console to disable Pusher due to quota issues');
+            console.log('🛠️ Debug: Use forceDisconnectAllConnections() in console to force disconnect all connections');
+
+            if (typeof window.PUSHER_SETTINGS !== 'undefined' && window.PUSHER_SETTINGS.is_enabled_pusher_broadcast) {
+                console.log('✅ Pusher orders: Using Pusher for real-time updates');
+                initializePusher();
+            } else {
+                console.log('📡 Pusher orders: Using polling for real-time updates');
+                console.log('📊 Pusher orders polling settings:', {
+                    pollingEnabled: $wire.get('pollingEnabled'),
+                    pollingInterval: $wire.get('pollingInterval')
+                });
+                if ($wire.get('pollingEnabled')) {
+                    startPolling();
+                }
+            }
+        });
 
         // Watch for changes
         $wire.watch('pollingEnabled', (value) => {
-            if (value) {
-                startPolling();
+            console.log('👀 Orders pollingEnabled changed:', value);
+            if (typeof window.PUSHER_SETTINGS !== 'undefined' && !window.PUSHER_SETTINGS.is_enabled_pusher_broadcast) {
+                if (value) {
+                    console.log('🔄 Orders: Starting polling due to pollingEnabled change');
+                    startPolling();
+                } else {
+                    console.log('🛑 Orders: Stopping polling due to pollingEnabled change');
+                    stopPolling();
+                }
             } else {
-                stopPolling();
+                console.log('📡 Orders: Pusher is enabled, ignoring polling changes');
             }
         });
 
         $wire.watch('pollingInterval', (value) => {
-            if ($wire.get('pollingEnabled')) {
+            console.log('👀 Orders pollingInterval changed:', value);
+            if (typeof window.PUSHER_SETTINGS !== 'undefined' && !window.PUSHER_SETTINGS.is_enabled_pusher_broadcast && $wire.get('pollingEnabled')) {
+                console.log('🔄 Orders: Restarting polling due to interval change');
                 startPolling();
+            } else {
+                console.log('📡 Orders: Pusher is enabled or polling disabled, ignoring interval change');
             }
         });
 
@@ -207,9 +684,10 @@
         document.addEventListener('livewire:initialized', () => {
             return () => {
                 stopPolling();
+                stopPusher();
             };
         });
     </script>
     @endscript
-    
+
 </div>

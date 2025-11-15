@@ -2,11 +2,13 @@
 
 namespace App\Helper;
 
+use Exception;
 use App\Models\FileStorage;
 use App\Models\StorageSetting;
-use Froiden\RestAPI\Exceptions\ApiException;
 use Illuminate\Support\Facades\File;
+use Intervention\Image\ImageManager;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManagerStatic as Image;
 
 class Files
@@ -34,7 +36,11 @@ class Files
         $uploadedFile = $image;
         $folder = $dir . '/';
 
-        self::validateUploadedFile($uploadedFile);
+        try {
+            self::validateUploadedFile($uploadedFile);
+        } catch (Exception $e) {
+            dd($e->getMessage());
+        }
 
         $newName = $name ?: self::generateNewFileName($uploadedFile->getClientOriginalName());
 
@@ -66,32 +72,117 @@ class Files
     }
 
     /**
-     * @throws ApiException
+     * @throws Exception
      */
     public static function validateUploadedFile($uploadedFile)
     {
-        if (!$uploadedFile) {
-            throw new ApiException('File was not uploaded correctly. Try again new file upload');
+        // Check if file is valid
+        if ($uploadedFile && !$uploadedFile->isValid()) {
+            throw new Exception('File was not uploaded correctly');
         }
 
-        if ($uploadedFile->getClientOriginalExtension() === 'php' || $uploadedFile->getMimeType() === 'text/x-php') {
-            throw new ApiException('You are not allowed to upload the php file on server', null, 422, 422, 2023);
+        // Disallow dangerous extensions and mime types
+        $forbiddenExtensions = [
+            'php',
+            'php3',
+            'php4',
+            'php5',
+            'phtml',
+            'phar',
+            'sh',
+            'htaccess',
+            'pl',
+            'cgi',
+            'exe',
+            'bat',
+            'cmd',
+            'com',
+            'scr',
+            'dll',
+            'js',
+            'jsp',
+            'asp',
+            'aspx',
+            'cer',
+            'csr',
+            'jsp',
+            'jspx',
+            'war',
+            'jar',
+            'vb',
+            'vbs',
+            'wsf',
+            'ps1',
+            'ps2',
+            'xml'
+        ];
+
+        $forbiddenMimeTypes = [
+            'text/x-php',
+            'application/x-php',
+            'application/x-sh',
+            'text/x-shellscript',
+            'application/x-msdownload',
+            'application/x-msdos-program',
+            'application/x-executable',
+            'application/x-csh',
+            'application/x-bat',
+            'application/x-msdos-windows',
+            'application/x-javascript',
+            'text/javascript',
+            'application/javascript',
+            'application/x-msdownload',
+            'application/x-ms-installer',
+            'application/x-dosexec',
+            'application/x-cgi',
+            'application/x-perl',
+            'text/x-perl',
+            'application/x-python',
+            'text/x-python',
+            'application/x-msdos-program',
+            'application/x-msdos-windows',
+            'application/x-msdos-batch',
+            'application/x-msdos-cmd',
+            'application/x-msdos-com',
+            'application/x-msdos-scr',
+            'application/x-msdos-dll',
+            'application/x-msdos-js',
+            'application/x-msdos-vbs',
+            'application/x-msdos-ps1',
+            'application/xml',
+            'text/xml'
+        ];
+
+        $extension = strtolower($uploadedFile->getClientOriginalExtension());
+        $mimeType = strtolower($uploadedFile->getMimeType());
+        $originalName = strtolower($uploadedFile->getClientOriginalName());
+
+        if (preg_match('/\.(php[0-9]?|phtml|phar|sh|pl|cgi|exe|bat|cmd|com|scr|dll|js|jsp|asp|aspx|cer|csr|jspx|war|jar|vb|vbs|wsf|ps1|ps2|xml)(\..+)?$/i', $originalName)) {
+            throw new Exception('You are not allowed to upload files with dangerous extensions');
         }
 
-        if ($uploadedFile->getClientOriginalExtension() === 'sh' || $uploadedFile->getMimeType() === 'text/x-shellscript') {
-            throw new ApiException('You are not allowed to upload the shell script file on server', null, 422, 422, 2023);
+        if (in_array($extension, $forbiddenExtensions)) {
+            throw new Exception('You are not allowed to upload files with extension: ' . $extension);
         }
 
-        if ($uploadedFile->getClientOriginalExtension() === 'htaccess') {
-            throw new ApiException('You are not allowed to upload the htaccess file on server', null, 422, 422, 2023);
+        if (in_array($mimeType, $forbiddenMimeTypes)) {
+            throw new Exception('You are not allowed to upload files with mime type: ' . $mimeType);
         }
 
-        if ($uploadedFile->getClientOriginalExtension() === 'xml') {
-            throw new ApiException('You are not allowed to upload XML FILE', null, 422, 422, 2023);
+        if (strpos($originalName, '.htaccess') !== false) {
+            throw new Exception('You are not allowed to upload .htaccess files');
         }
 
         if ($uploadedFile->getSize() <= 10) {
-            throw new ApiException('You are not allowed to upload a file with filesize less than 10 bytes', null, 422, 422, 2023);
+            throw new Exception('You are not allowed to upload a file with filesize less than 10 bytes');
+        }
+
+        if (empty($extension)) {
+            throw new Exception('File must have a valid extension');
+        }
+
+        if (strlen($uploadedFile->getClientOriginalName()) > 255) {
+            throw new Exception('File name is too long');
         }
     }
 
@@ -108,7 +199,11 @@ class Files
      */
     public static function uploadLocalOrS3($uploadedFile, $dir, $width = null, int $height = 800, $name = null)
     {
-        self::validateUploadedFile($uploadedFile);
+        try {
+            self::validateUploadedFile($uploadedFile);
+        } catch (Exception $e) {
+            dd($e->getMessage());
+        }
 
         // Create directory and store temp file
         self::createDirectoryIfNotExist($dir);
@@ -158,6 +253,8 @@ class Files
         // Check if image can be resized
         $fileExt = File::extension($uploadedFile->getClientOriginalName());
         if ($width && $height && !in_array($fileExt, ['svg', 'webp', 'ico'])) {
+
+
             Image::make($tempPath)
                 ->resize($width, $height, function ($constraint) {
                     $constraint->aspectRatio();
@@ -172,7 +269,6 @@ class Files
         // Cleanup
         File::delete($tempPath);
     }
-
 
     public static function fileStore($file, $folder, $generateNewName = '', $uploaded = false, $restaurantId = null)
     {
@@ -234,7 +330,6 @@ class Files
         return true;
     }
 
-
     public static function deleteDirectory($folder)
     {
         $dir = trim($folder);
@@ -261,8 +356,6 @@ class Files
             File::makeDirectory($directoryPath, 0775, true);
         }
     }
-
-
 
     public static function uploadLocalFile($fileName, $path, $companyId = null): void
     {
@@ -305,8 +398,6 @@ class Files
 
         return false;
     }
-
-
 
     public static function getFormattedSizeAndStatus($maxSizeKey)
     {

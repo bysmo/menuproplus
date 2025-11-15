@@ -12,13 +12,13 @@ class TrialLicenseExp extends BaseNotification
 {
     use Queueable;
 
-    protected $restaurant;
+    protected $restaurantDetails;
     /**
      * Create a new notification instance.
      */
-    public function __construct(Restaurant $restaurant)
+    public function __construct(Restaurant $restaurantDetails)
     {
-        $this->restaurant = $restaurant;
+        $this->restaurantDetails = $restaurantDetails;
     }
 
     /**
@@ -44,7 +44,7 @@ class TrialLicenseExp extends BaseNotification
             ->subject(__('email.trialLicenseExp.subject') . ' - ' . $siteName . '!')
             ->greeting(__('email.trialLicenseExp.greeting', ['name' => $notifiable->name]))
             ->line(__('email.trialLicenseExp.line1'))
-            ->line(__('email.trialLicenseExp.line2'))
+            ->line(__('email.trialLicenseExp.line2', ['restaurant_name' => $this->restaurantDetails->name]))
             ->action(__('email.trialLicenseExp.action'), route('dashboard'));
     }
     /**

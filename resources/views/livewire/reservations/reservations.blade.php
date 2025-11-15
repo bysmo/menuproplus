@@ -60,7 +60,7 @@
                 <x-input class="block w-full md:w-1/3 mt-2 md:mt-0" type="text" wire:model.live.debounce.400ms="search" placeholder="{{ __('placeholders.searchCustomers') }}" />
             </div>
 
-            @if(user_can('Create Reservation') && in_array('Table Reservation', restaurant_modules()))
+            @if(user_can('Create Reservation') && in_array('Table Reservation', restaurant_modules()) && restaurant()->enable_admin_reservation)
             <x-button type='button' wire:click="$set('showAddReservation', true)">
                 @lang('modules.reservation.newReservation')</x-button>
             @endif

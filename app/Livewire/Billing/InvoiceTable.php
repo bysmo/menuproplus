@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\GlobalInvoice;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\WithPagination;
+use App\Helper\Common;
 
 class InvoiceTable extends Component
 {
@@ -31,6 +32,7 @@ class InvoiceTable extends Component
 
 
         $pdf = Pdf::loadView('billing.billing-receipt', ['invoice' => $invoice]);
+
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, 'billing-receipt-' . uniqid() . '.pdf');
@@ -44,16 +46,17 @@ class InvoiceTable extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->whereHas('restaurant', function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%');
+                $safeTerm = Common::safeString($this->search);
+                $q->whereHas('restaurant', function ($q) use ($safeTerm) {
+                    $q->where('name', 'like', '%' . $safeTerm . '%');
                 })
-                ->orWhereHas('package', function ($q) {
-                    $q->where('package_type', 'like', '%' . $this->search . '%');
-                })
-                ->orWhere('gateway_name', 'like', '%' . $this->search . '%')
-                ->orWhere('total', 'like', '%' . $this->search . '%')
-                ->orWhere('transaction_id', 'like', '%' . $this->search . '%')
-                ->orWhere('package_type', 'like', '%' . $this->search . '%');
+                    ->orWhereHas('package', function ($q) use ($safeTerm) {
+                        $q->where('package_type', 'like', '%' . $safeTerm . '%');
+                    })
+                    ->orWhere('gateway_name', 'like', '%' . $safeTerm . '%')
+                    ->orWhere('total', 'like', '%' . $safeTerm . '%')
+                    ->orWhere('transaction_id', 'like', '%' . $safeTerm . '%')
+                    ->orWhere('package_type', 'like', '%' . $safeTerm . '%');
             });
         }
 

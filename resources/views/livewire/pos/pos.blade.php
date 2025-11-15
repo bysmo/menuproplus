@@ -1,5 +1,7 @@
 <div>
-
+    @if(!$orderTypeId && (!(restaurant()->disable_order_type_popup ?? false) || $allowOrderTypeSelection))
+    @livewire('forms.OrderTypeSelection')
+    @endif
     <div class="flex-grow lg:flex h-auto">
 
 
@@ -21,7 +23,11 @@
 
         <x-slot name="content">
             @if ($menuItem)
-            @livewire('pos.itemVariations', ['menuItem' => $menuItem], key(str()->random(50)))
+            @livewire('pos.itemVariations', [
+                'menuItem' => $menuItem,
+                'orderTypeId' => $orderTypeId,
+                'deliveryAppId' => $this->normalizedDeliveryAppId
+            ], key(str()->random(50)))
             @endif
         </x-slot>
 
@@ -70,10 +76,10 @@
         <x-slot name="content">
             <div class="mt-4 flex">
                 <!-- Discount Value -->
-                <x-input id="discountValue" class="block w-2/3 text-md" type="number" step="0.01" wire:model.live="discountValue"
+                <x-input id="discountValue" class="block w-2/3 text-md" type="number" step="0.01" wire:model.defer="discountValue"
                     placeholder="{{ __('modules.order.enterDiscountValue') }}" min="0" />
                 <!-- Discount Type -->
-                <x-select id="discountType" class="block ml-2 w-1/3 rounded-md border-gray-300" wire:model.live="discountType">
+                <x-select id="discountType" class="block ml-2 w-1/3 rounded-md border-gray-300" wire:model.defer="discountType">
                     <option value="fixed">@lang('modules.order.fixed')</option>
                     <option value="percent">@lang('modules.order.percent')</option>
                 </x-select>
@@ -129,7 +135,11 @@
 
         <x-slot name="content">
             @if ($selectedModifierItem)
-                @livewire('pos.itemModifiers', ['menuItemId' => $selectedModifierItem], key(str()->random(50)))
+                @livewire('pos.itemModifiers', [
+                    'menuItemId' => $selectedModifierItem,
+                    'orderTypeId' => $orderTypeId,
+                    'deliveryAppId' => $selectedDeliveryApp
+                ], key(str()->random(50)))
             @endif
         </x-slot>
     </x-dialog-modal>
@@ -148,6 +158,7 @@
         });
 
     </script>
+
     @endscript
 
 </div>

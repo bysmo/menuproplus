@@ -42,6 +42,7 @@
         }
 
         foreach ($plugins as $item) {
+
             if (!in_array($item['envato_id'], $activeModules)) {
                 $notInstalledModules[] = $item;
             }
@@ -57,7 +58,7 @@
 
         <div class="grid grid-cols-1 gap-4">
             @foreach ($notInstalledModules as $item)
-                <div class="bg-white border rounded-lg p-4 @if (stripos($item['product_name'], 'universal') !== false) border-indigo-500 @endif">
+                <div class="bg-white border rounded-lg p-4 @if (stripos($item['product_name'], 'universal') !== false) border-indigo-500 @endif relative">
                     <div class="flex items-center space-x-4">
                         <div class="flex-shrink-0">
                             <a href="{{ $item['product_link'] }}" target="_blank">
@@ -94,6 +95,9 @@
                             </a>
                         </div>
                     </div>
+                    <span class="absolute top-3 right-3 bg-emerald-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full shadow">
+                        ${{ number_format($item['price'], 2) }}
+                    </span>
                 </div>
             @endforeach
         </div>

@@ -21,7 +21,106 @@ document.addEventListener("livewire:navigating", () => {
     initFlowbite();
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    initializeThemeToggle();
+});
+
+document.addEventListener('livewire:load', () => {
+    initializeThemeToggle();
+});
+
+// Initialize theme toggle safely and idempotently
+function initializeThemeToggle() {
+    const themeToggleBtn = document.getElementById("theme-toggle");
+    const themeToggleDarkIcon = document.getElementById("theme-toggle-dark-icon");
+    const themeToggleLightIcon = document.getElementById("theme-toggle-light-icon");
+
+    // Ensure html has correct theme class before manipulating icons
+    if (localStorage.getItem('color-theme') === 'dark' ||
+        (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+
+    // If required elements aren't present yet, do nothing
+    if (!themeToggleBtn || !themeToggleDarkIcon || !themeToggleLightIcon) {
+        return;
+    }
+
+    // Set initial icon visibility based on current theme
+    if (document.documentElement.classList.contains('dark')) {
+        themeToggleLightIcon.classList.remove('hidden');
+        themeToggleDarkIcon.classList.add('hidden');
+    } else {
+        themeToggleDarkIcon.classList.remove('hidden');
+        themeToggleLightIcon.classList.add('hidden');
+    }
+
+    // Avoid attaching multiple listeners
+    if (themeToggleBtn.dataset.initialized === 'true') {
+        return;
+    }
+    themeToggleBtn.dataset.initialized = 'true';
+
+    let event = new Event("dark-mode");
+    themeToggleBtn.addEventListener("click", function () {
+        // Toggle html class and persist
+        if (localStorage.getItem("color-theme")) {
+            if (localStorage.getItem("color-theme") === "light") {
+                document.documentElement.classList.add("dark");
+                localStorage.setItem("color-theme", "dark");
+            } else {
+                document.documentElement.classList.remove("dark");
+                localStorage.setItem("color-theme", "light");
+            }
+        } else {
+            if (document.documentElement.classList.contains("dark")) {
+                document.documentElement.classList.remove("dark");
+                localStorage.setItem("color-theme", "light");
+            } else {
+                document.documentElement.classList.add("dark");
+                localStorage.setItem("color-theme", "dark");
+            }
+        }
+
+        // Sync icons
+        if (document.documentElement.classList.contains('dark')) {
+            themeToggleLightIcon.classList.remove('hidden');
+            themeToggleDarkIcon.classList.add('hidden');
+        } else {
+            themeToggleDarkIcon.classList.remove('hidden');
+            themeToggleLightIcon.classList.add('hidden');
+        }
+
+        document.dispatchEvent(event);
+    });
+}
+
+// Observe for the theme toggle button being (re)inserted by Livewire and init once
+function observeThemeToggleMount() {
+    // Initialize now if present
+    initializeThemeToggle();
+
+    const observer = new MutationObserver(() => {
+        const btn = document.getElementById('theme-toggle');
+        if (btn && btn.dataset.initialized !== 'true') {
+            initializeThemeToggle();
+        }
+    });
+    if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    }
+}
+
 document.addEventListener("livewire:navigated", () => {
+    // Ensure theme toggle initializes even if later blocks fail
+    observeThemeToggleMount();
+
     // Check initial state on page load
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('main-content');
@@ -43,16 +142,18 @@ document.addEventListener("livewire:navigated", () => {
     const closeIcon = document.getElementById('toggle-sidebar-close');
 
     // Initial state
-    if (localStorage.getItem("menu-collapsed") === "true" && openIcon != null) {
-        openIcon.classList.remove('hidden');
-        closeIcon.classList.add('hidden');
-    } else if (openIcon != null) {
-        openIcon.classList.add('hidden');
-        closeIcon.classList.remove('hidden');
+    if (openIcon && closeIcon) {
+        if (localStorage.getItem("menu-collapsed") === "true") {
+            openIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+        } else {
+            openIcon.classList.add('hidden');
+            closeIcon.classList.remove('hidden');
+        }
     }
 
     const toggleSidebar = document.getElementById('toggle-sidebar');
-    if (toggleSidebar != null) {
+    if (toggleSidebar && openIcon && closeIcon && sidebar && mainContent) {
         toggleSidebar.addEventListener('click', function(event) {
         // Toggle icons
         openIcon.classList.toggle('hidden');
@@ -87,62 +188,8 @@ document.addEventListener("livewire:navigated", () => {
         });
     }
 
-    const themeToggleDarkIcon = document.getElementById(
-        "theme-toggle-dark-icon"
-    );
-    const themeToggleLightIcon = document.getElementById(
-        "theme-toggle-light-icon"
-    );
-
-    // Change the icons inside the button based on previous settings
-    if (
-        localStorage.getItem("color-theme") === "dark" ||
-        (!("color-theme" in localStorage) &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches)
-    ) {
-        themeToggleLightIcon.classList.remove("hidden");
-    } else {
-        themeToggleDarkIcon.classList.remove("hidden");
-    }
-
-    const themeToggleBtn = document.getElementById("theme-toggle");
-
-    let event = new Event("dark-mode");
-
-    themeToggleBtn.addEventListener("click", function () {
-        // toggle icons
-        themeToggleDarkIcon.classList.toggle("hidden");
-        themeToggleLightIcon.classList.toggle("hidden");
-
-        // if set via local storage previously
-        if (localStorage.getItem("color-theme")) {
-            if (localStorage.getItem("color-theme") === "light") {
-                document.documentElement.classList.add("dark");
-                localStorage.setItem("color-theme", "dark");
-            } else {
-                document.documentElement.classList.remove("dark");
-                localStorage.setItem("color-theme", "light");
-            }
-
-            // if NOT set via local storage previously
-        } else {
-            if (document.documentElement.classList.contains("dark")) {
-                document.documentElement.classList.remove("dark");
-                localStorage.setItem("color-theme", "light");
-            } else {
-                document.documentElement.classList.add("dark");
-                localStorage.setItem("color-theme", "dark");
-            }
-        }
-
-        document.dispatchEvent(event);
-    });
-
-    if (localStorage.getItem('color-theme') === 'dark') {
-        document.documentElement.classList.add('dark')
-    } else {
-        document.documentElement.classList.remove('dark')
-    }
+    // (Re)initialize theme toggle on every Livewire navigation (already attempted at top)
+    observeThemeToggleMount();
 
     if (sidebar) {
         const toggleSidebarMobile = (

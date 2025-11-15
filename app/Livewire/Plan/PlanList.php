@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Livewire\Plan;
 
 use App\Models\User;
@@ -10,6 +11,7 @@ use App\Models\Country;
 use App\Models\Package;
 use Livewire\Component;
 use App\Enums\PackageType;
+use App\Models\Currency;
 use App\Models\Restaurant;
 use Livewire\Attributes\On;
 use App\Models\GlobalInvoice;
@@ -30,7 +32,7 @@ use App\Notifications\RestaurantPlanModificationRequest;
 class PlanList extends Component
 {
 
-    use LivewireAlert , WithFileUploads;
+    use LivewireAlert, WithFileUploads;
 
     public $packages;
     public $modules;
@@ -59,15 +61,18 @@ class PlanList extends Component
     public $offlineDescription;
     public $AllModulesWithFeature;
     public $PackageFeatures;
+    public $selectedCurrencyCode;
+    public $currentCurrencyName;
+    public $globalCurrencyName;
+
     public function mount()
     {
-
         $this->restaurant = Restaurant::where('id', restaurant()->id)->first();
         $this->paymentGatewayActive = false;
         $this->stripeSettings = SuperadminPaymentGateway::first();
         $this->currencies = GlobalCurrency::select('id', 'currency_name', 'currency_symbol')
-        ->where('status', 'enable')
-        ->get();
+            ->where('status', 'enable')
+            ->get();
 
         if (in_array(true, [
             $this->stripeSettings->paypal_status,
@@ -78,6 +83,8 @@ class PlanList extends Component
             $this->stripeSettings->payfast_status,
             $this->stripeSettings->authorize_status,
             $this->stripeSettings->flutterwave_status,
+            $this->stripeSettings->xendit_status,
+            $this->stripeSettings->paddle_status,
         ])) {
             $this->paymentGatewayActive = true;
         }
@@ -88,7 +95,16 @@ class PlanList extends Component
         $this->showOnline = $this->paymentGatewayActive;
         $this->paymentActive = $this->paymentGatewayActive || $this->offlinePaymentGateways > 0;
 
-        $this->selectedCurrency = global_setting()->defaultCurrency->id ?? null;
+        $defaultCurrency = global_setting()->defaultCurrency;
+        $this->selectedCurrency = $defaultCurrency->id ?? null;
+        $this->globalCurrencyName = $defaultCurrency->currency_name ?? 'USD';
+        $this->selectedCurrencyCode = $defaultCurrency->code ?? 'USD';
+        $this->currentCurrencyName = restaurant()->currency->currency_name ?? 'USD';
+
+        if ($currency = GlobalCurrency::where('currency_name', $this->currentCurrencyName)->first()) {
+            $this->selectedCurrency = $currency->id;
+        }
+
         $this->modules = Module::pluck('name')->toArray();
         $this->PackageFeatures = Package::ADDITIONAL_FEATURES;
 
@@ -97,7 +113,6 @@ class PlanList extends Component
             $this->PackageFeatures
         );
         $this->loadAvailablePackages();
-
     }
 
     public function switchPaymentMethod($method)
@@ -141,6 +156,13 @@ class PlanList extends Component
             'stripe' => $this->stripeSettings->stripe_status,
             'razorpay' => $this->stripeSettings->razorpay_status,
             'flutterwave' => $this->stripeSettings->flutterwave_status,
+            'paypal' => $this->stripeSettings->paypal_status,
+            'payfast' => $this->stripeSettings->payfast_status,
+            'paystack' => $this->stripeSettings->paystack_status,
+            'xendit' => $this->stripeSettings->xendit_status,
+            'paddle' => $this->stripeSettings->paddle_status,
+
+
         ])->filter();
 
         if ($activeGateways->count() > 1) {
@@ -154,6 +176,11 @@ class PlanList extends Component
             'stripe' => $this->initiateStripePayment(),
             'razorpay' => $this->razorpaySubscription($this->selectedPlan->id),
             'flutterwave' => $this->initiateFlutterwavePayment(),
+            'paypal' => $this->initiatePaypalPayment(),
+            'payfast' => $this->initiatePayfastPayment(),
+            'paystack' => $this->initiatePaystackPayment(),
+            'xendit' => $this->initiateXenditPayment(),
+            'paddle' => $this->initiatePaddlePayment(),
             default => $this->showPaymentMethodModal = true,
         };
     }
@@ -244,16 +271,16 @@ class PlanList extends Component
 
         try {
             if ($plan->package_type == PackageType::LIFETIME) {
-                return $this->processLifetimePayment($apiKey,$api, $plan, $amount, $currencyCode, $currency_id, $restaurantId);
+                return $this->processLifetimePayment($apiKey, $api, $plan, $amount, $currencyCode, $currency_id, $restaurantId);
             } else {
-                return $this->processSubscription($apiKey ,$api, $plan, $restaurantId, $currencyCode, $type);
+                return $this->processSubscription($apiKey, $api, $plan, $restaurantId, $currencyCode, $type);
             }
         } catch (\Exception $e) {
             return $this->showError($e->getMessage());
         }
     }
 
-    private function processLifetimePayment($apiKey ,$api, $plan, $amount, $currencyCode, $currency_id, $restaurantId)
+    private function processLifetimePayment($apiKey, $api, $plan, $amount, $currencyCode, $currency_id, $restaurantId)
     {
         $restaurantPayment = RestaurantPayment::create([
             'restaurant_id' => $restaurantId,
@@ -289,7 +316,7 @@ class PlanList extends Component
             'total_count' => 100
         ]);
 
-        return $this->dispatchRazorpay($apiKey , $subscription->id, $plan, null, $currencyCode, $restaurantId, $type);
+        return $this->dispatchRazorpay($apiKey, $subscription->id, $plan, null, $currencyCode, $restaurantId, $type);
     }
 
     // Dispatch Razorpay Payment
@@ -483,14 +510,14 @@ class PlanList extends Component
                     ->orWhere('is_free', true) // Include free packages
                     ->orWhere(function ($query) use ($statusField) {
                         $query->where('package_type', 'standard')
-                        ->where($statusField, true); // Standard packages with the relevant status
+                            ->where($statusField, true); // Standard packages with the relevant status
                     });
             })
             ->where('package_type', '!=', 'trial') // Exclude trial packages
             ->where(function ($query) {
                 $query->where('currency_id', $this->selectedCurrency)
-                ->orWhere('package_type', 'default') // Default packages ignore currency
-                ->orWhere('is_free', true); // Free packages ignore currency
+                    ->orWhere('package_type', 'default') // Default packages ignore currency
+                    ->orWhere('is_free', true); // Free packages ignore currency
             })->orderBy('sort_order')
             ->get();
     }
@@ -537,6 +564,98 @@ class PlanList extends Component
         $this->dispatch('stripePlanPaymentInitiated', payment: $payment);
     }
 
+    public function initiateXenditPayment()
+    {
+        // Xendit payment initiation logic
+        $plan = Package::find($this->selectedPlan->id);
+        $type = $plan->package_type === PackageType::LIFETIME ? 'lifetime' : ($this->isAnnual ? 'annual' : 'monthly');
+        $currency_id = $plan->currency_id;
+        if ($plan->package_type == PackageType::LIFETIME) {
+            $amount = $plan->price;
+        } else {
+            $amount = $this->isAnnual ? $this->selectedPlan->annual_price : $this->selectedPlan->monthly_price;
+        }
+
+        if (!$amount) {
+            $this->alert('error', __('messages.noPlanIdFound'), [
+                'toast' => true,
+                'position' => 'top-end',
+                'showCancelButton' => false,
+                'cancelButtonText' => __('app.close')
+            ]);
+            return;
+        }
+
+        $payment = RestaurantPayment::create([
+            'restaurant_id' => $this->restaurant->id,
+            'amount' => $amount,
+            'package_id' => $plan->id,
+            'package_type' => $type,
+            'currency_id' => $currency_id,
+            'recurrence_interval' => 'MONTH',
+            'recurrence_interval_count' => 1,
+        ]);
+
+
+        $params = [
+            'email' => $this->restaurant->email,
+            'payment_id' => $payment->id,
+            'amount' => $amount,
+            'currency' => $plan->currency->currency_code,
+            'restaurant_id' => $this->restaurant->id,
+            'package_id' => $plan->id,
+            'package_type' => $type,
+            'email' => $this->restaurant->email
+        ];
+
+        // Trigger frontend to redirect to Xendit
+        $this->dispatch('redirectToXendit', ['params' => $params]);
+    }
+
+    public function initiatePaddlePayment()
+    {
+        // Paddle payment initiation logic
+        $plan = Package::find($this->selectedPlan->id);
+        $type = $plan->package_type === PackageType::LIFETIME ? 'lifetime' : ($this->isAnnual ? 'annual' : 'monthly');
+        $currency_id = $plan->currency_id;
+
+        if ($plan->package_type == PackageType::LIFETIME) {
+            $amount = $plan->price;
+        } else {
+            $amount = $this->isAnnual ? $this->selectedPlan->annual_price : $this->selectedPlan->monthly_price;
+        }
+
+        if (!$amount) {
+            $this->alert('error', __('messages.noPlanIdFound'), [
+                'toast' => true,
+                'position' => 'top-end',
+                'showCancelButton' => false,
+                'cancelButtonText' => __('app.close')
+            ]);
+            return;
+        }
+
+        $payment = RestaurantPayment::create([
+            'restaurant_id' => $this->restaurant->id,
+            'amount' => $amount,
+            'package_id' => $plan->id,
+            'package_type' => $type,
+            'currency_id' => $currency_id,
+        ]);
+
+        $params = [
+            'email' => $this->restaurant->email,
+            'payment_id' => $payment->id,
+            'amount' => $amount,
+            'currency' => $plan->currency->currency_code,
+            'restaurant_id' => $this->restaurant->id,
+            'package_id' => $plan->id,
+            'package_type' => $type,
+        ];
+
+        // Trigger frontend to redirect to Paddle
+        $this->dispatch('redirectToPaddle', ['params' => $params]);
+    }
 
     public function freePlan()
     {
@@ -583,6 +702,9 @@ class PlanList extends Component
         $restaurant->license_updated_at = now()->format('Y-m-d');
         $restaurant->save();
 
+        // Ensure feature/module cache reflects new plan immediately
+        clearRestaurantModulesCache($restaurant->id);
+
         // Send superadmin notification
         $generatedBy = User::withoutGlobalScopes()->whereNull('branch_id')->whereNull('restaurant_id')->first();
         Notification::send($generatedBy, new RestaurantUpdatedPlan($restaurant, $subscription->package_id));
@@ -625,6 +747,7 @@ class PlanList extends Component
         ]);
 
         $params = [
+            'email' => $this->restaurant->email,
             'payment_id' => $payment->id,
             'amount' => $amount,
             'currency' => $plan->currency->currency_code,
@@ -645,46 +768,121 @@ class PlanList extends Component
         }
     }
 
-    // Not using this function (future use)
-    // public function cancelSubscriptionRazorpay()
-    // {
-    //     $credential = SuperadminPaymentGateway::first();
 
-    //     if ($credential->razorpay_mode == 'test') {
-    //         $apiKey = $credential->test_razorpay_key;
-    //         $secretKey = $credential->test_razorpay_secret;
-    //     }
-    //     else {
-    //         $apiKey = $credential->live_razorpay_key;
-    //         $secretKey = $credential->live_razorpay_secret;
-    //     }
+    public function initiatePaypalPayment()
+    {
+        $plan = Package::find($this->selectedPlan->id);
+        $type = $this->isAnnual ? 'annual' : 'monthly';
+        $currency_id = $plan->currency_id;
 
-    //     $api = new Api($apiKey, $secretKey);
+        if ($this->selectedPlan->package_type == PackageType::LIFETIME) {
+            $amount = $this->selectedPlan->price;
+        } else {
+            $amount = $this->isAnnual ? $this->selectedPlan->annual_price : $this->selectedPlan->monthly_price;
+        }
 
-    //     // Get subscription for unsubscribe
-    //     $subscriptionData = RazorpaySubscription::where('restaurant', restaurant()->id)->whereNull('ends_at')->first();
+        if (!$amount) {
+            $this->alert('error', __('messages.noPlanIdFound'));
+            return;
+        }
 
-    //     if ($subscriptionData) {
-    //         try {
-    //             $subscription = $api->subscription->fetch($subscriptionData->subscription_id);
+        $payment = RestaurantPayment::create([
+            'restaurant_id' => $this->restaurant->id,
+            'amount' => $amount,
+            'package_id' => $plan->id,
+            'package_type' => $type,
+            'currency_id' => $currency_id,
+        ]);
 
-    //             if ($subscription->status == 'active') {
+        $params = [
+            'email' => $this->restaurant->email,
+            'payment_id' => $payment->id,
+            'amount' => $amount,
+            'currency' => $plan->currency->currency_code,
+            'restaurant_id' => $this->restaurant->id,
+            'package_id' => $plan->id,
+            'package_type' => $type,
+        ];
 
-    //                 // Unsubscribe plan
-    //                 $subData = $api->subscription->fetch($subscriptionData->subscription_id)->cancel(['cancel_at_cycle_end' => 0]);
+        $this->dispatch('redirectToPaypal', ['params' => $params]);
+    }
 
-    //                 // Plan will be end on this date
-    //                 $subscriptionData->ends_at = \Carbon\Carbon::createFromTimestamp($subData->end_at)->format('Y-m-d');
-    //                 $subscriptionData->save();
-    //             }
+    public function initiatePayfastPayment()
+    {
+        $plan = Package::find($this->selectedPlan->id);
+        $type = $plan->package_type === PackageType::LIFETIME ? 'lifetime' : ($this->isAnnual ? 'annual' : 'monthly');
+        $currency_id = $plan->currency_id;
 
-    //         } catch (\Exception $ex) {
-    //             return false;
-    //         }
+        if ($plan->package_type == PackageType::LIFETIME) {
+            $amount = $plan->price;
+        } else {
+            $amount = $this->isAnnual ? $plan->annual_price : $plan->monthly_price;
+        }
 
-    //         return true;
-    //     }
-    // }
+        if (!$amount) {
+            $this->alert('error', __('messages.noPlanIdFound'));
+            return;
+        }
+
+        $payment = RestaurantPayment::create([
+            'restaurant_id' => $this->restaurant->id,
+            'amount' => $amount,
+            'package_id' => $plan->id,
+            'package_type' => $type,
+            'currency_id' => $currency_id,
+        ]);
+
+        $params = [
+            'email' => $this->restaurant->email,
+            'payment_id' => $payment->id,
+            'amount' => $amount,
+            'currency' => $plan->currency->currency_code,
+            'restaurant_id' => $this->restaurant->id,
+            'package_id' => $plan->id,
+            'package_type' => $type
+        ];
+
+        $this->dispatch('redirectToPayfast', ['params' => $params]);
+    }
+
+    public function initiatePaystackPayment()
+    {
+        $plan = Package::find($this->selectedPlan->id);
+        $type = $plan->package_type === PackageType::LIFETIME ? 'lifetime' : ($this->isAnnual ? 'annual' : 'monthly');
+        $currency_id = $plan->currency_id;
+
+        if ($plan->package_type == PackageType::LIFETIME) {
+            $amount = $plan->price;
+        } else {
+            $amount = $this->isAnnual ? $plan->annual_price : $plan->monthly_price;
+        }
+
+        if (!$amount) {
+            $this->alert('error', __('messages.noPlanIdFound'));
+            return;
+        }
+
+        $payment = RestaurantPayment::create([
+            'restaurant_id' => $this->restaurant->id,
+            'amount' => $amount,
+            'package_id' => $plan->id,
+            'package_type' => $type,
+            'currency_id' => $currency_id,
+        ]);
+
+        $params = [
+            'email' => $this->restaurant->email,
+            'payment_id' => $payment->id,
+            'amount' => $amount,
+            'currency' => $plan->currency->currency_code,
+            'restaurant_id' => $this->restaurant->id,
+            'package_id' => $plan->id,
+            'package_type' => $type
+        ];
+
+        // Trigger frontend to redirect to Paystack
+        $this->dispatch('redirectToPaystack', ['params' => $params]);
+    }
 
     public function render()
     {

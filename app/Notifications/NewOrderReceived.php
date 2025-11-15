@@ -39,7 +39,6 @@ class NewOrderReceived extends BaseNotification
         if ($this->notificationSetting->send_email == 1 && $notifiable->email != '') {
             return ['mail'];
         }
-
     }
 
     /**
@@ -52,14 +51,14 @@ class NewOrderReceived extends BaseNotification
     {
         $build = parent::build($notifiable);
         return $build
-            ->subject(__('email.newOrder.subject'). ' #'.$this->order->order_number)
-            ->greeting(__('app.hello') .' '. $notifiable->name . ',')
-            ->line(__('email.newOrder.text1'). __('modules.order.orderNumber') . '#'.$this->order->order_number)
+            ->subject(__('email.newOrder.subject') . ' #' . $this->order->show_formatted_order_number)
+            ->greeting(__('app.hello') . ' ' . $notifiable->name . ',')
+            ->line(__('email.newOrder.text1') . ' ' . $this->order->show_formatted_order_number)
             ->line(__('email.newOrder.text2') . ' ' . ucwords(str_replace('_', ' ', $this->order->order_type ?? '--')))
-            ->line(__('modules.customer.name').': ' . ($this->order->customer ? $this->order->customer->name : '--'))
+            ->line(__('modules.customer.name') . ': ' . ($this->order->customer ? $this->order->customer->name : '--'))
             ->line(__('email.newOrder.text3') . $this->formatOrderItems($this->order->items))
-            ->line(__('modules.order.amount').': ' . currency_format($this->order->total, $this->settings->currency_id))
-            ->line(__('app.time').': ' . $this->order->date_time->format('h:i A'))
+            ->line(__('modules.order.amount') . ': ' . currency_format($this->order->total, $this->settings->currency_id))
+            ->line(__('app.time') . ': ' . $this->order->date_time->translatedFormat('h:i A'))
             ->action(__('email.newOrder.action'), route('orders.index'))
             ->line(__('email.newOrder.text4'));
     }

@@ -32,11 +32,13 @@ class MenuItems extends Component
     public $filterTypes = [];
     public $filterAvailability;
 
+
     public function mount()
     {
         $this->categoryList = ItemCategory::all();
         $this->menus = Menu::all();
     }
+
 
     public function showEditMenu($id)
     {
@@ -58,6 +60,9 @@ class MenuItems extends Component
 
     public function deleteMenuItem($id)
     {
+        $menuItem = MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->find($id);
+        $restaurantId = $menuItem && $menuItem->branch ? $menuItem->branch->restaurant_id : null;
+        
         MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->where('id', $id)->delete();
         $languages = languages()->pluck('language_code')->toArray();
 
@@ -65,6 +70,11 @@ class MenuItems extends Component
         foreach ($languages as $locale) {
             cache()->forget("menu_item_{$id}_name_{$locale}");
             cache()->forget("menu_item_{$id}_description_{$locale}");
+        }
+
+        // Clear menu item stats cache
+        if ($restaurantId) {
+            cache()->forget('restaurant_' . $restaurantId . '_menu_item_stats');
         }
 
         $this->menuItem = null;
@@ -108,6 +118,7 @@ class MenuItems extends Component
         $this->showFilters = true;
     }
 
+
     public function clearFilters()
     {
         $this->filterCategories = [];
@@ -139,17 +150,20 @@ class MenuItems extends Component
             'position' => 'top-end',
             'showCancelButton' => false,
             'cancelButtonText' => __('app.close')
-        ]);   
+        ]);
     }
+
 
     public function render()
     {
         $this->clearFilterButton = false;
 
         // Start the query with global scope disabled, eager loading, and counts
-        $query = MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->with(['category', 'menu'])
-        ->withCount('variations')->has('category')
-        ->has('menu');
+        $query = MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)
+            ->with(['category', 'menu'])
+            ->withCount('variations')
+            ->has('category')
+            ->has('menu');
 
         if (!is_null($this->menuID)) {
             $query = $query->where('menu_id', $this->menuID);
@@ -180,5 +194,4 @@ class MenuItems extends Component
             'menuItems' => $query
         ]);
     }
-
 }

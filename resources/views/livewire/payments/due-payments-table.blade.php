@@ -33,14 +33,16 @@
                             @forelse ($payments as $item)
                             <tr class="hover:bg-gray-100 dark:hover:bg-gray-700" wire:key='customer-{{ $item->id . rand(1111, 9999) . microtime() }}' wire:loading.class.delay='opacity-10'>
                                 <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
-                                    {{ currency_format($item->amount) }}
+                                    {{ currency_format($item->amount, restaurant()->currency_id) }}
                                 </td>
                                 <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white"">
                                     @lang('modules.order.due')
                                 </td>
 
                                 <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
-                                    <a href="javascript:;" class="underline underline-offset-2 decoration-dotted" wire:click="$dispatch('showOrderDetail', { id: {{ $item->order->id }} })">@lang('modules.order.orderNumber') #{{ $item->order->order_number }}</a>
+                                    <a href="javascript:;" class="underline underline-offset-2 decoration-dotted" wire:click="$dispatch('showOrderDetail', { id: {{ $item->order->id }} })">
+                                        {{ $item->order->show_formatted_order_number }}
+                                    </a>
                                 </td>
                                 <td class="py-2.5 px-4 text-sm text-gray-900 whitespace-nowrap dark:text-white">
                                     {{ $item->created_at->timezone(timezone())->translatedFormat('d M Y, h:i A') }}

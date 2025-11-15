@@ -34,7 +34,7 @@
                                 <th scope="col" class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">@lang('modules.modifier.modifierGroup')</th>
                                 <th scope="col" class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">@lang('modules.modifier.isRequired')</th>
                                 <th scope="col" class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">@lang('modules.modifier.allowMultipleSelection')</th>
-                                <th scope="col" class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">@lang('app.action')</th>
+                                <th scope="col" class="py-2.5 px-4 text-xs font-medium ltr:text-right rtl:text-left text-gray-500 uppercase dark:text-gray-400">@lang('app.action')</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
@@ -42,6 +42,11 @@
                             <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
                                     {{ $modifier->menuItem->item_name }}
+                                    @if ($modifier->variation)
+                                        <span class="text-xs font-medium px-1.5 py-0.5 rounded-full bg-skin-base/20 text-skin-base dark:bg-skin-base/10 dark:text-skin-base shadow-sm border border-skin-base dark:border-skin-base inline-flex items-center">
+                                            {{ $modifier->variation->variation }}
+                                        </span>
+                                    @endif
                                     @if (!$modifier->menuItem->is_available)
                                         <span class="text-xs font-medium ms-0.5 px-1.5 py-0.5 rounded-full bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-300">
                                             @lang('app.inactive')
@@ -59,7 +64,7 @@
                                         @lang($modifier->allow_multiple_selection ? 'app.yes' : 'app.no')
                                     </span>
                                 </td>
-                                <td class="py-2.5 px-4 space-x-2 whitespace-nowrap text-right">
+                                <td class="py-2.5 px-4 space-x-2 whitespace-nowrap ltr:text-right rtl:text-left">
                                     <x-secondary-button-table wire:click='showEditItemModifierModal({{ $modifier->id }})'
                                         wire:key='edit-cat-button-{{ $modifier->id }}'>
                                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.414 2.586a2 2 0 0 0-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 0 0 0-2.828"/><path fill-rule="evenodd" d="M2 6a2 2 0 0 1 2-2h4a1 1 0 0 1 0 2H4v10h10v-4a1 1 0 1 1 2 0v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" clip-rule="evenodd"/></svg>

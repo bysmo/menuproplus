@@ -31,10 +31,22 @@ class PosController extends Controller
     {
         abort_if((!in_array('Order', restaurant_modules())), 403);
         $orderID = $id;
-        $order = Order::findOrFail($orderID);
+        $order = Order::find($orderID);
 
-        $showOrderDetail = request()->get('showOrderDetail') == 'true' ? true : false;
+        $showOrderDetail = request()->get('show-order-detail') == 'true' ? true : false;
         return view('pos.kot', compact('orderID', 'showOrderDetail'));
+    }
+
+    public function customerDisplay()
+    {
+        abort_if((!in_array('Customer Display', restaurant_modules())), 403);
+        return view('pos.customer-display');
+    }
+
+    public function customerOrderBoard()
+    {
+        abort_if((!in_array('Customer Display', restaurant_modules())), 403);
+        return view('pos.customer-order-board');
     }
 
 }

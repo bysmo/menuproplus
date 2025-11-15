@@ -9,5 +9,5 @@
     @livewire('forms.addMenu')
 </x-right-drawer>
 
-    
+
 @endsection

@@ -6,13 +6,13 @@
     <title>@yield('title')</title>
     @vite(['resources/css/app.css'])
 </head>
-<body class="antialiased min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary to-skin-base">
+<body class="antialiased bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
     <main class="min-h-screen flex items-center justify-center p-6">
-        <div class="max-w-2xl w-full">
-            <div class="bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-2xl backdrop-blur-lg overflow-hidden border border-secondary/20">
-                <div class="p-8 sm:p-12 space-y-8 text-center">
+        <div class="max-w-2xl w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700">
+            <div class="p-8 sm:p-12">
+                <div class="space-y-8 text-center">
                     <!-- Error Code -->
-                    <h1 class="text-9xl font-extrabold text-secondary dark:text-secondary/50">
+                    <h1 class="text-9xl font-extrabold text-gray-200 dark:text-gray-100 bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">
                         @yield('code')
                     </h1>
 
@@ -52,13 +52,13 @@
                     <!-- Action Buttons -->
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                         <a href="{{ url('/') }}"
-                        class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-white bg-secondary border-2 border-secondary rounded-md hover:bg-secondary/80 transition-colors duration-200">
+                        class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-base font-medium text-primary-600 bg-white border-2 border-primary-600 rounded-md hover:bg-primary-50 transition-colors duration-200">
                             @yield('home_icon')
                             Return Home
                         </a>
 
                         <button onclick="history.back()"
-                                class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-white bg-secondary border-2 border-secondary rounded-md hover:bg-secondary/80 transition-colors duration-200">
+                                class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 text-base font-medium text-primary-600 bg-white border-2 border-primary-600 rounded-md hover:bg-primary-50 transition-colors duration-200">
                             @yield('back_icon')
                             Go Back
                         </button>

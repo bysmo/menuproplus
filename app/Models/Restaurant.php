@@ -55,6 +55,11 @@ class Restaurant extends BaseModel
         'subscription_updated_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'custom_delivery_options' => 'array',
+        'is_active' => 'boolean',
+        'enable_admin_reservation' => 'boolean',
+        'enable_customer_reservation' => 'boolean',
+        'restrict_qr_order_by_location' => 'boolean',
     ];
 
     public function logoUrl(): Attribute
@@ -114,6 +119,30 @@ class Restaurant extends BaseModel
         return $this->hasOne(ReceiptSetting::class);
     }
 
+    public function printerSettings(): HasMany
+    {
+        return $this->hasMany(Printer::class);
+    }
+
+    public function predefinedAmounts(): HasMany
+    {
+        return $this->hasMany(PredefinedAmount::class);
+    }
+
+    public function kotPlaces(): HasMany
+    {
+        return $this->hasMany(KotPlace::class);
+    }
+
+    public function orderPlaces(): HasMany
+    {
+        return $this->hasMany(MultipleOrder::class);
+    }
+
+    public function cartHeaderSetting(): HasOne
+    {
+        return $this->hasOne(CartHeaderSetting::class);
+    }
 
     /**
      * Get URL for Android Chrome 192x192 favicon

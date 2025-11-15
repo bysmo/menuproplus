@@ -19,7 +19,7 @@
                                     @lang('app.role')
                                 </th>
                                 <th scope="col"
-                                    class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
+                                    class="py-2.5 px-4 text-xs font-medium text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('app.action')
                                 </th>
                             </tr>
@@ -39,24 +39,24 @@
                                         <span class="text-xs">@lang('messages.cannotEditOwnRole')</span>
                                     @elseif(user_can('Update Staff Member'))
                                         <button wire:key='member-role-{{ $item->id . microtime() }}' id="dropdownHoverButton{{ $item->id }}" data-dropdown-toggle="dropdownHover{{ $item->id }}" data-dropdown-trigger="click" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-lg font-semibold text-sm text-gray-700 dark:text-gray-300  shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-25 transition ease-in-out duration-150" type="button">
-                                            {{ __('modules.staff.'.$item->roles->pluck('display_name')[0]) }}
+                                            {{ $item->roles && isset($item->roles->pluck('display_name')[0]) ? $item->roles->pluck('display_name')[0] : '' }}
                                             <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
                                             </svg>
                                         </button>
-                                            
+
                                         <!-- Dropdown menu -->
                                         <div wire:key='member-role-{{ $item->id . microtime() }}' id="dropdownHover{{ $item->id }}" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
                                             <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownHoverButton{{ $item->id }}">
                                                 @foreach ($roles as $role)
                                                 <li>
-                                                    <a href="javascript:;" wire:click="setUserRole('{{ $role->name }}', {{ $item->id }})" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ __('modules.staff.'.$role->display_name) }}</a>
+                                                    <a href="javascript:;" wire:click="setUserRole('{{ $role->name }}', {{ $item->id }})" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">{{ $role->display_name }}</a>
                                                 </li>
                                                 @endforeach
                                             </ul>
-                                        </div>                                        
+                                        </div>
                                     @else
-                                    {{ __('modules.staff.'.$item->roles->pluck('display_name')[0]) }}
+                                    {{ $item->roles->pluck('display_name')[0] }}
                                     @endif
                                 </td>
 

@@ -15,53 +15,67 @@ class CurrencySeeder extends Seeder
      */
     public function run($restaurant): void
     {
+        $currencies = [
+            [
+                'currency_name' => 'Rupee',
+                'currency_symbol' => '₹',
+                'currency_code' => 'INR',
+                'restaurant_id' => $restaurant->id,
+                'currency_position' => 'left',
+                'no_of_decimal' => 2,
+                'thousand_separator' => ',',
+                'decimal_separator' => '.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'currency_name' => 'Dollars',
+                'currency_symbol' => '$',
+                'currency_code' => 'USD',
+                'restaurant_id' => $restaurant->id,
+                'currency_position' => 'left',
+                'no_of_decimal' => 2,
+                'thousand_separator' => ',',
+                'decimal_separator' => '.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'currency_name' => 'Pounds',
+                'currency_symbol' => '£',
+                'currency_code' => 'GBP',
+                'restaurant_id' => $restaurant->id,
+                'currency_position' => 'left',
+                'no_of_decimal' => 2,
+                'thousand_separator' => ',',
+                'decimal_separator' => '.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'currency_name' => 'Euros',
+                'currency_symbol' => '€',
+                'currency_code' => 'EUR',
+                'restaurant_id' => $restaurant->id,
+                'currency_position' => 'left',
+                'no_of_decimal' => 2,
+                'thousand_separator' => ',',
+                'decimal_separator' => '.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
 
-        $currency = new Currency();
-        $currency->currency_name = 'Rupee';
-        $currency->currency_symbol = '₹';
-        $currency->currency_code = 'INR';
-        $currency->restaurant_id = $restaurant->id;
-        $currency->currency_position = 'left';
-        $currency->no_of_decimal = 2;
-        $currency->thousand_separator = ',';
-        $currency->decimal_separator = '.';
-        $currency->saveQuietly();
+        Currency::insert($currencies);
 
-        $currency = new Currency();
-        $currency->currency_name = 'Dollars';
-        $currency->currency_symbol = '$';
-        $currency->currency_code = 'USD';
-        $currency->restaurant_id = $restaurant->id;
-        $currency->currency_position = 'left';
-        $currency->no_of_decimal = 2;
-        $currency->thousand_separator = ',';
-        $currency->decimal_separator = '.';
-        $currency->saveQuietly();
+        // Set the restaurant's currency_id to the USD currency
+        $usdCurrency = Currency::where('restaurant_id', $restaurant->id)
+            ->where('currency_code', 'USD')
+            ->first();
 
-        $restaurant->currency_id = $currency->id;
-        $restaurant->save();
-
-        $currency = new Currency();
-        $currency->currency_name = 'Pounds';
-        $currency->currency_symbol = '£';
-        $currency->currency_code = 'GBP';
-        $currency->restaurant_id = $restaurant->id;
-        $currency->currency_position = 'left';
-        $currency->no_of_decimal = 2;
-        $currency->thousand_separator = ',';
-        $currency->decimal_separator = '.';
-        $currency->saveQuietly();
-
-        $currency = new Currency();
-        $currency->currency_name = 'Euros';
-        $currency->currency_symbol = '€';
-        $currency->currency_code = 'EUR';
-        $currency->restaurant_id = $restaurant->id;
-        $currency->currency_position = 'left';
-        $currency->no_of_decimal = 2;
-        $currency->thousand_separator = ',';
-        $currency->decimal_separator = '.';
-        $currency->saveQuietly();
+        if ($usdCurrency) {
+            $restaurant->currency_id = $usdCurrency->id;
+            $restaurant->save();
+        }
     }
-
 }

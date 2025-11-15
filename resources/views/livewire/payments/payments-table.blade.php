@@ -40,7 +40,7 @@
                                     {{ $loop->remaining+1 }}
                                 </td>
                                 <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
-                                    {{ currency_format($item->amount) }}
+                                    {{ currency_format($item->amount, restaurant()->currency_id) }}
                                 </td>
                                 <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white flex items-center gap-1">
 
@@ -101,11 +101,12 @@
                                     @if(user_can('Show Order'))
                                     wire:click="$dispatch('showOrderDetail', { id: {{ $item->order->id }} })"
                                     @endif
-
-                                    >@lang('modules.order.orderNumber') #{{ $item->order->order_number }}</a>
+                                    >
+                                        {{ $item->order->show_formatted_order_number }}
+                                    </a>
                                 </td>
                                 <td class="py-2.5 px-4 space-x-2 whitespace-nowrap text-right dark:text-white">
-                                    {{ $item->created_at->timezone(timezone())->translatedFormat('d M Y, h:i A') }}
+                                    @include('common.date-time-display', ['date' => $item->created_at])
                                 </td>
                             </tr>
                             @empty

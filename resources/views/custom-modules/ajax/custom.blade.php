@@ -203,25 +203,55 @@
     @includeIf('languagepack::module-activated-alert')
     @include('custom-modules.sections.universal-bundle')
 
+    @if(!$universalBundle)
+    <!-- License Status Legend -->
+    <div class="bg-white rounded-lg border p-4 mb-4 dark:bg-gray-800">
+        <div class="flex items-center justify-between">
+            <h3 class="text-sm font-medium text-gray-900 dark:text-white">@lang('modules.moduleLicenseStatus.moduleLicenseStatus')</h3>
+            <div class="flex items-center space-x-4 text-xs">
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-green-400 rounded"></div>
+                    <span class="text-gray-600 dark:text-gray-300">@lang('modules.moduleLicenseStatus.licensed')</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-yellow-400 rounded"></div>
+                    <span class="text-gray-600 dark:text-gray-300">@lang('modules.moduleLicenseStatus.verificationRequired')</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-gray-400 rounded"></div>
+                    <span class="text-gray-600 dark:text-gray-300">@lang('modules.moduleLicenseStatus.notActivated')</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    @endif
     <div class="bg-white rounded-lg border mb-100 dark:bg-gray-800">
-        <x-table class="custom-modules-table dark:bg-gray-800" headType="bg-gray-50" id="custom-modules-table">
+        <div class="overflow-x-auto">
+            <x-table class="custom-modules-table dark:bg-gray-800 min-w-full" headType="bg-gray-50" id="custom-modules-table">
             <x-slot name="thead" class="dark:bg-gray-800">
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@lang('app.name')</th>
+                <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">@lang('app.name')</th>
                 @if (!$universalBundle)
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@lang('app.purchaseCode')</th>
+                    <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">@lang('app.purchaseCode')</th>
                 @endif
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@lang('app.moduleVersion')</th>
+                <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">@lang('app.moduleVersion')</th>
                 @if (!$universalBundle)
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">@lang('app.notify')</th>
+                    <th class="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">@lang('app.notify')</th>
                 @endif
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">@lang('app.status')</th>
+                <th class="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">@lang('app.status')</th>
             </x-slot>
 
             @forelse ($allModules as $key=>$module)
                 @php
+
+                    if($module == 'UniversalBundle'){
+                        $isLicensed = true;
+                        continue;
+                    }
                     $moduleKey = strtolower($module);
                     $fetchSetting = null;
+                    $isLicensed = false;
+                    $isInstalled = in_array($moduleKey, custom_module_plugins());
 
                     // Get module config settings
                     $settingClass = config([strtolower($module) . '.setting', null]);
@@ -229,7 +259,7 @@
                     $envatoId = config([strtolower($module) . '.envato_item_id', null]);
 
                     // Load config from Modules directory if plugin exists
-                    if (in_array($moduleKey, custom_module_plugins())) {
+                    if ($isInstalled) {
                         $configPath = base_path("Modules/$module/Config/config.php");
 
                         if (file_exists($configPath)) {
@@ -240,29 +270,131 @@
 
                             if ($settingClass) {
                                 $fetchSetting = $settingClass::first();
+                                // Check if module is properly licensed
+                                if ($fetchSetting && $fetchSetting->purchase_code) {
+                                    $isLicensed = true;
+                                }
                             }
                         }
                     }
+
+                    // Determine row styling based on license status
+                    $rowClass = '';
+                    if (($isInstalled && $isLicensed) || ($universalBundle && $isInstalled)) {
+                        $rowClass = 'bg-green-50 hover:bg-green-100 border-l-4 border-green-400';
+                    } elseif ($isInstalled && !$isLicensed) {
+                        $rowClass = 'bg-yellow-50 hover:bg-yellow-100 border-l-4 border-yellow-400';
+                    } else {
+                        $rowClass = 'bg-gray-50 hover:bg-gray-100 border-l-4 border-gray-300 opacity-75';
+                    }
                 @endphp
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="text-gray-900 font-bold font-semibold">{{ $module }}</span>
-                        @if (module_enabled('UniversalBundle') && isInstallFromUniversalBundleModule($key))
-                            <i class="icon text-blue-500 fas fa-info-circle cursor-pointer" data-toggle="tooltip"
-                                data-original-title="{{__('universalbundle::app.moduleInfo')}}"></i>
-                        @endif
+                <tr class="{{ $rowClass }}">
+                    <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
+                        <div class="flex items-center space-x-3">
+                            <!-- Status Icon -->
+                            @if (($isInstalled && $isLicensed) || ($universalBundle && $isInstalled))
+                                <div class="flex-shrink-0">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            @elseif ($isInstalled && !$isLicensed)
+                                <div class="flex-shrink-0">
+                                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                </div>
+                            @else
+                                <div class="flex-shrink-0">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                </div>
+                            @endif
+
+                            <div class="flex-grow">
+                                <div class="flex items-center space-x-2">
+                                    <div class="flex flex-col">
+                                        <span class="text-gray-900 font-bold font-semibold">{{ $module }}
+
+                                             <!-- License Status Badge -->
+                                    @if ($isInstalled && $isLicensed)
+
+                                        @if (module_enabled('UniversalBundle') && isInstallFromUniversalBundleModule($module))
+                                            <span class="ml-1 text-blue-500 cursor-pointer group relative">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="inline w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                                </svg>
+                                                <span class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max max-w-xs px-2 py-1 rounded bg-gray-900 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 whitespace-pre-line">
+                                                    {{ __('universalbundle::app.moduleInfo') }}
+                                                </span>
+                                            </span>
+                                        @endif
+
+                                @elseif ($isInstalled && !$isLicensed && $verificationRequired &&  !$universalBundle)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        ⚠ @lang('modules.moduleLicenseStatus.verificationRequired')
+                                    </span>
+                                @elseif (!$isInstalled)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                        🔒 @lang('modules.moduleLicenseStatus.notActivated')
+                                    </span>
+                                @endif
+                                        </span>
+                                        @if($fetchSetting && $fetchSetting->supported_until && !$universalBundle)
+                                            @php
+                                                $supportDate = \Carbon\Carbon::parse($fetchSetting->supported_until);
+                                                $isExpired = $supportDate->isPast();
+                                                $daysRemaining = now()->diffInDays($supportDate, false);
+                                            @endphp
+
+                                            <div class="flex items-center space-x-2  mt-1">
+                                                <div class="flex items-center px-0.5  rounded text-[10px]
+                                                    {{ $isExpired ? 'bg-red-50 border border-red-200' : ($daysRemaining < 30 ? 'bg-yellow-50 border border-yellow-200' : 'bg-blue-50 border border-blue-200') }}">
+
+                                                    <span class="text-[10px] mx-0.5
+                                                        {{ $isExpired ? 'text-red-700' : ($daysRemaining < 30 ? 'text-yellow-700' : 'text-blue-700') }}">
+                                                        @if ($isExpired)
+                                                            @lang('modules.moduleLicenseStatus.supportExpired'):
+                                                            <b>{{ $supportDate->format('j') }}<sup>{{ $supportDate->format('S') }}</sup> {{ $supportDate->format('M, Y') }}</b>
+                                                            @if($supportDate->isYesterday())
+                                                                (Yesterday)
+                                                            @endif
+                                                        @else
+                                                            @lang('modules.moduleLicenseStatus.supportUntil'):
+                                                            <b>{{ $supportDate->format('j') }}<sup>{{ $supportDate->format('S') }}</sup> {{ $supportDate->format('M, Y') }}</b>
+                                                            @if($supportDate->isToday())
+                                                                (Today)
+                                                            @elseif($supportDate->isTomorrow())
+                                                                (Tomorrow)
+                                                            @endif
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                </div>
+
+                                @if (module_enabled('UniversalBundle') && isInstallFromUniversalBundleModule($key))
+                                    <i class="icon text-blue-500 fas fa-info-circle cursor-pointer" data-toggle="tooltip"
+                                        data-original-title="{{__('universalbundle::app.moduleInfo')}}"></i>
+                                @endif
+                            </div>
+                        </div>
                     </td>
                     @if (!$universalBundle)
-                    <td class="px-6 py-4 whitespace-nowrap text-sm flex items-center gap-2">
+                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm ">
 
-                        @if ($fetchSetting)
-                            @if ($verificationRequired)
-                                @include('custom-modules.sections.purchase-code')
+                            @if ($fetchSetting)
+                                @if ($verificationRequired)
+                                    @include('custom-modules.sections.purchase-code')
+                                @endif
                             @endif
-                        @endif
-                    </td>
+                        </td>
                     @endif
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
                         @if ($settingClass)
                             @include('custom-modules.sections.version')
 
@@ -273,7 +405,7 @@
                     </td>
 
                     @if (!$universalBundle)
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                    <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm">
                         @if ($fetchSetting)
                         <div class="inline-block ml-2 group relative">
                             <label class="relative inline-flex items-center cursor-pointer">
@@ -297,31 +429,71 @@
                     </td>
                     @endif
 
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                        <div class="inline-block ml-2 group relative" data-toggle="tooltip"
-                             data-original-title="@lang('app.moduleSwitchMessage', ['name' => $module])">
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" @if (in_array($key, custom_module_plugins())) checked @endif
-                                    class="sr-only peer change-module-status"
-                                    id="module-{{ $key }}" data-module-name="{{ $module }}">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                            </label>
+                    <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm">
+                        <div class="flex items-center justify-end space-x-2">
+                            <!-- Purchase/Install Button for Unlicensed Modules -->
+                            @if (!$isInstalled || !$isLicensed)
+                                @php
+                                    // Try to find the module in the available plugins
+                                    $availableModule = null;
+                                    if (isset($plugins)) {
+                                        $availableModule = $plugins->where('product_name', 'like', '%' . $module . '%')->first();
+                                    }
+                                @endphp
+                                @if ($availableModule)
+                                    <a href="{{ $availableModule['product_link'] }}" target="_blank"
+                                       class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white {{ !$isInstalled ? 'bg-red-600 hover:bg-red-700' : 'bg-orange-600 hover:bg-orange-700' }}">
+                                        @if (!$isInstalled)
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11h8l1 9H7l1-9z"/>
+                                            </svg>
+                                            Purchase
+                                        @else
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                            </svg>
+                                            Verify
+                                        @endif
+                                    </a>
+                                @endif
+                            @endif
 
-                            <!-- Tooltip -->
-                            <div class="pointer-events-none hidden group-hover:block absolute z-50 w-75 px-4 py-2
-                                      right-full mr-5 top-1/2 -translate-y-1/2
-                                      text-sm text-white bg-gray-900 rounded-lg shadow-sm
-                                      before:content-[''] before:absolute before:top-1/2 before:-translate-y-1/2
-                                      before:right-[-6px] before:border-[6px] before:border-transparent
-                                      before:border-l-gray-900">
-                                @lang('app.moduleSwitchMessage', ['name' => $module])
+                            <!-- Module Status Toggle -->
+                            <div class="inline-block group relative" data-toggle="tooltip"
+                                 data-original-title="@lang('app.moduleSwitchMessage', ['name' => $module])">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" @if (in_array($key, custom_module_plugins())) checked @endif
+                                        class="sr-only peer change-module-status {{ !$verificationRequired && $isInstalled ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                        id="module-{{ $key }}" data-module-name="{{ $module }}"
+                                        >
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full
+                                                peer peer-checked:after:translate-x-full
+                                                peer-checked:after:border-white
+                                                after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                                                after:bg-white after:border-gray-300 after:border after:rounded-full
+                                                after:h-5 after:w-5 after:transition-all
+                                                {{ $isLicensed || $universalBundle ? 'peer-checked:bg-green-600' : 'peer-checked:bg-yellow-500' }}">
+                                        </div>
+                                </label>
+
+                                <!-- Tooltip -->
+                                <div class="pointer-events-none hidden group-hover:block absolute z-50 w-75 px-4 py-2
+                                          right-full mr-5 top-1/2 -translate-y-1/2
+                                          text-sm text-white bg-gray-900 rounded-lg shadow-sm
+                                          before:content-[''] before:absolute before:top-1/2 before:-translate-y-1/2
+                                          before:right-[-6px] before:border-[6px] before:border-transparent
+                                          before:border-l-gray-900">
+
+                                        @lang('app.moduleSwitchMessage', ['name' => $module])
+
+                                </div>
                             </div>
                         </div>
                     </td>
                 </tr>
             @empty
                 <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <td colspan="5" class="px-6 py-4 text-center">
+                    <td colspan="5" class="px-3 sm:px-6 py-4 text-center">
                         <div class="flex flex-col items-center justify-center space-y-4">
                             <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -339,9 +511,11 @@
                 </tr>
             @endforelse
         </x-table>
+        </div>
     </div>
 
     @include('vendor.froiden-envato.update.plugins', ['allModules' => $allModules])
+
 </div>
 
 <!-- Subdomain Activation Modal -->

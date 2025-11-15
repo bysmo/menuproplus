@@ -1,4 +1,8 @@
+@if($fetchSetting && $fetchSetting->supported_until)
+
 @php $supportDate = \Carbon\Carbon::parse($fetchSetting->supported_until) @endphp
+
+
 
 @if ($supportDate->isPast())
     <span>Your support has been expired on <b>{{ $supportDate->translatedFormat('d M, Y') }}</b>
@@ -18,6 +22,7 @@
     @if((int)now()->diffInDays($supportDate) < 90)
         @livewire('support-date-modal')
     @endif
+@endif
 @endif
 
 

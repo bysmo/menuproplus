@@ -20,7 +20,7 @@
     @endphp
 @endif
 
-<div {{ $attributes->merge(['class' => 'flex w-full items-center p-4 mb-4 text-sm rounded-lg ' . $typeClass]) }}
+<div {{ $attributes->merge(['class' => 'flex w-full items-center p-3 px-4 mb-4 text-sm rounded-lg ' . $typeClass]) }}
 
 
     role="alert">

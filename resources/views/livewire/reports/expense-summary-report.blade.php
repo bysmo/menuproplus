@@ -112,7 +112,7 @@
                                             {{ $expense->category->name ?? __('modules.expenses.reports.unknownCategory') }}</td>
                                         <td
                                             class="py-2 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                            {{ isset($expense->total_amount) ? currency_format($expense->total_amount) : currency_format(0) }}</td>
+                                            {{ isset($expense->total_amount) ? currency_format($expense->total_amount, restaurant()->currency_id) : currency_format(0, restaurant()->currency_id) }}</td>
                                         <td
                                             class="py-2 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
                                             {{ $totalAmount > 0 && isset($expense->total_amount) ? number_format(($expense->total_amount / $totalAmount) * 100, 2) . '%' : '-' }}
@@ -129,7 +129,7 @@
                                         <td class="py-2 px-4 text-xs text-left border-gray-700"></td>
                                         <td class="py-2 px-4 text-xs text-left border-gray-700">@lang('modules.order.total')</td>
                                         <td class="py-2 px-4 text-xs text-left border-gray-700">
-                                            {{ currency_format($totalAmount) }}
+                                            {{ currency_format($totalAmount, restaurant()->currency_id) }}
                                         </td>
                                         {{-- <td class="py-2 px-4 text-xs text-left border-gray-700"></td> --}}
                                     </tr>

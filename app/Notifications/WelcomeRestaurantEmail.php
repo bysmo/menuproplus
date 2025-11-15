@@ -11,14 +11,16 @@ use Illuminate\Notifications\Notification;
 class WelcomeRestaurantEmail extends BaseNotification
 {
 
-    public $restaurant;
+    public $restaurantDetails;
+    public $password;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Restaurant $restaurant)
+    public function __construct(Restaurant $restaurantDetails, $password)
     {
-        // $this->restaurant = $restaurant;
+        $this->restaurantDetails = $restaurantDetails;
+        $this->password = $password;
     }
 
     /**
@@ -38,16 +40,25 @@ class WelcomeRestaurantEmail extends BaseNotification
     {
         $build = parent::build($notifiable);
 
+        if (module_enabled('Subdomain')) {
+            $loginUrl = 'https://' . $this->restaurantDetails->sub_domain;
+        } else {
+            $loginUrl = url('/');
+        }
+
         $siteName = global_setting()->name;
         return $build
             ->subject(__('email.welcomeRestaurant.subject', ['site_name' => $siteName]))
             ->greeting(__('email.welcomeRestaurant.greeting', ['name' => $notifiable->name]))
             ->line(__('email.welcomeRestaurant.line1', ['site_name' => $siteName]))
+            ->line(__('email.welcomeRestaurant.line8', ['email' => $notifiable->email]))
+            ->line(__('email.welcomeRestaurant.line9', ['password' => $this->password]))
+            ->line(__('email.welcomeRestaurant.line10', ['login_url' => $loginUrl]))
             ->line(__('email.welcomeRestaurant.line2'))
             ->line(__('email.welcomeRestaurant.line3'))
             ->line(__('email.welcomeRestaurant.line4'))
             ->line(__('email.welcomeRestaurant.line5'))
-            ->line(__('email.welcomeRestaurant.line6'))
+            ->line(__('email.welcomeRestaurant.line6',  ['site_name' => $siteName]))
             ->line(__('email.welcomeRestaurant.line7', ['site_name' => $siteName]));
     }
 

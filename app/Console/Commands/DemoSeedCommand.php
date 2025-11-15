@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use App\Models\MenuItem;
 
 class DemoSeedCommand extends Command
 {
@@ -42,24 +43,7 @@ class DemoSeedCommand extends Command
             $directory = public_path('user-uploads');
 
             // Set the name of the file to exclude
-            $filename_to_exclude = [
-                '.htaccess',
-                'butter-chicken.jpg',
-                'chicken-hyderabadi-biryani.jpg',
-                'chicken-manchurian.webp',
-                'chilli-paneer.jpg',
-                'dal-makhni.jpg',
-                'idli-sambar.jpg',
-                'masala-dosa.jpg',
-                'medu-vada.jpg',
-                'naan-recipe.jpg',
-                'paneer-tikka.jpg',
-                'spring-rolls.jpg',
-                'tandoori-roti.jpg',
-                'uttapam.webp',
-                'vegetable-hakka-noodles.jpeg',
-                'vegetable-manchow-soup.jpg'
-            ];
+            $filename_to_exclude = MenuItem::FILENAME_TO_EXCLUDE;
             // Get a list of all the files in the directory
             $files = Storage::allFiles();
             // Get all files in the directory

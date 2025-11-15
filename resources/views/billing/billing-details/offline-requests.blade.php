@@ -71,18 +71,18 @@
                             </td>
                         </tr>
                         @empty
-                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <td class="py-8 px-4 text-center dark:text-white" colspan="9">
-                                <div class="flex flex-col items-center justify-center">
-                                    <svg class="w-16 h-16 text-gray-400 dark:text-gray-500 mb-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v13m0-13c-2.8-.8-4.7-1-8-1a1 1 0 0 0-1 1v11c0 .6.5 1 1 1 3.2 0 5 .2 8 1m0-13c2.8-.8 4.7-1 8-1 .6 0 1 .5 1 1v11c0 .6-.5 1-1 1-3.2 0-5 .2-8 1"/>
-                                    </svg>
-                                    <p class="text-lg font-medium text-gray-500 dark:text-gray-400">
-                                        @lang('messages.noOfflinePaymentRequestFound')
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
+                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <td class="py-8 px-4 text-center dark:text-white" colspan="9">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <svg class="w-16 h-16 text-gray-400 dark:text-gray-500 mb-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v13m0-13c-2.8-.8-4.7-1-8-1a1 1 0 0 0-1 1v11c0 .6.5 1 1 1 3.2 0 5 .2 8 1m0-13c2.8-.8 4.7-1 8-1 .6 0 1 .5 1 1v11c0 .6-.5 1-1 1-3.2 0-5 .2-8 1"/>
+                                        </svg>
+                                        <p class="text-lg font-medium text-gray-500 dark:text-gray-400">
+                                            @lang('messages.noOfflinePaymentRequestFound')
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
                         @endforelse
                         </tbody>
                     </table>

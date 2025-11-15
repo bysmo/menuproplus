@@ -178,6 +178,13 @@ class UpdatePackage extends Component
 
             $restaurant->save();
 
+            cache()->forget('restaurant_' . $restaurant->id . '_staff_stats');   
+            cache()->forget('restaurant_' . $restaurant->id . '_menu_item_stats');
+            // Clear order stats cache for all branches of this restaurant
+            $restaurant->branches->each(function ($branch) {
+                cache()->forget('branch_' . $branch->id . '_order_stats');
+            });
+            
             // Notify the user
             $this->dispatch('hideChangePackage');
             $this->alert('success', __('messages.packageUpdated'), [
@@ -200,7 +207,7 @@ class UpdatePackage extends Component
         if ($this->packageType === PackageType::TRIAL) {
             $rules['trialExpireOn'] = 'required|nullable';
         } else {
-            $rules['licenceExpireOn'] = 'required|nullable';
+            $rules['licenceExpireOn'] = 'required_unless:billingCycle,lifetime|nullable';
             $rules['amount'] = 'required|nullable|numeric';
             $rules['payDate'] = 'required|nullable';
             $rules['nextPayDate'] = 'required_unless:billingCycle,lifetime|nullable';

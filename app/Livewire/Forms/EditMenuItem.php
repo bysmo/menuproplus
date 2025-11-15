@@ -6,11 +6,13 @@ use App\Models\Menu;
 use App\Helper\Files;
 use Livewire\Component;
 use App\Models\MenuItem;
+use App\Models\KotPlace;
 use App\Models\ItemCategory;
 use Livewire\WithFileUploads;
 use App\Models\MenuItemVariation;
 use App\Scopes\AvailableMenuItemScope;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
+use App\Models\Tax;
 
 class EditMenuItem extends Component
 {
@@ -29,10 +31,12 @@ class EditMenuItem extends Component
     public $itemDescription;
     public $itemType = 'veg';
     public $itemImage;
+    public $itemImageTemp; // Add temporary image property
     public $categoryList = [];
     public $menus = [];
     public $variationName = [];
     public $variationPrice = [];
+    public $variationId = []; // Track variation IDs for existing variations
     public $menuItem;
     public $preparationTime;
     public $isAvailable;
@@ -43,7 +47,15 @@ class EditMenuItem extends Component
     public $currentLanguage;
     public $languages = [];
     public $globalLocale;
+    public $kitchenTypes;
+    public $kitchenType;
     public bool $showOnCustomerSite;
+    public $taxes = [];
+    public $selectedTaxes = [];
+    public $taxInclusive = false;
+    public $taxInclusivePrice = null;
+    public $variationBreakdowns = []; // <-- Add this property
+    public $inStock = false;
 
     public function mount()
     {
@@ -62,6 +74,9 @@ class EditMenuItem extends Component
         $this->hasVariations = ($this->menuItem->variations->count() > 0);
         $this->showItemPrice = ($this->menuItem->variations->count() == 0);
         $this->isAvailable = $this->menuItem->is_available;
+        $this->inStock = $this->menuItem->in_stock;
+        $this->kitchenTypes = KotPlace::where('is_active', true)->get();
+        $this->kitchenType = $this->menuItem->kot_place_id;
         $this->showOnCustomerSite = $this->menuItem->show_on_customer_site;
 
         foreach ($this->menuItem->translations as $translation) {
@@ -80,12 +95,27 @@ class EditMenuItem extends Component
         foreach ($this->menuItem->variations as $key => $value) {
             $this->variationName[$key] = $value->variation;
             $this->variationPrice[$key] = $value->price;
+            $this->variationId[$key] = $value->id; // Track existing variation IDs
             $this->i = $key + 1;
             array_push($this->inputs, $this->i);
         }
 
         $this->updatedCurrentLanguage();
         $this->updateTranslation();
+
+        $this->taxes = Tax::where('restaurant_id', restaurant()->id)->get();
+        $this->selectedTaxes = $this->menuItem->taxes->pluck('id')->toArray();
+        $this->taxInclusive = (bool) (restaurant()->tax_inclusive ?? false);
+
+
+        // Calculate tax breakdown for initial display
+        if ($this->hasVariations) {
+            $this->variationBreakdowns = $this->getVariationBreakdowns();
+            $this->taxInclusivePrice = null;
+        } else {
+            $this->taxInclusivePrice = $this->getTaxInclusivePriceProperty();
+            $this->variationBreakdowns = [];
+        }
     }
 
     public function addMoreField($i)
@@ -102,22 +132,26 @@ class EditMenuItem extends Component
     public function removeField($i)
     {
         unset($this->inputs[$i]);
+        unset($this->variationName[$i]);
+        unset($this->variationPrice[$i]);
+        unset($this->variationId[$i]); // Also remove variation ID
+        unset($this->variationBreakdowns[$i]);
     }
 
-    public function checkVariations()
+    public function updatedHasVariations($value)
     {
-        if ($this->hasVariations) {
+        if ($value) {
             $this->showItemPrice = false;
-
             if (count($this->inputs) == 0) {
                 $this->addMoreField($this->i);
             }
+            $this->variationBreakdowns = $this->getVariationBreakdowns();
+            $this->itemPrice = 0;
+            $this->taxInclusivePrice = null;
         } else {
             $this->showItemPrice = true;
-            $this->inputs = [];
-            $this->variationName = [];
-            $this->variationPrice = [];
-            $this->i = 0;
+            $this->taxInclusivePrice = $this->getTaxInclusivePriceProperty();
+            $this->variationBreakdowns = [];
         }
     }
 
@@ -126,17 +160,93 @@ class EditMenuItem extends Component
         $this->categoryList = ItemCategory::all();
     }
 
+    public function validateImage()
+    {
+        if ($this->itemImageTemp) {
+            $this->validate([
+                'itemImageTemp' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ]);
+
+            // Check image dimensions
+            $imageInfo = getimagesize($this->itemImageTemp->getRealPath());
+            if ($imageInfo) {
+                $width = $imageInfo[0];
+                $height = $imageInfo[1];
+
+                // Recommend minimum dimensions
+                if ($width < 200 || $height < 200) {
+                    $this->addError('itemImageTemp', 'Image dimensions are too small. Recommended minimum: 200x200 pixels.');
+                }
+            }
+        }
+    }
+
+    public function updatedItemImageTemp()
+    {
+        // Clear any existing image when a new one is selected
+        $this->itemImage = null;
+    }
+
+    public function removeSelectedImage()
+    {
+        $this->itemImageTemp = null;
+        $this->itemImage = null;
+    }
+
+    public function formatFileSize($bytes)
+    {
+        if ($bytes >= 1073741824) {
+            return number_format($bytes / 1073741824, 2) . ' GB';
+        } elseif ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) {
+            return number_format($bytes / 1024, 2) . ' KB';
+        } else {
+            return $bytes . ' bytes';
+        }
+    }
+
     public function submitForm()
     {
-        $this->validate([
+        if ($this->hasVariations) {
+            $hasAtLeastOne = false;
+            foreach ($this->inputs as $key => $value) {
+                if (!empty($this->variationName[$key]) && !empty($this->variationPrice[$key])) {
+                    $hasAtLeastOne = true;
+                    break;
+                }
+            }
+            if (!$hasAtLeastOne) {
+                $this->addError('variationName.0', __('validation.atLeastOneVariationRequired'));
+                return;
+            }
+        }
+
+        // Validate image if present
+        if ($this->itemImageTemp) {
+            $this->validateImage();
+        }
+
+        $rules = [
             'translationNames.' . $this->globalLocale => 'required',
             'itemPrice' => 'required_if:hasVariations,false',
             'itemCategory' => 'required',
             'menu' => 'required',
             'isAvailable' => 'required|boolean',
             'showOnCustomerSite' => 'required|boolean',
-            'itemImage' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ],[
+        ];
+
+        // Add validation for variations if hasVariations is true
+        if ($this->hasVariations) {
+            foreach ($this->inputs as $key => $value) {
+                if (isset($this->variationName[$key]) || isset($this->variationPrice[$key])) {
+                    $rules['variationName.' . $key] = 'required';
+                    $rules['variationPrice.' . $key] = 'required|numeric|min:0';
+                }
+            }
+        }
+
+        $this->validate($rules, [
             'translationNames.' . $this->globalLocale . '.required' => __('validation.itemNameRequired', ['language' => $this->languages[$this->globalLocale]]),
         ]);
 
@@ -150,8 +260,21 @@ class EditMenuItem extends Component
             'preparation_time' => $this->preparationTime,
             'menu_id' => $this->menu,
             'is_available' => $this->isAvailable,
+            'kot_place_id' => $this->kitchenType,
             'show_on_customer_site' => $this->showOnCustomerSite,
+            'tax_inclusive' => (restaurant()->tax_mode === 'item') ? $this->taxInclusive : (restaurant()->tax_inclusive ?? false),
         ]);
+
+        if (in_array('Inventory', restaurant_modules())) {
+            MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->where('id', $this->menuItem->id)->update([
+                'in_stock' => $this->inStock,
+            ]);
+        }
+
+        // Sync taxes if tax_mode is 'item'
+        if (restaurant()->tax_mode === 'item') {
+            $this->menuItem->taxes()->sync($this->selectedTaxes);
+        }
 
         // Efficiently update translations - only update what has changed
         foreach ($this->translationNames as $locale => $name) {
@@ -187,22 +310,50 @@ class EditMenuItem extends Component
             }
         }
 
-        if ($this->itemImage) {
+        if ($this->itemImageTemp) {
             $this->menuItem->update([
-                'image' => Files::uploadLocalOrS3($this->itemImage, 'item', width: 350),
+                'image' => Files::uploadLocalOrS3($this->itemImageTemp, 'item', width: 350, height: 350),
             ]);
         }
 
         if ($this->hasVariations) {
-            MenuItemVariation::where('menu_item_id', $this->menuItem->id)->delete();
+            // Get all existing variation IDs
+            $existingVariationIds = $this->menuItem->variations()->pluck('id')->toArray();
+            $submittedVariationIds = [];
 
             foreach ($this->inputs as $key => $value) {
-                MenuItemVariation::create([
-                    'variation' => $this->variationName[$key],
-                    'price' => $this->variationPrice[$key],
-                    'menu_item_id' => $this->menuItem->id
-                ]);
+                // Check if variation data exists and is not empty
+                if (
+                    isset($this->variationName[$key]) && isset($this->variationPrice[$key]) &&
+                    !empty(trim($this->variationName[$key])) && !empty(trim($this->variationPrice[$key]))
+                ) {
+                    $variationData = [
+                        'variation' => trim($this->variationName[$key]),
+                        'price' => $this->variationPrice[$key],
+                        'menu_item_id' => $this->menuItem->id
+                    ];
+
+                    // Check if this is an existing variation (has ID) or a new one
+                    if (isset($this->variationId[$key]) && !empty($this->variationId[$key])) {
+                        // Update existing variation
+                        MenuItemVariation::where('id', $this->variationId[$key])->update($variationData);
+                        $submittedVariationIds[] = $this->variationId[$key];
+                    } else {
+                        // Create new variation
+                        $newVariation = MenuItemVariation::create($variationData);
+                        $submittedVariationIds[] = $newVariation->id;
+                    }
+                }
             }
+
+            // Delete variations that were removed (not in submitted list)
+            $variationsToDelete = array_diff($existingVariationIds, $submittedVariationIds);
+            if (!empty($variationsToDelete)) {
+                MenuItemVariation::whereIn('id', $variationsToDelete)->delete();
+            }
+        } else {
+            // If variations are now disabled, delete all old variations
+            MenuItemVariation::where('menu_item_id', $this->menuItem->id)->delete();
         }
 
         $this->dispatch('hideEditMenuItem');
@@ -229,9 +380,13 @@ class EditMenuItem extends Component
         $this->itemDescription = '';
         $this->itemType = 'veg';
         $this->itemImage = null;
+        $this->itemImageTemp = null;
         $this->preparationTime = null;
         $this->variationName = [];
         $this->variationPrice = [];
+        $this->variationId = [];
+        $this->variationBreakdowns = [];
+        $this->taxInclusivePrice = null;
     }
 
     public function clearTranslationCache()
@@ -258,6 +413,75 @@ class EditMenuItem extends Component
     public function showMenuCategoryModal()
     {
         $this->dispatch('showMenuCategoryModal');
+    }
+
+    public function updatedTaxInclusive()
+    {
+        if ($this->hasVariations) {
+            $this->variationBreakdowns = $this->getVariationBreakdowns();
+            $this->taxInclusivePrice = null;
+        } else {
+            $this->taxInclusivePrice = $this->getTaxInclusivePriceProperty();
+            $this->variationBreakdowns = [];
+        }
+    }
+
+    public function getTaxInclusivePriceProperty()
+    {
+        // Use the MenuItem model's method for tax breakdown
+        return (new \App\Models\MenuItem)->getTaxBreakdown(
+            $this->itemPrice,
+            $this->selectedTaxes,
+            $this->taxInclusive
+        );
+    }
+
+    public function updatedItemPrice()
+    {
+        if ($this->hasVariations) {
+            $this->variationBreakdowns = $this->getVariationBreakdowns();
+            $this->taxInclusivePrice = null;
+        } else {
+            $this->taxInclusivePrice = $this->getTaxInclusivePriceProperty();
+            $this->variationBreakdowns = [];
+        }
+    }
+
+    public function updatedSelectedTaxes()
+    {
+        if ($this->hasVariations) {
+            $this->variationBreakdowns = $this->getVariationBreakdowns();
+            $this->taxInclusivePrice = null;
+        } else {
+            $this->taxInclusivePrice = $this->getTaxInclusivePriceProperty();
+            $this->variationBreakdowns = [];
+        }
+    }
+
+    public function updatedVariationPrice($value = null, $key = null)
+    {
+        if ($this->hasVariations) {
+            $this->variationBreakdowns = $this->getVariationBreakdowns();
+            $this->taxInclusivePrice = null;
+        }
+    }
+
+    public function getVariationBreakdowns()
+    {
+        $breakdowns = [];
+        foreach ($this->variationPrice as $key => $price) {
+            if (!empty($price)) {
+                $breakdowns[$key] = [
+                    'name' => $this->variationName[$key] ?? '',
+                    'breakdown' => (new \App\Models\MenuItem)->getTaxBreakdown(
+                        $price,
+                        $this->selectedTaxes,
+                        $this->taxInclusive
+                    )
+                ];
+            }
+        }
+        return $breakdowns;
     }
 
     public function render()

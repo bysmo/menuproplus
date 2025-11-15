@@ -21,7 +21,15 @@ class CustomerTable extends Component
     public $confirmDeleteCustomerModal = false;
     public $showCustomerOrderModal = false;
 
-    protected $listeners = ['refreshCustomers' => '$refresh'];
+    protected $listeners = ['refreshCustomers' => '$refresh', 'reloadPage' => '$refresh'];
+
+    #[On('refreshCustomers')]
+    public function refreshCustomers()
+    {
+        // Reset search to show all customers after import
+        $this->search = '';
+        $this->render();
+    }
 
     public function showEditCustomer($id)
     {
@@ -59,7 +67,6 @@ class CustomerTable extends Component
             'showCancelButton' => false,
             'cancelButtonText' => __('app.close')
         ]);
-
     }
 
     #[On('hideEditCustomer')]
@@ -70,15 +77,18 @@ class CustomerTable extends Component
 
     public function render()
     {
-        $query = Customer::withCount('orders');
-        $query = $query->where('name', 'like', '%'.$this->search.'%')->orWhere('email', 'like', '%'.$this->search.'%')
-        ->orWhere('phone', 'like', '%'.$this->search.'%')
-        ->orderBy('id', 'desc')
-        ->paginate(10);
+        $query = Customer::withCount('orders')
+            ->with('orders')
+            ->where(function($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                  ->orWhere('email', 'like', '%' . $this->search . '%')
+                  ->orWhere('phone', 'like', '%' . $this->search . '%');
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(10);
 
         return view('livewire.customer.customer-table', [
             'customers' => $query
         ]);
     }
-
 }

@@ -1,16 +1,19 @@
 @if ($universalBundle)
-    <div class='card border mb-4'>
-        <div class="card-body bg-white border-0 pt-4">
-            <div class="row">
-                @php
-                    $fetchSetting = null;
-                    if (in_array($universalBundle, $worksuitePlugins) && config(strtolower($universalBundle) . '.setting')) {
-                        $fetchSetting = config(strtolower($universalBundle) . '.setting')::first();
-                    }
-                @endphp
-                <div class="col-md-6">
-                    <div class="d-flex">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 148.319 148.319">
+    @php
+        $fetchSetting = null;
+        if (in_array(strtolower($universalBundle->getName()), custom_module_plugins()) && config(strtolower($universalBundle->getName()) . '.setting')) {
+            $fetchSetting = config(strtolower($universalBundle->getName()) . '.setting')::first();
+        }
+    @endphp
+
+    <div class='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 mb-3 overflow-hidden'>
+        <!-- Header Section with Gradient -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-700 border-b border-gray-200 dark:border-gray-600 px-4 py-2.5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <!-- Icon Container -->
+                    <div class="flex-shrink-0 bg-white dark:bg-gray-600 p-2 rounded-lg shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 148.319 148.319">
                             <g id="Group_1192" data-name="Group 1192" transform="translate(0 0)">
                                 <path id="Path_1092" data-name="Path 1092" d="M222.36,482h8.691v8.691H222.36Z"
                                     transform="translate(-157.945 -342.371)" fill="#fc6" />
@@ -72,75 +75,108 @@
                                     transform="translate(-247.507 -80.695)" fill="#ece6f2" />
                             </g>
                         </svg>
-
-                        <div class="">
-                            <span class="h5 mb-0 mx-2">{{ $universalBundle->getName() }}</span>
-                            @if (config(strtolower($universalBundle) . '.setting'))
-                                @include('custom-modules.sections.version', ['module' => $universalBundle])
-                            @endif
-                            <div class="mx-2">
-                                @if ($fetchSetting?->license_type)
-                                    <span class="badge badge-secondary">{{ $fetchSetting->license_type }}</span>
-                                    @if (str_contains($fetchSetting->license_type, 'Regular'))
-                                        <a href="{{ \Froiden\Envato\Helpers\FroidenApp::buyExtendedUrl(config(strtolower($universalBundle) . '.envato_item_id')) }}"
-                                            target="_blank">Upgrade now</a>
-                                    @endif
-                                @endif
-
-                                @if (
-                                    $fetchSetting?->purchase_code &&
-                                        $fetchSetting?->supported_until &&
-                                        \Carbon\Carbon::parse($fetchSetting->supported_until)->isPast())
-                                    <span class="badge badge-danger">Support Expired</span>
-                                @endif
-
-                            </div>
-                            @if ($fetchSetting?->purchase_code && $fetchSetting?->supported_until)
-                                <div class="mx-2 mt-2">
-{{--                                    <i class="fa fa-info-circle"></i>--}}
-                                    @include('custom-modules.sections.support-date')
-                                </div>
-                            @endif
-                        </div>
                     </div>
-                </div>
 
-                <div class="col-md-6 d-flex align-items-center justify-content-end">
-                    <div class="">
-                        
-                        @if ($fetchSetting)
-
-                            @if (config(strtolower($universalBundle) . '.verification_required'))
-                                <div class="d-flex align-items-center justify-content-end">
-                                     @include('custom-modules.sections.purchase-code', ['module' => $universalBundle])
-                                </div>
-                            @endif
-                            @if ($plugins->where('envato_id', config(strtolower($universalBundle) . '.envato_item_id'))->first())
-                                <div class="mt-3 d-flex align-items-center justify-content-end">
-                                    @include('custom-modules.sections.module-update', ['module' => $universalBundle, 'fetchSetting' => $fetchSetting])
-                                    {{-- <div class="custom-control custom-switch ml-2 d-inline-block"  data-toggle="tooltip"
-                                        data-original-title="@lang('app.moduleNotifySwitchMessage', ['name' => $universalBundle])">
-                                        <input type="checkbox" class="custom-control-input change-module-notification"
-                                                @checked($fetchSetting->notify_update)
-                                            id="module-notification-{{ $universalBundle }}" data-module-name="{{ $universalBundle }}">
-                                        <label class="custom-control-label cursor-pointer" for="module-notification-{{ $universalBundle }}"></label>
-                                    </div> --}}
-                                </div>
-                            @endif
+                    <!-- Module Info -->
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $universalBundle->getName() }}</h3>
+                        @if (config(strtolower($universalBundle->getName()) . '.setting'))
+                            @php $envatoId = $plugins->where('envato_id', config(strtolower($universalBundle) . '.envato_item_id'))->first(); @endphp
+                            <div class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                                @include('custom-modules.sections.version', ['module' => $universalBundle])
+                            </div>
                         @endif
                     </div>
-                    @if (!config(strtolower($universalBundle) . '.name'))
-                        <div class="custom-control custom-switch ml-2" data-toggle="tooltip"
-                            data-original-title="@lang('app.moduleSwitchMessage', ['name' => $universalBundle])">
-                            <input type="checkbox" class="custom-control-input change-module-status"
-                                id="module-{{ $universalBundle }}" data-module-name="{{ $universalBundle }}">
-                            <label class="custom-control-label cursor-pointer"
-                                for="module-{{ $universalBundle }}"></label>
+
+                </div>
+
+                <!-- Toggle Switch -->
+                @if (!config(strtolower($universalBundle->getName()) . '.name'))
+                    <div class="flex-shrink-0 relative"
+                         x-data="{ tooltip: false }"
+                         x-on:mouseenter="tooltip = true"
+                         x-on:mouseleave="tooltip = false">
+                        <label class="relative inline-flex items-center cursor-pointer group">
+                            <input type="checkbox" class="sr-only peer change-module-status"
+                                id="module-{{ $universalBundle->getName() }}" data-module-name="{{ $universalBundle->getName() }}">
+                            <div class="w-11 h-6 bg-gray-300 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-blue-600 peer-checked:to-indigo-600 shadow-inner"></div>
+                            <span class="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                                <span class="peer-checked:hidden">Off</span>
+                                <span class="hidden peer-checked:inline">On</span>
+                            </span>
+                        </label>
+
+                        <!-- Tooltip -->
+                        <div x-show="tooltip"
+                             x-cloak
+                             class="absolute right-full mr-2 top-1/2 -translate-y-1/2 z-50 px-2.5 py-1.5 text-xs text-left text-white bg-gray-900 dark:bg-gray-700 rounded-md shadow-lg whitespace-normal min-w-[180px] max-w-[280px] break-words"
+                             role="tooltip">
+                            @lang('app.moduleSwitchMessage', ['name' => $universalBundle->getName()])
+                        </div>
+                    </div>
+                @endif
+                <!-- Right Side - Action Buttons -->
+                @if ($fetchSetting)
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        @if (config(strtolower($universalBundle->getName()) . '.verification_required'))
+                            @include('custom-modules.sections.purchase-code', ['module' => $universalBundle->getName()])
+                        @endif
+
+                        @if ($plugins->where('envato_id', config(strtolower($universalBundle->getName()) . '.envato_item_id'))->first())
+                            @php $envatoId = config(strtolower($universalBundle->getName()) . '.envato_item_id'); @endphp
+                            @include('custom-modules.sections.module-update', ['module' => $universalBundle, 'fetchSetting' => $fetchSetting])
+                        @endif
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Content Section -->
+        <div class="px-4 py-3">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                <!-- Left Side - Badges and Info -->
+                <div class="flex-1 space-y-2">
+                    <!-- License & Status Badges -->
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        @if ($fetchSetting?->license_type)
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                <i class="fa fa-certificate mr-1.5 text-gray-500 dark:text-gray-400"></i>
+                                {{ $fetchSetting->license_type }}
+                            </span>
+                            @if (str_contains($fetchSetting->license_type, 'Regular'))
+                                <a href="{{ \Froiden\Envato\Helpers\FroidenApp::buyExtendedUrl(config(strtolower($universalBundle->getName()) . '.envato_item_id')) }}"
+                                    target="_blank"
+                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 text-white hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 transition-all duration-200 shadow-sm hover:shadow-md">
+                                    <i class="fa fa-arrow-up text-xs"></i>
+                                    <span>Upgrade to Extended</span>
+                                </a>
+                            @endif
+                        @endif
+
+                        @if (
+                            $fetchSetting?->purchase_code &&
+                            $fetchSetting?->supported_until &&
+                            \Carbon\Carbon::parse($fetchSetting->supported_until)->isPast())
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
+                                <i class="fa fa-exclamation-circle mr-1.5"></i>
+                                Support Expired
+                            </span>
+                        @endif
+                    </div>
+
+                    <!-- Support Date Info -->
+                    @if ($fetchSetting?->purchase_code && $fetchSetting?->supported_until)
+                        <div class="flex items-center text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-md px-2.5 py-1.5 border border-gray-200 dark:border-gray-600">
+                            <i class="fa fa-info-circle mr-1.5 text-blue-500 dark:text-blue-400 text-xs"></i>
+                            <span>@include('custom-modules.sections.support-date')</span>
                         </div>
                     @endif
                 </div>
+
+
             </div>
         </div>
     </div>
+
     @includeIf('universalbundle::install-modules')
 @endif

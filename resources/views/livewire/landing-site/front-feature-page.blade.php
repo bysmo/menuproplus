@@ -77,7 +77,7 @@
                                     {{ $feature->title }}
                                 </td>
                                 <td class="py-3 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
-                                    {{ \Illuminate\Support\Str::limit($feature->description, 50) }}
+                                    {{ \Illuminate\Support\Str::limit(strip_tags($feature->description), 50) }}
                                 </td>
                                 <td class="py-3 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
                                     <img src="{{ $feature->image_url }}" alt="Feature Image" class="w-16 h-16 object-cover rounded">
@@ -161,10 +161,31 @@
 
                     <div class="sm:col-span-2">
                         <label for="featureDescription" class="block text-sm font-medium text-gray-700">@lang('modules.settings.featureDescription')</label>
-                        <textarea id="featureDescription"
-                                  wire:model="featureDescription"
-                                  rows="3"
-                                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+
+                        <input x-ref="featureDescription" id="featureDescription" name="featureDescription" wire:model.lazy="featureDescription"
+                            value="{{ $featureDescription }}" type="hidden" />
+
+                        <div wire:ignore class="mt-1">
+                            <trix-editor class="trix-content text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                input="featureDescription"
+                                data-gramm="false"
+                                placeholder="{{ __('placeholders.featureDescriptionPlaceHolder') }}"
+                                x-on:trix-change="
+                                    $wire.set('featureDescription', $event.target.value, false);
+                                "
+                                x-ref="trixEditor"
+                                x-init="
+                                    // Prevent Livewire from interfering with Trix
+                                    $el.addEventListener('trix-change', function(event) {
+                                        $wire.set('featureDescription', event.target.value, false);
+                                    });
+
+                                    window.addEventListener('reset-trix-editor', () => {
+                                        $refs.trixEditor.editor.loadHTML('');
+                                    });
+                                " >
+                            </trix-editor>
+                        </div>
                         <x-input-error for="featureDescription" class="mt-2" />
                     </div>
 
@@ -188,7 +209,7 @@
                         </div>
                     @endif
 
-                    <div class="flex w-full pb-4 space-x-4 mt-6">
+                    <div class="flex w-full pb-4 space-x-4 mt-6 rtl:space-x-reverse">
                         <x-button type="submit">@lang('app.save')</x-button>
                         <x-button-cancel wire:click="$dispatch('hideEditFeature')" wire:loading.attr="disabled">
                             @lang('app.cancel')

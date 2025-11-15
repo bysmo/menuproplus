@@ -6,7 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TestNotification extends Notification
+class TestNotification extends BaseNotification
 {
     use Queueable;
 
@@ -22,11 +22,12 @@ class TestNotification extends Notification
 
     public function toMail($notifiable)
     {
-        return (new MailMessage)
-            ->subject('SMTP Test Email')
-            ->greeting('Hello!')
-            ->line('This is a test email to verify your SMTP settings.')
-            ->line('If you received this email, your SMTP settings are configured correctly.')
-            ->line('Thank you for using our application!');
+        $build = parent::build($notifiable);
+        return $build
+            ->subject(__('email.testNotification.subject'))
+            ->greeting(__('email.testNotification.greeting'))
+            ->line(__('email.testNotification.line1'))
+            ->line(__('email.testNotification.line2'))
+            ->line(__('email.testNotification.line3'));
     }
 }

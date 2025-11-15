@@ -33,12 +33,25 @@
                         dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <x-input-error for="heading" class="mt-2" />
                 </div>
-                <div class="mb-">
+                <div class="mb-6">
                     <label for="faqDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         @lang('modules.settings.description')
                     </label>
-                    <input type="text" id="faqDescription" wire:model="faqDescription"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <input x-ref="faqDescription" id="faqDescription" name="faqDescription" wire:model="faqDescription"
+                        value="{{ $faqDescription }}" type="hidden" />
+                    <div wire:ignore class="mt-1">
+                        <trix-editor class="trix-content text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            input="faqDescription"
+                            data-gramm="false"
+                            placeholder="{{ __('placeholders.featureDescriptionPlaceHolder') }}"
+                            x-on:trix-change="$wire.set('faqDescription', $event.target.value)"
+                            x-ref="trixEditor"
+                            x-init="
+                                window.addEventListener('reset-trix-editor', () => {
+                                    $refs.trixEditor.editor.loadHTML('');
+                                });" >
+                        </trix-editor>
+                    </div>
                     <x-input-error for="faqDescription" class="mt-2" />
                 </div>
                 <x-button class="mt-4">@lang('app.update')</x-button>

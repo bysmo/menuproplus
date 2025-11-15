@@ -22,5 +22,4 @@ class DeliveryExecutiveSeeder extends Seeder
             $customer->save();
         }
     }
-
 }

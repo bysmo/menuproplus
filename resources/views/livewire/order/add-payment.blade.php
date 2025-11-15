@@ -1,24 +1,28 @@
 <div>
-    <x-dialog-modal wire:model.live="showAddPaymentModal" maxWidth="4xl">
+    <x-dialog-modal wire:model.live="showAddPaymentModal" maxWidth="4xl" class="w-full max-w-full">
         <x-slot name="title">
             @if($order)
 
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
                 <div class="flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    <h2 class="text-xl font-semibold">{{ __('modules.order.payment') }}</h2>
+                    <h2 class="text-xl sm:text-xl font-semibold">{{ __('modules.order.payment') }}</h2>
                 </div>
-                <div class="flex items-center gap-4">
-                    <span class="text-lg font-medium">{{ __('modules.order.orderHash') }}{{ $order->order_number }}</span>
-                    <span class="text-xl font-bold text-skin-base">{{ currency_format($order->total) }}</span>
+                <div class="flex items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
+                    <span class="text-base sm:text-lg font-medium">
+
+                            {{ $order->show_formatted_order_number }}
+
+                    </span>
+                    <span class="text-lg sm:text-xl font-bold text-skin-base">{{ currency_format($order->total, restaurant()->currency_id) }}</span>
                 </div>
             </div>
             @endif
         </x-slot>
 
-        <x-slot name="content">
+         <x-slot name="content">
             @if($order)
 
             <div x-data="{
@@ -28,11 +32,11 @@
                 customSplits: [1, 2],
                 splits: [{ id: 1, items: [] }],
                 activeSplitId: 1
-            }" class="relative" style="min-height: 500px">
+               }" class="relative min-h-[500px]">
                 <!-- Regular Payment View -->
-                <div x-show="!showSplitOptions" class="flex gap-4 flex-wrap">
+                <div x-show="!showSplitOptions" class="flex flex-col md:flex-row gap-4 flex-wrap w-full">
                     <!-- Left Side - Payment Options -->
-                    <div class="flex-1">
+                    <div class="w-full md:flex-1">
                         <!-- Payment Type Selector -->
                         <div class="flex gap-3 mb-4">
                             <button class="flex-1 py-2 px-3 text-center border rounded-lg bg-skin-base text-white text-sm" @click="showSplitOptions = false">
@@ -44,9 +48,11 @@
                         </div>
 
                         <!-- Payment Methods -->
-                        <div @class([ 'grid gap-3' ,
-                            'grid-cols-5'=> $canAddTip,
-                            'grid-cols-4' => !$canAddTip])>
+                        <div @class([
+                            'grid gap-3',
+                            'grid-cols-2 sm:grid-cols-4' => !$canAddTip,
+                            'grid-cols-2 sm:grid-cols-5' => $canAddTip
+                        ])>
                             <button wire:click="setPaymentMethod('cash')"
                                 class="p-3 text-center border rounded-lg {{ $paymentMethod === 'cash' ? 'bg-skin-base/5 border-skin-base' : 'hover:bg-gray-50' }}">
                                 <svg class="w-6 h-6 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2m2 4h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2m7-5a2 2 0 1 1-4 0 2 2 0 0 1 4 0"/></svg>
@@ -64,6 +70,14 @@
 
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-qr-code-scan w-6 h-6 mx-auto mb-1" viewBox="0 0 16 16"><path d="M0 .5A.5.5 0 0 1 .5 0h3a.5.5 0 0 1 0 1H1v2.5a.5.5 0 0 1-1 0zm12 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V1h-2.5a.5.5 0 0 1-.5-.5M.5 12a.5.5 0 0 1 .5.5V15h2.5a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H15v-2.5a.5.5 0 0 1 .5-.5M4 4h1v1H4z"/><path d="M7 2H2v5h5zM3 3h3v3H3zm2 8H4v1h1z"/><path d="M7 9H2v5h5zm-4 1h3v3H3zm8-6h1v1h-1z"/><path d="M9 2h5v5H9zm1 1v3h3V3zM8 8v2h1v1H8v1h2v-2h1v2h1v-1h2v-1h-3V8zm2 2H9V9h1zm4 2h-1v1h-2v1h3zm-4 2v-1H8v1z"/><path d="M12 9h2V8h-2z"/></svg>
                                 <span class="text-sm">@lang('modules.order.upi')</span>
+                            </button>
+
+                            <button wire:click="setPaymentMethod('bank_transfer')"
+                                class="p-3 text-center border rounded-lg {{ $paymentMethod === 'bank_transfer' ? 'bg-skin-base/5 border-skin-base' : 'hover:bg-gray-50' }}">
+                                <svg class="w-6 h-6 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                                <span class="text-sm">@lang('modules.order.bank_transfer')</span>
                             </button>
 
                             <button wire:click="setPaymentMethod('due')"
@@ -92,7 +106,7 @@
                                 @if($order && $order->tip_amount > 0)
                                     <div class="text-sm">
                                         <span class="font-medium text-green-600 dark:text-green-400">@lang('modules.order.tipAdded')</span>
-                                        <span class="block text-green-500 dark:text-green-300">{{ currency_format($order->tip_amount) }}</span>
+                                        <span class="block text-green-500 dark:text-green-300">{{ currency_format($order->tip_amount, restaurant()->currency_id) }}</span>
                                     </div>
                                 @else
                                     <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -107,9 +121,10 @@
                         <div class="mt-4 space-y-4">
                             <div>
                                 <label class="block text-sm mb-1">{{ __('modules.order.amount') }}</label>
-                                <input type="number" wire:model.live="paymentAmount"
-                                    class="w-full text-2xl p-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
-                                    {{ $paymentMethod !== 'cash' ? 'readonly' : '' }}>
+                                <input type="text" wire:model.live="paymentAmount"
+                                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                    class="w-full text-2xl p-3 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+
                             </div>
 
                             <div class="hidden">
@@ -121,43 +136,68 @@
 
                             @if ($order)
                             <!-- Payment Summary -->
-                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 my-2">
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 my-2 text-sm sm:text-base">
                                 <div class="space-y-2">
                                     @if($order->tip_amount > 0)
-                                        <div class="flex justify-between">
-                                            <span>{{ __('modules.order.total') }}</span>
-                                            <span class="font-medium">{{ currency_format($order->total - $order->tip_amount) }}</span>
-                                        </div>
-                                        <div class="flex justify-between text-green-600">
-                                            <span>{{ __('modules.order.tipAmount') }}</span>
-                                            <span class="font-medium">+ {{ currency_format($order->tip_amount) }}</span>
-                                        </div>
-                                    @endif
-                                    <div class="flex justify-between">
-                                        <span>{{ __('modules.order.totalBill') }}</span>
-                                        <span class="font-medium">{{ currency_format($order->total) }}</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>{{ __('modules.order.amountPaid') }}</span>
-                                        <span class="font-medium">{{ currency_format($paidAmount) }}</span>
-                                    </div>
-                                    @if($paymentMethod === 'cash')
-                                        @if($returnAmount > 0)
-                                        <div class="flex justify-between text-green-600 pt-2 border-t">
-                                            <span>{{ __('modules.order.returnAmount') }}</span>
-                                            <span class="font-medium">{{ currency_format($returnAmount) }}</span>
+                                        <div x-data="{ showTipBreakdown: false }" class="space-y-2">
+                                            <!-- Expandable Tip Breakdown - Above when opened -->
+                                            <div x-show="showTipBreakdown"  x-cloak
+                                                    x-transition:enter="transition ease-out duration-200"
+                                                    x-transition:enter-start="opacity-0 -translate-y-2"
+                                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                                    x-transition:leave="transition ease-in duration-150"
+                                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                                    x-transition:leave-end="opacity-0 -translate-y-2">
+                                                <div class="flex justify-between text-gray-600 dark:text-gray-300">
+                                                    <span>{{ __('modules.order.total') }}</span>
+                                                    <span>{{ currency_format($order->total - $order->tip_amount, restaurant()->currency_id) }}</span>
+                                                </div>
+                                                <div class="flex justify-between text-green-600 dark:text-green-400">
+                                                    <span>{{ __('modules.order.tipAmount') }}</span>
+                                                    <span>+ {{ currency_format($order->tip_amount, restaurant()->currency_id) }}</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Grand Total - Clickable -->
+                                            <div class="flex justify-between items-center cursor-pointer text-gray-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
+                                                @click="showTipBreakdown = !showTipBreakdown">
+                                                <span class="flex items-center gap-1">
+                                                    {{ __('modules.order.grandTotal') }}
+                                                    <svg class="w-3 h-3 text-current transition-transform"
+                                                        :class="showTipBreakdown ? 'rotate-180' : ''"
+                                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </span>
+                                                <span class="font-medium">{{ currency_format($order->total, restaurant()->currency_id) }}</span>
+                                            </div>
                                         </div>
                                         @else
-                                        <div class="flex justify-between text-red-600 pt-2 border-t">
-                                            <span>{{ __('modules.order.dueAmount') }}</span>
-                                            <span class="font-medium">{{ currency_format($balanceAmount) }}</span>
+                                        <div class="flex justify-between">
+                                            <span>{{ __('modules.order.total') }}</span>
+                                            <span class="font-medium">{{ currency_format($order->total, restaurant()->currency_id) }}</span>
                                         </div>
                                         @endif
+                                    @if($paidAmount > 0)
+                                    <div class="flex justify-between text-green-500 text-sm">
+                                        <span>{{ __('modules.order.amountPaid') }}</span>
+                                        <span class="font-medium">- {{ currency_format($paidAmount, restaurant()->currency_id) }}</span>
+                                    </div>
+                                    @endif
+                                    <div class="flex justify-between text-sm font-semibold text-skin-base">
+                                        <span>{{ __('modules.order.payableAmount') }}</span>
+                                        <span class="font-bold">{{ currency_format(($order->total - $paidAmount), restaurant()->currency_id) }}</span>
+                                    </div>
+                                    @if($returnAmount > 0)
+                                    <div class="flex justify-between text-green-600 pt-2 border-t">
+                                        <span>{{ __('modules.order.returnAmount') }}</span>
+                                        <span class="font-medium">{{ currency_format($returnAmount, restaurant()->currency_id) }}</span>
+                                    </div>
                                     @else
-                                        <div class="flex justify-between text-gray-600 pt-2 border-t">
-                                            <span>{{ __('modules.order.dueAmount') }}</span>
-                                            <span class="font-medium">{{ currency_format($balanceAmount) }}</span>
-                                        </div>
+                                    <div class="flex justify-between text-red-600 pt-2 border-t">
+                                        <span>{{ __('modules.order.dueAmount') }}</span>
+                                        <span class="font-medium">{{ currency_format($balanceAmount, restaurant()->currency_id) }}</span>
+                                    </div>
                                     @endif
                                 </div>
                             </div>
@@ -169,9 +209,9 @@
                     <div class="w-full md:w-72">
                         <!-- Quick Amount Buttons -->
                         <div class="grid grid-cols-2 gap-2 mb-3">
-                            @foreach([50, 100, 500, 1000] as $amount)
-                            <button wire:click="quickAmount({{ $amount }})" class="p-2 text-center border rounded-lg hover:bg-gray-50">
-                                <span class="font-medium">{{ currency_format($amount) }}</span>
+                            @foreach($predefinedAmounts as $amount)
+                            <button wire:click="quickAmount({{ $amount }})" class="p-2 text-center border rounded-lg hover:bg-gray-50 w-full text-sm sm:text-base">
+                                <span class="font-medium">{{ currency_format($amount, restaurant()->currency_id) }}</span>
                             </button>
                             @endforeach
                         </div>
@@ -179,17 +219,17 @@
                         <!-- Numpad -->
                         <div class="grid grid-cols-3 gap-2">
                             @foreach(range(1, 9) as $number)
-                            <button wire:click="appendNumber('{{ $number }}')" class="p-4 text-center border rounded-lg hover:bg-gray-50">
+                            <button wire:click="appendNumber('{{ $number }}')" class="p-4 text-center border rounded-lg hover:bg-gray-50 w-full text-lg sm:text-xl">
                                 <span class="text-xl">{{ $number }}</span>
                             </button>
                             @endforeach
-                            <button wire:click="appendNumber('.')" class="p-4 text-center border rounded-lg hover:bg-gray-50">
+                            <button wire:click="appendNumber('.')" class="p-4 text-center border rounded-lg hover:bg-gray-50 w-full text-lg sm:text-xl">
                                 <span class="text-xl">.</span>
                             </button>
-                            <button wire:click="appendNumber('0')" class="p-4 text-center border rounded-lg hover:bg-gray-50">
+                            <button wire:click="appendNumber('0')" class="p-4 text-center border rounded-lg hover:bg-gray-50 w-full text-lg sm:text-xl">
                                 <span class="text-xl">0</span>
                             </button>
-                            <button wire:click="clearAmount" class="p-4 text-center border rounded-lg hover:bg-gray-50">
+                            <button wire:click="clearAmount" class="p-4 text-center border rounded-lg hover:bg-gray-50 w-full text-lg sm:text-xl">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" />
                                 </svg>
@@ -203,7 +243,7 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform scale-90"
                     x-transition:enter-end="opacity-100 transform scale-100"
-                    class="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg flex flex-col">
+                    class="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg flex flex-col max-h-[90vh] overflow-y-auto w-full">
 
                     <!-- Header - Fixed -->
                     <div class="p-4 border-b bg-white dark:bg-gray-800">
@@ -226,7 +266,7 @@
                     <!-- Content - Scrollable -->
                     <div class="flex-1 overflow-y-auto my-4">
                         <!-- Split Methods Selection -->
-                        <div x-show="!splitType" class="h-full grid grid-cols-3 gap-4 place-content-center">
+                        <div x-show="!splitType" class="h-full grid grid-cols-1 sm:grid-cols-3 gap-4 place-content-center">
                             <button @click="splitType = 'equal'" class="p-4 text-center border rounded-lg hover:bg-gray-50">
                                 <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -252,7 +292,7 @@
 
                         <!-- Equal Split Options -->
                         <div x-show="splitType === 'equal'" class="h-full flex flex-col">
-                            <div class="flex items-center gap-2 border-b pb-4">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b pb-4">
                                 <div class="flex flex-wrap gap-2 flex-1">
                                     @for($i = 1; $i <= $numberOfSplits; $i++)
                                         <div class="flex items-center gap-1">
@@ -272,10 +312,10 @@
                                 </div>
                                 <button wire:click="addNewSplit"
                                     class="px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 shrink-0">
-                                    + New Split
+                                    + {{ __('modules.order.newSplit') }}
                                 </button>
                             </div>
-                            <div class="flex-1 grid grid-cols-2 gap-4 content-start mt-2">
+                            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 content-start mt-2">
                                 @for($i = 1; $i <= $numberOfSplits; $i++)
                                     <div class="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-600 rounded-lg">
                                         <div class="flex-1 flex justify-between items-center gap-3">
@@ -285,11 +325,13 @@
                                                 class="w-32 rounded-lg border-gray-300 text-right"
                                                 placeholder="{{ number_format($order->total / $numberOfSplits, 2) }}">
                                         </div>
+
                                         <select class="rounded-lg border-gray-300 w-28"
                                             wire:model.live="splits.{{ $i }}.paymentMethod">
                                             <option value="cash">{{ __('modules.order.cash') }}</option>
                                             <option value="card">{{ __('modules.order.card') }}</option>
                                             <option value="upi">{{ __('modules.order.upi') }}</option>
+                                            <option value="bank_transfer">{{ __('modules.order.bank_transfer') }}</option>
                                             <option value="due">{{ __('modules.order.due') }}</option>
                                         </select>
                                     </div>
@@ -299,7 +341,7 @@
 
                         <!-- Custom Split Options -->
                         <div x-show="splitType === 'custom'" class="h-full flex flex-col">
-                            <div class="flex items-center gap-2 border-b pb-4">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b pb-4">
                                 <div class="flex flex-wrap gap-2 flex-1">
                                     @foreach($customSplits as $splitNumber)
                                         <div class="flex items-center gap-1">
@@ -319,24 +361,26 @@
                                 </div>
                                 <button wire:click="addNewCustomSplit"
                                     class="px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 shrink-0">
-                                    + New Split
+                                    + {{ __('modules.order.newSplit') }}
                                 </button>
                             </div>
-                            <div class="flex-1 grid grid-cols-2 gap-4 content-start mt-2">
+                            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 content-start mt-2">
                                 @foreach($customSplits as $splitNumber)
                                     <div class="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-600 rounded-lg">
                                         <div class="flex-1 flex justify-between items-center gap-3">
-                                            <span>Split {{ $splitNumber }}</span>
-                                            <input type="number"
+                                            <span>{{ __('modules.order.split') }} {{ $splitNumber }}</span>
+                                            <input type="number" min="0" step="0.01"
                                                 wire:model.live="splits.{{ $splitNumber }}.amount" wire:keyup="updateBalanceAmount"
                                                 class="w-32 rounded-lg border-gray-300 text-right"
-                                                placeholder="0.00">
+                                                placeholder="0.00"
+                                                oninput="if(this.value < 0) this.value = 0;">
                                         </div>
                                         <select class="rounded-lg border-gray-300 w-28"
                                             wire:model.live="splits.{{ $splitNumber }}.paymentMethod">
                                             <option value="cash">{{ __('modules.order.cash') }}</option>
                                             <option value="card">{{ __('modules.order.card') }}</option>
                                             <option value="upi">{{ __('modules.order.upi') }}</option>
+                                            <option value="bank_transfer">{{ __('modules.order.bank_transfer') }}</option>
                                             <option value="due">{{ __('modules.order.due') }}</option>
                                         </select>
                                     </div>
@@ -347,14 +391,14 @@
                         <!-- Items Split Options -->
                         <div x-show="splitType === 'items'" class="space-y-6">
                             <!-- Splits Navigation -->
-                            <div class="flex items-center gap-2 border-b pb-4">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b pb-4">
                                 <div class="flex flex-wrap gap-2 flex-1">
                                     @foreach($splits as $splitId => $split)
                                         <div class="flex items-center gap-1">
                                             <button wire:click="$set('activeSplitId', {{ $splitId }})"
                                                 class="px-4 py-2 rounded-lg text-sm font-medium
                                                 {{ $activeSplitId === $splitId ? 'bg-skin-base text-white' : 'border hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                                                <span>Split {{ $splitId }}</span>
+                                                <span>{{ __('modules.order.split') }} {{ $splitId }}</span>
                                             </button>
                                             @if(count($splits) > 1 && $splitId !== 1)
                                                 <button wire:click="removeItemSplit({{ $splitId }})"
@@ -374,35 +418,51 @@
                             </div>
 
                             <!-- Split Content - Side by Side Layout -->
-                            <div class="grid grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Left Side - Available Items -->
                                 <div class="space-y-3">
                                     <div class="flex justify-between items-center">
                                         <h4 class="font-medium text-sm text-gray-500 dark:text-gray-300">{{ __('modules.order.availableItems') }}</h4>
                                         <span class="text-sm text-gray-500 dark:text-gray-300">{{ __('modules.order.clickToAdd') }}</span>
                                     </div>
-                                    <div class="space-y-2 max-h-[400px] overflow-y-auto">
+                                    <div class="space-y-2 max-h-[300px] sm:max-h-[400px] overflow-y-auto">
                                         @foreach($availableItems as $index => $item)
                                             @if($item['remaining'] > 0)
-                                            <div class="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer"
-                                                wire:click="addItemToSplit({{ $item['id'] }}, {{ $activeSplitId }})">
-                                                <div class="flex justify-between items-center">
-                                                    <div>
-                                                        <span class="font-medium">{{ $item['name'] }}</span>
+                                            <div class="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 flex justify-between items-center">
+                                                <div>
+                                                    <span class="font-semibold text-base dark:text-gray-300">{{ $item['name'] }}</span>
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                        <span>{{  $item['remaining'] }}</span> x (&nbsp;
+                                                        <span>{{ __('modules.order.base') }}: {{ currency_format($item['base_price'], restaurant()->currency_id) }}</span>
+                                                        @if($item['discount'] > 0)
+                                                            <span>- {{ __('modules.order.discount') }}: {{ currency_format($item['discount'], restaurant()->currency_id) }}</span>
+                                                        @endif
+                                                        @if($item['tax_amount'] > 0)
+                                                            <span>+ {{ __('modules.order.tax') }}: {{ currency_format($item['tax_amount'], restaurant()->currency_id) }}</span>
+                                                        @endif
+                                                        @if($item['extra_charges'] > 0)
+                                                            <span>+ {{ __('modules.order.extraCharges') }}: {{ currency_format($item['extra_charges'], restaurant()->currency_id) }}</span>
+                                                        @endif
+                                                        @if($item['tip'] > 0)
+                                                            <span>+ {{ __('modules.order.tipAmount') }}: {{ currency_format($item['tip'], restaurant()->currency_id) }}</span>
+                                                        @endif
+                                                        )
                                                     </div>
-                                                    <div class="text-right">
-                                                        <span class="text-sm font-medium">
-                                                            {{ currency_format($item['price']) }}
-                                                        </span>
-                                                        <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                            <span>{{ __('modules.order.base') }}: {{ currency_format($item['base_price']) }}</span>
-                                                            @if($item['tax_amount'] > 0)
-                                                                <span>+ {{ __('modules.order.tax') }}: {{ currency_format($item['tax_amount']) }}</span>
-                                                            @endif
-                                                            @if($item['extra_charges'] > 0)
-                                                                <span>+ {{ __('modules.order.extraCharges') }}: {{ currency_format($item['extra_charges']) }}</span>
-                                                            @endif
-                                                        </div>
+                                                </div>
+
+                                                <div class="text-right ml-4">
+                                                    <span class="font-semibold text-base dark:text-gray-300">
+                                                        {{ currency_format($item['price'] * $item['remaining'], restaurant()->currency_id) }}
+                                                    </span>
+                                                    <div class="flex items-center gap-2 mt-1">
+                                                        <!-- Quantity controls -->
+                                                        <button wire:click="addItemToSplit({{ $item['id'] }}, {{ $activeSplitId }}, 1)" class="px-2 py-1 border rounded hover:bg-gray-100" title="Add 1">
+                                                            +
+                                                        </button>
+                                                        <span class="text-sm">{{ $item['remaining'] }}</span>
+                                                        <button wire:click="addItemToSplit({{ $item['id'] }}, {{ $activeSplitId }}, {{ $item['remaining'] }})" class="px-2 py-1 border rounded hover:bg-gray-100" title="Add All">
+                                                            @lang('modules.order.all')
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -416,9 +476,16 @@
                                     <div class="flex items-center gap-4">
                                         <div class="flex-1 flex justify-between items-center text-gray-500 dark:text-gray-300">
                                             <h4 class="font-medium text-sm">{{ __('modules.order.itemsInSplit', ['split' => $activeSplitId]) }}</h4>
-                                            <span class="text-sm font-semibold">
-                                                {{ __('modules.order.total') }}: {{ currency_format(($splits[$activeSplitId]['total'] ?? 0)) }}
-                                            </span>
+                                            <div class="text-sm">
+                                                <span class="font-semibold">
+                                                    {{ __('modules.order.total') }}: {{ currency_format(($splits[$activeSplitId]['total'] ?? 0), restaurant()->currency_id) }}
+                                                </span>
+                                                @if(restaurant()->tax_mode === 'item' && isset($splits[$activeSplitId]['tax_total']) && $splits[$activeSplitId]['tax_total'] > 0)
+                                                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                                                        ({{ __('modules.order.tax') }}: {{ currency_format($splits[$activeSplitId]['tax_total'], restaurant()->currency_id) }})
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </div>
                                         <select class="rounded-lg border-gray-300 dark:border-gray-600 w-28 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-300"
                                             wire:change="updateSplitPaymentMethod({{ $activeSplitId }}, $event.target.value)"
@@ -426,10 +493,11 @@
                                             <option value="cash">{{ __('modules.order.cash') }}</option>
                                             <option value="card">{{ __('modules.order.card') }}</option>
                                             <option value="upi">{{ __('modules.order.upi') }}</option>
+                                            <option value="bank_transfer">{{ __('modules.order.bank_transfer') }}</option>
                                             <option value="due">{{ __('modules.order.due') }}</option>
                                         </select>
                                     </div>
-                                    <div class="space-y-2 max-h-[400px] overflow-y-auto">
+                                    <div class="space-y-2 max-h-[300px] sm:max-h-[400px] overflow-y-auto">
                                         @if(empty($splits[$activeSplitId]['items']))
                                             <div class="text-center py-8 text-gray-500 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                                 {{ __('modules.order.noItemsInSplit') }}
@@ -438,27 +506,49 @@
                                             @foreach($splits[$activeSplitId]['items'] as $index => $item)
                                             <div class="p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600">
                                                 <div class="flex justify-between items-center font">
-                                                    <span class="font-medium">{{ $item['name'] }}</span>
+                                                    <span class="font-semibold text-base dark:text-gray-300">{{ $item['name'] }}</span>
                                                     <div class="text-right">
-                                                        <span class="font-medium">
-                                                            {{ currency_format($item['price'] * $item['quantity']) }}
+                                                        <span class="font-semibold text-base dark:text-gray-300">
+                                                            {{ currency_format($item['price'] * $item['quantity'], restaurant()->currency_id) }}
                                                         </span>
                                                     </div>
                                                 </div>
                                                 <div class="flex justify-between items-center gap-4">
                                                     <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                        <span>{{ __('modules.order.base') }}: {{ currency_format($item['base_price'] * $item['quantity']) }}</span>
+                                                        <span>{{ $item['quantity'] }}</span> x (&nbsp;
+                                                        <span>{{ __('modules.order.base') }}: {{ currency_format($item['base_price'], restaurant()->currency_id) }}</span>
+                                                        @if($item['discount'] > 0)
+                                                            <span>- {{ __('modules.order.discount') }}: {{ currency_format($item['discount'], restaurant()->currency_id) }}</span>
+                                                        @endif
                                                         @if($item['tax_amount'] > 0)
-                                                        <span>+ {{ __('modules.order.tax') }}: {{ currency_format($item['tax_amount'] * $item['quantity']) }}</span>
+                                                        <span>+ {{ __('modules.order.tax') }}: {{ currency_format($item['tax_amount'], restaurant()->currency_id) }}</span>
                                                         @endif
                                                         @if($item['extra_charges'] > 0)
-                                                        <span>+ {{ __('modules.order.extraCharges') }}: {{ currency_format($item['extra_charges'] * $item['quantity']) }}</span>
+                                                        <span>+ {{ __('modules.order.extraCharges') }}: {{ currency_format($item['extra_charges'], restaurant()->currency_id) }}</span>
                                                         @endif
+                                                        @if($item['tip'] > 0)
+                                                        <span>+ {{ __('modules.order.tipAmount') }}: {{ currency_format($item['tip'], restaurant()->currency_id) }}</span>
+                                                        @endif
+                                                        )
                                                     </div>
-                                                    <button wire:click="removeItemFromSplit({{ $activeSplitId }}, {{ $index }})"
-                                                            class="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-400">
-                                                        {{ __('modules.order.remove') }}
-                                                    </button>
+                                                    <div class="flex items-center gap-2">
+                                                        <!-- Quantity controls -->
+                                                        <button wire:click="decrementItemInSplit({{ $activeSplitId }}, {{ $index }})"
+                                                                class="px-2 py-1 text-xs border rounded hover:bg-gray-100 dark:hover:bg-gray-600"
+                                                                title="{{ __('modules.order.decreaseQuantity') }}">
+                                                            -
+                                                        </button>
+                                                        <span class="text-sm font-medium">{{ $item['quantity'] }}</span>
+                                                        <button wire:click="incrementItemInSplit({{ $activeSplitId }}, {{ $index }})"
+                                                                class="px-2 py-1 text-xs border rounded hover:bg-gray-100 dark:hover:bg-gray-600"
+                                                                title="{{ __('modules.order.increaseQuantity') }}">
+                                                            +
+                                                        </button>
+                                                        <button wire:click="removeItemFromSplit({{ $activeSplitId }}, {{ $index }})"
+                                                                class="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-400 ml-2">
+                                                            {{ __('modules.order.remove') }}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                             @endforeach
@@ -472,27 +562,101 @@
                     @if ($order)
                     <!-- Footer - Fixed -->
                     <div class="border-t dark:border-gray-300 bg-white dark:bg-gray-800">
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mt-2">
-                            <div class="space-y-2">
-                                <div class="flex justify-between">
-                                    <span>{{ __('modules.order.totalBill') }}</span>
-                                    <span class="font-medium">{{ currency_format($order->total) }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>{{ __('modules.order.splitAmount') }}</span>
-                                    <span class="font-medium">{{ currency_format(collect($splits)->sum('total')) }}</span>
-                                </div>
+                        <!-- Common Payment Summary for All Split Types -->
+                        <div x-show="splitType" class="mb-4">
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 my-2 text-sm sm:text-base">
+                                <div class="space-y-2">
+                                    @if($order->tip_amount > 0)
+                                        <div x-data="{ showTipBreakdown: false }" class="space-y-2">
+                                            <!-- Expandable Tip Breakdown - Above when opened -->
+                                            <div x-show="showTipBreakdown"  x-cloak
+                                                    x-transition:enter="transition ease-out duration-200"
+                                                    x-transition:enter-start="opacity-0 -translate-y-2"
+                                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                                    x-transition:leave="transition ease-in duration-150"
+                                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                                    x-transition:leave-end="opacity-0 -translate-y-2">
+                                                <div class="flex justify-between text-gray-600 dark:text-gray-300">
+                                                    <span>{{ __('modules.order.total') }}</span>
+                                                    <span>{{ currency_format($order->total - $order->tip_amount, restaurant()->currency_id) }}</span>
+                                                </div>
+                                                <div class="flex justify-between text-green-600 dark:text-green-400">
+                                                    <span>{{ __('modules.order.tipAmount') }}</span>
+                                                    <span>+ {{ currency_format($order->tip_amount, restaurant()->currency_id) }}</span>
+                                                </div>
+                                            </div>
 
-                                @if(($balanceAmount > 0 || $returnAmount > 0) && $splitType === 'custom')
-                                    <div @class([
-                                        'flex justify-between',
-                                        'text-red-600' => $balanceAmount > 0,
-                                        'text-green-600' => $returnAmount > 0
-                                    ])>
-                                        <span>{{ $balanceAmount > 0 ? __('modules.order.dueAmount') : __('modules.order.returnAmount') }}</span>
-                                        <span class="font-medium">{{ currency_format($balanceAmount > 0 ? $balanceAmount : $returnAmount) }}</span>
+                                            <!-- Grand Total - Clickable -->
+                                            <div class="flex justify-between items-center cursor-pointer text-gray-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
+                                                @click="showTipBreakdown = !showTipBreakdown">
+                                                <span class="flex items-center gap-1">
+                                                    {{ __('modules.order.grandTotal') }}
+                                                    <svg class="w-3 h-3 text-current transition-transform"
+                                                        :class="showTipBreakdown ? 'rotate-180' : ''"
+                                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </span>
+                                                <span class="font-medium">{{ currency_format($order->total, restaurant()->currency_id) }}</span>
+                                            </div>
+                                        </div>
+                                        @else
+                                        <div class="flex justify-between">
+                                            <span>{{ __('modules.order.total') }}</span>
+                                            <span class="font-medium">{{ currency_format($order->total, restaurant()->currency_id) }}</span>
+                                        </div>
+                                        @endif
+                                    @if($paidAmount > 0)
+                                    <div class="flex justify-between text-green-500 text-sm">
+                                        <span>{{ __('modules.order.amountPaid') }}</span>
+                                        <span class="font-medium">- {{ currency_format($paidAmount, restaurant()->currency_id) }}</span>
                                     </div>
-                                @endif
+                                    @endif
+                                    <div class="flex justify-between text-sm font-semibold text-skin-base">
+                                        <span>{{ __('modules.order.payableAmount') }}</span>
+                                        <span class="font-bold">{{ currency_format(($order->total - $paidAmount), restaurant()->currency_id) }}</span>
+                                    </div>
+
+                                    <!-- Split-specific information -->
+                                    <template x-if="splitType === 'equal'">
+                                        <div class="flex justify-between text-blue-600 dark:text-blue-400 pt-2 border-t">
+                                            <span>{{ __('modules.order.amountPerSplit') }}</span>
+                                            <span class="font-medium">{{ currency_format(($order->total - $paidAmount) / $numberOfSplits, restaurant()->currency_id) }}</span>
+                                        </div>
+                                    </template>
+
+                                    <template x-if="splitType === 'custom'">
+                                        <div>
+                                            <div class="flex justify-between text-blue-600 dark:text-blue-400 pt-2 border-t">
+                                                <span>{{ __('modules.order.splitTotal') }}</span>
+                                                <span class="font-medium">{{ currency_format(collect($splits)->sum(function($split) { return (float)($split['amount'] ?? 0); }), restaurant()->currency_id) }}</span>
+                                            </div>
+                                            @if(($balanceAmount > 0 || $returnAmount > 0))
+                                                <div @class([
+                                                    'flex justify-between',
+                                                    'text-red-600' => $balanceAmount > 0,
+                                                    'text-green-600' => $returnAmount > 0
+                                                ])>
+                                                    <span>{{ $balanceAmount > 0 ? __('modules.order.dueAmount') : __('modules.order.returnAmount') }}</span>
+                                                    <span class="font-medium">{{ currency_format($balanceAmount > 0 ? $balanceAmount : $returnAmount, restaurant()->currency_id) }}</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </template>
+
+                                    <template x-if="splitType === 'items'">
+                                        <div>
+                                            <div class="flex justify-between text-blue-600 dark:text-blue-400 pt-2 border-t">
+                                                <span>{{ __('modules.order.splitTotal') }}</span>
+                                                <span class="font-medium">{{ currency_format(collect($splits)->sum('total'), restaurant()->currency_id) }}</span>
+                                            </div>
+                                            <div class="flex justify-between text-orange-600 dark:text-orange-400">
+                                                <span>{{ __('modules.order.remainingAmount') }}</span>
+                                                <span class="font-medium">{{ currency_format(($order->total - $paidAmount - collect($splits)->sum('total')), restaurant()->currency_id) }}</span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -505,7 +669,7 @@
 
         <x-slot name="footer">
             @if($order)
-            <div class="flex justify-between items-center w-full gap-4">
+            <div class="flex flex-row w-full gap-3">
                 <x-button-cancel class="flex-1 px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-100 rounded-lg" wire:click="$toggle('showAddPaymentModal')">
                     {{ __('app.cancel') }}
                 </x-button-cancel>
@@ -559,12 +723,12 @@
                                     @if($tipMode === 'percentage')
                                         {{ $value }}%
                                     @else
-                                        {{ currency_format($value) }}
+                                        {{ currency_format($value, restaurant()->currency_id) }}
                                     @endif
                                 </span>
                                 <div class="absolute inset-x-0 -bottom-6 group-hover:bottom-0 transition-all duration-200 text-xs bg-gray-100 dark:bg-gray-700 dark:text-white py-1">
                                     @if($tipMode === 'percentage')
-                                        {{ currency_format($order->total * $value / 100) }}
+                                        {{ currency_format($order->total * $value / 100, restaurant()->currency_id) }}
                                     @else
                                         ≈ {{ number_format(($value / $order->total) * 100, 1) }}%
                                     @endif
@@ -622,17 +786,17 @@
                 <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <div class="flex justify-between mb-2">
                         <span class="text-gray-600 dark:text-gray-400">@lang('modules.order.currentTotal')</span>
-                        <span class="font-medium">{{ currency_format($order->total - $order->tip_amount) }}</span>
+                        <span class="font-medium">{{ currency_format($order->total - $order->tip_amount, restaurant()->currency_id) }}</span>
                     </div>
                     <div class="flex justify-between text-skin-base">
                         <span>@lang('modules.order.tipAmount')</span>
-                        <span class="font-medium">+ {{ currency_format($tipAmount ?? 0) }}</span>
+                        <span class="font-medium">+ {{ currency_format($tipAmount ?? 0, restaurant()->currency_id) }}</span>
                     </div>
                     <div class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-800">
                         <div class="flex justify-between">
                             <span class="font-medium">@lang('modules.order.newTotal')</span>
                             <span class="text-lg font-bold">
-                                {{ currency_format(($order->total - $order->tip_amount + ($tipAmount ?: 0))) }}
+                                {{ currency_format(($order->total - $order->tip_amount + ($tipAmount ?: 0)), restaurant()->currency_id) }}
                             </span>
                         </div>
                     </div>

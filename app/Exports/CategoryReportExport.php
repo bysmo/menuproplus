@@ -41,9 +41,9 @@ class CategoryReportExport implements WithMapping, FromCollection, WithHeadings,
         return [
             [__('menu.categoryReport') . ' ' . $headingTitle],
             [
-            'Item Category',
-            'Quantity Sold',
-            'Amount',
+            __('modules.menu.itemCategory'),
+            __('modules.report.quantitySold'),
+            __('modules.order.amount'),
             ]
         ];
     }

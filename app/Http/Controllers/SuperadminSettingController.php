@@ -12,4 +12,9 @@ class SuperadminSettingController extends Controller
         return view('superadmin-settings.index');
     }
 
+    public function users()
+    {
+        return view('superadmin-settings.super-admin-list');
+    }
+
 }

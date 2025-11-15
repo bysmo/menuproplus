@@ -8,6 +8,7 @@ use App\Models\ItemCategory;
 use App\Models\ModifierGroup;
 use App\Models\ModifierOption;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class MenuItemSeeder extends Seeder
@@ -84,13 +85,15 @@ class MenuItemSeeder extends Seeder
         $itemCategory14->category_name = 'Juices';
         $itemCategory14->branch_id = $branchId;
         $itemCategory14->saveQuietly();
-        
-        
+
+
 
         $menu1 = new Menu();
         $menu1->menu_name = 'North Indian Delights';
         $menu1->branch_id = $branchId;
         $menu1->saveQuietly();
+
+        $defaultKotPlaceId = optional($branch->kotPlaces()->where('is_default', true)->first())->id;
 
         $menuItems1 = [
             [
@@ -99,10 +102,11 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::NONVEG,
                 'price' => 320,
                 'item_category_id' => $itemCategory2->id,
-                'image' => 'butter-chicken.jpg',
+                'image' => 'butter-chicken.webp',
                 'description' => 'Tender chicken cooked in a rich tomato and butter gravy.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Paneer Tikka',
@@ -110,10 +114,11 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::VEG,
                 'price' => 250,
                 'item_category_id' => $itemCategory1->id,
-                'image' => 'paneer-tikka.jpg',
+                'image' => 'paneer-tikka.webp',
                 'description' => 'Grilled cottage cheese marinated in spicy yogurt.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Dal Makhani',
@@ -121,10 +126,11 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::VEG,
                 'price' => 180,
                 'item_category_id' => $itemCategory2->id,
-                'image' => 'dal-makhni.jpg',
+                'image' => 'dal-makhni.webp',
                 'description' => 'Creamy and rich black lentils cooked with butter and spices.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Tandoori Roti',
@@ -132,10 +138,11 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::VEG,
                 'price' => 25,
                 'item_category_id' => $itemCategory4->id,
-                'image' => 'tandoori-roti.jpg',
+                'image' => 'tandoori-roti.webp',
                 'description' => 'Traditional whole wheat bread cooked in a clay oven.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Naan',
@@ -143,10 +150,11 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::VEG,
                 'price' => 40,
                 'item_category_id' => $itemCategory4->id,
-                'image' => 'naan-recipe.jpg',
+                'image' => 'naan-recipe.webp',
                 'description' => 'Soft and fluffy bread baked in a tandoor.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
         ];
 
@@ -162,10 +170,11 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::VEG,
                 'price' => 120,
                 'item_category_id' => $itemCategory2->id,
-                'image' => 'masala-dosa.jpg',
+                'image' => 'masala-dosa.webp',
                 'description' => 'Crispy rice and lentil crepe filled with spiced mashed potatoes.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Idli Sambar',
@@ -173,10 +182,11 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::VEG,
                 'price' => 90,
                 'item_category_id' => $itemCategory2->id,
-                'image' => 'idli-sambar.jpg',
+                'image' => 'idli-sambar.webp',
                 'description' => 'Steamed rice cakes served with lentil soup and chutney.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Medu Vada',
@@ -184,10 +194,11 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::VEG,
                 'price' => 80,
                 'item_category_id' => $itemCategory1->id,
-                'image' => 'medu-vada.jpg',
+                'image' => 'medu-vada.webp',
                 'description' => 'Crispy lentil fritters with chutney and sambar.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Uttapam',
@@ -199,6 +210,7 @@ class MenuItemSeeder extends Seeder
                 'description' => 'Thick rice and lentil pancake topped with onions and tomatoes.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Hyderabadi Chicken Biryani',
@@ -206,10 +218,11 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::NONVEG,
                 'price' => 300,
                 'item_category_id' => $itemCategory5->id,
-                'image' => 'chicken-hyderabadi-biryani.jpg',
+                'image' => 'chicken-hyderabadi-biryani.webp',
                 'description' => 'Fragrant rice cooked with tender meat and aromatic spices.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
         ];
 
@@ -229,6 +242,7 @@ class MenuItemSeeder extends Seeder
                 'description' => 'Juicy chicken balls in a tangy Manchurian sauce.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Vegetable Hakka Noodles',
@@ -236,10 +250,11 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::VEG,
                 'price' => 180,
                 'item_category_id' => $itemCategory2->id,
-                'image' => 'vegetable-hakka-noodles.jpeg',
+                'image' => 'vegetable-hakka-noodles.webp',
                 'description' => 'Stir-fried noodles with a mix of vegetables in a savory sauce.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Chilli Paneer',
@@ -247,21 +262,23 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::VEG,
                 'price' => 240,
                 'item_category_id' => $itemCategory2->id,
-                'image' => 'chilli-paneer.jpg',
+                'image' => 'chilli-paneer.webp',
                 'description' => 'Spicy cottage cheese cubes tossed in a tangy Indo-Chinese sauce.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Spring Rolls',
-                'menu_id' => $menu2->id,
+                'menu_id' => $menu3->id,
                 'type' => MenuItem::VEG,
                 'price' => 150,
                 'item_category_id' => $itemCategory1->id,
-                'image' => 'spring-rolls.jpg',
+                'image' => 'spring-rolls.webp',
                 'description' => 'Crispy rolls stuffed with a mix of vegetables and served with tangy dip.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
             [
                 'item_name' => 'Veg Manchow Soup',
@@ -269,12 +286,14 @@ class MenuItemSeeder extends Seeder
                 'type' => MenuItem::VEG,
                 'price' => 120,
                 'item_category_id' => $itemCategory1->id,
-                'image' => 'vegetable-manchow-soup.jpg',
+                'image' => 'vegetable-manchow-soup.webp',
                 'description' => 'Spicy vegetable soup with crispy fried noodles.',
                 'preparation_time' => rand(10, 30),
                 'branch_id' => $branchId,
+                'kot_place_id' => $defaultKotPlaceId,
             ],
         ];
+
 
         MenuItem::insert($menuItems1);
         MenuItem::insert($menuItems2);
@@ -291,7 +310,8 @@ class MenuItemSeeder extends Seeder
         $modifierGroup2->branch_id = $branchId;
         $modifierGroup2->saveQuietly();
 
-        $modifiers1 = [
+        // Create modifier options for group 1 and group 2
+        $modifierOptions = [
             [
                 'name' => 'Extra Paneer',
                 'modifier_group_id' => $modifierGroup1->id,
@@ -316,11 +336,6 @@ class MenuItemSeeder extends Seeder
                 'price' => 1.25,
                 'is_available' => 1,
             ],
-        ];
-
-        ModifierOption::insert($modifiers1);
-
-        $modifiers2 = [
             [
                 'name' => 'Garlic Aioli',
                 'modifier_group_id' => $modifierGroup2->id,
@@ -347,7 +362,14 @@ class MenuItemSeeder extends Seeder
             ],
         ];
 
-        ModifierOption::insert($modifiers2);
+        foreach ($modifierOptions as $option) {
+            $modifierOption = new ModifierOption();
+            $modifierOption->name = $option['name'];
+            $modifierOption->modifier_group_id = $option['modifier_group_id'];
+            $modifierOption->price = $option['price'];
+            $modifierOption->is_available = $option['is_available'];
+            $modifierOption->saveQuietly();
+        }
 
         $menuItems = MenuItem::whereIn('item_name', ['Paneer Tikka', 'Uttapam'])
             ->where('branch_id', $branchId)
@@ -360,10 +382,9 @@ class MenuItemSeeder extends Seeder
 
         if (isset($menuItems['Paneer Tikka'])) {
             $menuItems['Paneer Tikka']->modifierGroups()->attach([
-            $modifierGroup1->id,
-            $modifierGroup2->id,
+                $modifierGroup1->id,
+                $modifierGroup2->id,
             ]);
         }
     }
-
 }

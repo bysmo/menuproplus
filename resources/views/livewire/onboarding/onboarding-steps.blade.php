@@ -177,7 +177,7 @@
             @livewire('forms.addMenu')
         </div>
         @elseif (!$onboardingSteps->add_menu_items_completed || $showAddMenuItem)
-        <div class="space-y-4 w-full">
+        <div class="space-y-4 w-full mt-4">
             <div class="text-lg font-medium text-gray-900 dark:text-gray-100">
                 {{ __("modules.menu.addMenuItem") }}
             </div>

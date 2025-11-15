@@ -1,4 +1,58 @@
 <div class="w-full py-5 dark:bg-gray-800">
+    @php 
+        $restaurantModules = restaurant_modules();
+        $stats = getRestaurantStaffStats(user()->restaurant_id);
+        $menuItemStats = getRestaurantMenuItemStats(user()->restaurant_id);
+        $orderStats = getRestaurantOrderStats(branch()->id);
+    @endphp
+    
+    {{-- Show Staff Limit Alert only if Staff module is enabled --}}
+    @if(in_array('Staff', $restaurantModules) && $stats && !$stats['unlimited'] && $stats['current_count'] > $stats['staff_limit'])
+        <div class="flex items-center justify-between w-full mb-3">
+            <div class="flex-1 mr-4">
+                <x-alert type="danger" class="w-full">
+                    {{ __('messages.staffLimitExceeded') }}
+                </x-alert>
+            </div>
+
+            <a href="{{ route('staff.index') }}">
+                <x-button class="inline-flex items-center shadow-md hover:origin-center group p-3 px-4 mb-4">
+            
+                <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" />
+                {{ __('modules.staff.manageStaff') }}
+                </x-button>
+            </a>
+        </div>
+    @endif
+    
+    {{-- Show Menu Item Limit Alert only if Menu Item module is enabled --}}
+    @if(in_array('Menu Item', $restaurantModules) && $menuItemStats && !$menuItemStats['unlimited'] && $menuItemStats['current_count'] > $menuItemStats['menu_items_limit'])
+        <div class="flex items-center justify-between w-full mb-3">
+            <div class="flex-1 mr-4">
+                <x-alert type="danger" class="w-full">
+                    {{ __('messages.menuItemLimitExceeded') }}
+                </x-alert>
+            </div>
+
+            <a href="{{ route('menu-items.index') }}">
+                <x-button class="inline-flex items-center shadow-md hover:origin-center group p-3 px-4 mb-4">
+                    <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" />
+                    {{ __('modules.staff.manageMenuItems') }}
+                </x-button>
+            </a>
+        </div>
+    @endif
+    
+    {{-- Show Order Limit Alert only if Order module is enabled --}}
+    @if(in_array('Order', $restaurantModules) && $orderStats && !$orderStats['unlimited'] && $orderStats['current_count'] > $orderStats['order_limit'])
+        <div class="flex items-center justify-between w-full mb-3">
+            <div class="flex-1 mr-4">
+                <x-alert type="danger" class="w-full">
+                    {{ __('messages.orderLimitExceeded') }}
+                </x-alert>
+            </div>
+        </div>
+    @endif
     <div class="bg-white dark:bg-gray-700 shadow-md border dark:border-gray-600 rounded-lg">
         <!-- Header Section -->
         <div class="border-b border-gray-200 dark:border-gray-600 px-6 py-2.5 flex items-center justify-between">

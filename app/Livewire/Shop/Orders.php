@@ -10,13 +10,20 @@ class Orders extends Component
 
     public $orders;
     public $restaurant;
+    public $shopBranch;
 
     public function mount()
     {
-        if (is_null(customer()))
-        {
+        if (is_null(customer())) {
+
+            if (module_enabled('Subdomain')) {
+                return $this->redirect('/');
+            }
+
             return $this->redirect(route('home'));
         }
+
+
 
         $this->orders = Order::withoutGlobalScopes()->where('customer_id', customer()->id)->orderBy('id', 'desc')
             ->where('status', '<>', 'canceled')
@@ -28,5 +35,4 @@ class Orders extends Component
     {
         return view('livewire.shop.orders');
     }
-
 }

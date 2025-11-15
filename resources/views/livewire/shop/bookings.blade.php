@@ -6,7 +6,7 @@
         <div class="grid lg:grid-cols-3 gap-3 sm:gap-4">
             @foreach ($bookings as $reservation)
 
-            <div class="flex flex-col bg-white border shadow-sm rounded-xl dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70 p-3 space-y-3">
+            <div class="flex flex-col bg-white border shadow-sm rounded-xl dark:bg-gray-800 hover:shadow-md dark:border-gray-700 dark:shadow-gray-800 p-3 space-y-3">
                 <div class="flex justify-between">
                     <div class="text-base font-semibold text-gray-800 dark:text-white flex items-center gap-1">
                         @if (!is_null($reservation->table_id))
@@ -30,7 +30,7 @@
                                 <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
                                 <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/>
                             </svg>
-                            {{ $reservation->reservation_date_time->translatedFormat('d M, h:i A') }}
+                            {{ $reservation->reservation_date_time->translatedFormat('l, d M, h:i A') }}
                         </div>
                     </div>
                 </div>

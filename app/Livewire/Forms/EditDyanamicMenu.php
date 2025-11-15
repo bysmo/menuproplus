@@ -19,8 +19,7 @@ class EditDyanamicMenu extends Component
     public $menuId;
     public $customMenuEdit;
     public $showEditDynamicMenuModal = false;
-
-    // protected $listeners = ['refreshCustomers' => '$refresh'];
+    public $editMenuPosition;
 
     public function mount()
     {
@@ -28,6 +27,7 @@ class EditDyanamicMenu extends Component
         $this->editMenuName = $this->customMenuEdit->menu_name;
         $this->editMenuSlug = $this->customMenuEdit->menu_slug;
         $this->editMenuContent = $this->customMenuEdit->menu_content;
+        $this->editMenuPosition = $this->customMenuEdit->position;
         $this->trixId = 'trix-' . uniqid();
     }
     
@@ -61,7 +61,10 @@ class EditDyanamicMenu extends Component
             'menu_name' => $this->editMenuName,
             'menu_slug' => $this->editMenuSlug,
             'menu_content' => $this->editMenuContent,
+            'position' => $this->editMenuPosition,
         ]);
+
+        $this->dispatch('hideEditDyanamicMenu');
 
         $this->alert('success', __('messages.menuUpdate'), [
             'toast' => true,

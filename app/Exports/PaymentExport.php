@@ -19,11 +19,11 @@ class PaymentExport implements WithMapping, FromCollection, WithHeadings, WithSt
     public function headings(): array
     {
         return [
-            'Amount',
-            'Method',
-            'Transaction ID',
-            'Date and Time',
-            'Order #',
+            __('modules.order.amount'),
+            __('modules.order.paymentMethod'),
+            __('modules.order.transactionId'),
+            __('app.dateTime'),
+            __('modules.order.orderNumber'),
         ];
     }
 

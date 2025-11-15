@@ -26,6 +26,7 @@ class FlutterwaveWebhookController extends Controller
         }
 
         $signature = $request->header('verif-hash');
+
         // Verify Flutterwave signature
         if (!$signature) {
             return response()->json(['error' => true, 'message' => 'Invalid signature'], 403);
@@ -55,6 +56,7 @@ class FlutterwaveWebhookController extends Controller
         $transactionId = $data['tx_ref'] ?? null;
         $status = $data['status'] ?? 'failed';
         $amount = $data['amount'] ?? 0;
+
         $currency = $data['currency'] ?? null;
         $customerEmail = $data['customer']['email'] ?? null;
 
@@ -64,16 +66,19 @@ class FlutterwaveWebhookController extends Controller
 
         // Find the restaurant associated with this payment
         $restaurantPayment = RestaurantPayment::where('flutterwave_payment_ref', $transactionRef)->first();
+
         if (!$restaurantPayment) {
             return response()->json(['status' => 'error', 'message' => 'Payment record not found'], 404);
         }
 
         $restaurant = Restaurant::find($restaurantPayment->restaurant_id);
+
         if (!$restaurant) {
             return response()->json(['status' => 'error', 'message' => 'Restaurant not found'], 404);
         }
 
         $package = Package::find($restaurantPayment->package_id);
+
         if (!$package) {
             return response()->json(['status' => 'error', 'message' => 'Package not found'], 404);
         }
@@ -84,9 +89,9 @@ class FlutterwaveWebhookController extends Controller
         $restaurantPayment->save();
 
         $globalSubscription = GlobalSubscription::where('gateway_name', 'flutterwave')
-        ->where('restaurant_id', $restaurant->id)
-        ->latest()
-        ->first();
+            ->where('restaurant_id', $restaurant->id)
+            ->latest()
+            ->first();
 
         $existingInvoice = GlobalInvoice::where('transaction_id', $transactionId)->first();
 
@@ -120,6 +125,7 @@ class FlutterwaveWebhookController extends Controller
         $restaurant->save();
 
         $adminUsers = User::whereNull('restaurant_id')->get();
+
         Notification::send($adminUsers, new RestaurantUpdatedPlan($restaurant, $package->id));
 
         return response()->json(['status' => 'success', 'message' => 'Payment processed successfully']);
@@ -142,6 +148,7 @@ class FlutterwaveWebhookController extends Controller
         }
 
         $subscription = GlobalSubscription::where('subscription_id', $subscriptionId)->first();
+
         if (!$subscription) {
             $subscription = new GlobalSubscription();
             $subscription->subscription_id = $subscriptionId;
@@ -154,6 +161,7 @@ class FlutterwaveWebhookController extends Controller
         $subscription->subscription_status = $status;
         $subscription->save();
         info('subscriptionUpdated');
+
         return response()->json(['status' => 'success', 'message' => 'Subscription updated']);
     }
 }

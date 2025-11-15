@@ -14,10 +14,10 @@ class AddTax extends Component
     public function submitForm()
     {
         $this->validate([
-            'taxName' => 'required',
-            'taxPercent' => 'required|numeric'
+            'taxName' => 'required|string|max:255',
+            'taxPercent' => 'required|numeric|min:0|max:100'
         ]);
-
+      
         $currency = new Tax();
         $currency->tax_name = $this->taxName;
         $currency->tax_percent = $this->taxPercent;

@@ -118,7 +118,7 @@
                                         <td class="py-2 px-4 text-xs text-left border-gray-700"></td>
                                         <td class="py-2 px-4 text-xs text-left border-gray-700">@lang('modules.order.total')</td>
                                         <td class="py-2 px-4 text-xs text-left border-gray-700">
-                                            {{ currency_format($totalAmount) }}
+                                            {{ currency_format($totalAmount, restaurant()->currency_id) }}
                                         </td>
                                     </tr>
                                 @else

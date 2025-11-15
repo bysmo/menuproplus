@@ -68,7 +68,7 @@ class ItemModifiers extends Component
     {
         $itemModifiersQuery = ItemModifier::whereHas('menuItem', function ($query) {
             $query->where('branch_id', branch()->id);
-        })->with(['menuItem', 'modifierGroup']);
+        })->with(['menuItem', 'modifierGroup', 'variation']);
 
         if ($this->search) {
             $itemModifiersQuery->where(function ($query) {

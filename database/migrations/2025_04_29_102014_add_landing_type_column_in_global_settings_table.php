@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('global_settings', function (Blueprint $table) {
-            $table->string('landing_type')->default('static')->after('disable_landing_site');
+            $table->string('landing_type')->default('dynamic')->after('disable_landing_site');
         });
     }
 

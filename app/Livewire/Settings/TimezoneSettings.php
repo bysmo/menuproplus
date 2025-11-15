@@ -7,6 +7,7 @@ use App\Models\Currency;
 use DateTimeZone;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
+use App\Models\LanguageSetting;
 
 class TimezoneSettings extends Component
 {
@@ -22,6 +23,7 @@ class TimezoneSettings extends Component
     public $hideTodayOrders;
     public $hideNewReservation;
     public $hideNewWaiterRequest;
+    public $customerLanguage;
 
     public function mount()
     {
@@ -31,7 +33,7 @@ class TimezoneSettings extends Component
         $this->hideTodayOrders = (bool)$this->settings->hide_new_orders;
         $this->hideNewReservation = (bool)$this->settings->hide_new_reservations;
         $this->hideNewWaiterRequest = (bool)$this->settings->hide_new_waiter_request;
-
+        $this->customerLanguage = $this->settings->customer_site_language ?? 'en';
         $this->countries = Country::all();
         $this->currencies = Currency::all();
         $this->timezones = DateTimeZone::listIdentifiers();
@@ -51,9 +53,16 @@ class TimezoneSettings extends Component
         $this->settings->hide_new_orders = $this->hideTodayOrders;
         $this->settings->hide_new_reservations = $this->hideNewReservation;
         $this->settings->hide_new_waiter_request = $this->hideNewWaiterRequest;
+        $this->settings->customer_site_language = $this->customerLanguage ?? 'en';
         $this->settings->save();
 
         session()->forget('restaurant');
+        session()->forget('timezone');
+
+        session()->forget('customer_locale');
+        session()->forget('customer_site_language');
+        session()->forget('customer_is_rtl');
+
 
         $this->dispatch('settingsUpdated');
 

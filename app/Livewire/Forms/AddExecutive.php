@@ -31,10 +31,10 @@ class AddExecutive extends Component
         // Reset the value
         $this->memberName = '';
         $this->memberPhone = '';
-        $this->status = '';
+        $this->status = 'available';
 
         $this->dispatch('hideAddStaff');
-        
+
         $this->alert('success', __('messages.memberAdded'), [
             'toast' => true,
             'position' => 'top-end',

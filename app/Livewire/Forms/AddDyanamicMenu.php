@@ -14,7 +14,7 @@ class AddDyanamicMenu extends Component
     public $menuName;
     public $menuSlug;
     public $menuContent;
-
+    public $position = 'header';
 
     public function generateSlug()
     {
@@ -30,12 +30,13 @@ class AddDyanamicMenu extends Component
         ]);
 
         CustomMenu::create([
-        'menu_name' => $this->menuName,
-        'menu_slug' => $this->menuSlug,
-        'menu_content' => $this->menuContent,
+            'menu_name' => $this->menuName,
+            'menu_slug' => $this->menuSlug,
+            'menu_content' => $this->menuContent,
+            'position' => $this->position,
         ]);
 
-        $this->reset(); // Reset the form fields
+        $this->reset();
         $this->dispatch('reset-trix-editor');
         $this->dispatch('hideAddDyanamicMenu');
 

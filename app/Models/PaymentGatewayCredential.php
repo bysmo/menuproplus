@@ -52,4 +52,50 @@ class PaymentGatewayCredential extends BaseModel
     {
         return ($this->flutterwave_mode == 'test' ? $this->flutterwave_test_webhook_key : $this->flutterwave_live_webhook_key);
     }
+
+    public function getPaypalClientIdAttribute()
+    {
+        return ($this->paypal_mode == 'sandbox' ? $this->sandbox_paypal_client_id : $this->paypal_client_id);
+    }
+    public function getPaypalSecretAttribute()
+    {
+        return ($this->paypal_mode == 'sandbox' ? $this->sandbox_paypal_secret : $this->paypal_secret);
+    }
+     public function getPayfastMerchantIdDataAttribute()
+    {
+        return ($this->payfast_mode == 'sandbox' ? $this->test_payfast_merchant_id : $this->payfast_merchant_id);
+    }
+    public function getPayfastMerchantKeyDataAttribute()
+    {
+        return ($this->payfast_mode == 'sandbox' ? $this->test_payfast_merchant_key : $this->payfast_merchant_key);
+    }
+
+    public function getPayfastPassphraseDataAttribute()
+    {
+        return ($this->payfast_mode == 'sandbox' ? $this->test_payfast_passphrase : $this->payfast_passphrase);
+    }
+
+        public function getPaystackKeyDataAttribute()
+    {
+        return ($this->paystack_mode == 'sandbox' ? $this->test_paystack_key : $this->paystack_key);
+    }
+    public function getPaystackSecretDataAttribute()
+    {
+        return ($this->paystack_mode == 'sandbox' ? $this->test_paystack_secret : $this->paystack_secret);
+    }
+    public function getPaystackMerchantEmailDataAttribute()
+    {
+        return ($this->paystack_mode == 'sandbox' ? $this->test_paystack_merchant_email : $this->paystack_merchant_email);
+    }
+
+    public function getXenditPublicKeyAttribute()
+    {
+        return ($this->xendit_mode == 'sandbox' ? $this->test_xendit_public_key : $this->live_xendit_public_key);
+    }
+
+    public function getXenditSecretKeyAttribute()
+    {
+        return ($this->xendit_mode == 'sandbox' ? $this->test_xendit_secret_key : $this->live_xendit_secret_key);
+    }
+
 }

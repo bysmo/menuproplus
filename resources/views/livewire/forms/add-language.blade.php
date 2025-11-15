@@ -42,7 +42,7 @@
             </div>
         </div>
 
-        <div class="flex w-full pb-4 space-x-4 mt-6">
+        <div class="flex w-full pb-4 space-x-4 mt-6 rtl:space-x-reverse">
             <x-button>@lang('app.save')</x-button>
             <x-button-cancel  wire:click="$dispatch('hideAddLanguage')" wire:loading.attr="disabled">@lang('app.cancel')</x-button-cancel>
         </div>

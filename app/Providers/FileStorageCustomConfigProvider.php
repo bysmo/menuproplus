@@ -89,7 +89,7 @@ class FileStorageCustomConfigProvider extends ServiceProvider
 
                     break;
 
-                    // For local storage
+                // For local storage
                 default:
                     config(['filesystems.default' => $setting->filesystem]);
                     break;

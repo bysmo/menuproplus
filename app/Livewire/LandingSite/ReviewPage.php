@@ -27,10 +27,23 @@ class ReviewPage extends Component
 
     public function mount()
     {
-
         if (!$this->languageSettingid) {
-            $defaultLanguage = LanguageSetting::where('active', 1)->first();
-            $this->languageSettingid = $defaultLanguage ? $defaultLanguage->id : null;
+            $userLocale = auth()->user()?->locale;
+
+            if ($userLocale) {
+                $userLanguage = LanguageSetting::where('language_code', $userLocale)
+                    ->where('active', 1)
+                    ->first();
+
+                if ($userLanguage) {
+                    $this->languageSettingid = $userLanguage->id;
+                }
+            }
+
+            if (!$this->languageSettingid) {
+                $defaultLanguage = LanguageSetting::where('active', 1)->first();
+                $this->languageSettingid = $defaultLanguage ? $defaultLanguage->id : null;
+            }
 
             if (!$this->languageSettingid) {
                 $this->alert('error', __('messages.languageNotFound'), [
@@ -40,8 +53,8 @@ class ReviewPage extends Component
                     'cancelButtonText' => __('app.close')
                 ]);
             }
-        $this->loadLanguageContents();
 
+            $this->loadLanguageContents();
         }
     }
 
@@ -56,8 +69,6 @@ class ReviewPage extends Component
         $frontDetail = FrontDetail::where('language_setting_id', $this->languageSettingid)->first();
         $this->reviewHeading = $frontDetail ? $frontDetail->review_heading : '';
         
-
-
         foreach ($reviewDetails as $detail) {
             $this->contents[$detail->language_setting_id] = [
                 'review' => $detail->header_title,

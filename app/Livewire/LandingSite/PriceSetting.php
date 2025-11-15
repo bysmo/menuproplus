@@ -18,15 +18,27 @@ class PriceSetting extends Component
 
 
     public function mount()
-    {
-
+    {   
         if (!$this->languageSettingid) {
-            $defaultLanguage = LanguageSetting::where('active', 1)->first();
-            $this->languageSettingid = $defaultLanguage?->id;
-        }
-        $this->loadLanguageContents();
+            $userLocale = auth()->user()?->locale;
 
-        // $this->loadSelectedLanguageContent();
+            if ($userLocale) {
+                $userLanguage = LanguageSetting::where('language_code', $userLocale)
+                    ->where('active', 1)
+                    ->first();
+
+                if ($userLanguage) {
+                    $this->languageSettingid = $userLanguage->id;
+                }
+            }
+
+            if (!$this->languageSettingid) {
+                $defaultLanguage = LanguageSetting::where('active', 1)->first();
+                $this->languageSettingid = $defaultLanguage?->id;
+            }
+        }
+
+        $this->loadLanguageContents();
     }
 
     public function loadLanguageContents()

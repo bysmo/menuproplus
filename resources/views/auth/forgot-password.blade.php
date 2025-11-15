@@ -1,9 +1,8 @@
 <x-auth-layout>
 
-    <div class="w-full sm:max-w-md mt-8 px-8 py-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-lg rounded-2xl border border-secondary/20 mx-auto">
-        <div class="mb-6 text-center">
-            <h2 class="text-3xl font-bold text-secondary">{{ __('app.forgotPassword') }}</h2>
-            <p class="text-gray-600 dark:text-gray-400 mt-2">{{ __('app.forgotPasswordMessage') }}</p>
+    <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
+        <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+            {{ __('app.forgotPasswordMessage') }}
         </div>
 
         @session('status')
@@ -19,15 +18,15 @@
 
             <div class="block">
                 <x-label for="email" value="{{ __('app.email') }}" />
-                <x-input id="email" class="block mt-1 w-full focus:ring-secondary focus:border-secondary" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
             </div>
 
             <div class="flex items-center justify-between mt-4">
-                <a href="{{ route('login') }}" class="text-sm text-secondary hover:text-secondary/80">
+                <a href="{{ route('login') }}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
                     ← {{ __('app.backToLogin') }}
                 </a>
                 
-                <x-button class="button bg-secondary hover:bg-secondary/80">
+                <x-button class="button">
                     {{ __('app.sendPasswordResetLink') }}
                 </x-button>
             </div>

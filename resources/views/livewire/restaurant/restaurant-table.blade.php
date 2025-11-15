@@ -26,6 +26,9 @@
                                 <th scope="col" class="py-2.5 px-4 text-xs font-medium ltr:text-left rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('app.status')
                                 </th>
+                                <th scope="col" class="py-2.5 px-4 text-xs font-medium text-center text-gray-500 uppercase dark:text-gray-400">
+                                    @lang('app.createdAt')
+                                </th>
                                 <th scope="col"
                                     class="py-2.5 px-4 text-xs font-medium ltr:text-end rtl:text-right text-gray-500 uppercase dark:text-gray-400">
                                     @lang('app.action')
@@ -75,9 +78,11 @@
 
                                 <td class="py-2.5 px-4 text-sm text-gray-900 whitespace-nowrap dark:text-white flex flex-col items-start gap-y-1.5">
 
-                                    <span>
-                                        {{ $item?->package->package_name }} ({{ $item?->package_type }})
-                                    </span>
+                                    @if($item?->package?->package_name)
+                                        <span>
+                                            {{ $item?->package?->package_name }} ({{ $item?->package_type }})
+                                        </span>
+                                    @endif
 
                                     <span wire:click="showChangePackage({{ $item->id }})" wire:key='package-update-{{ $item->id . microtime() }}' class="bg-gray-100 hover:bg-gray-200 text-gray-700 select-none text-xs cursor-pointer font-medium inline-flex items-center px-1.5 py-0.5 rounded  dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-400 border border-gray-500 ">
                                         <svg class="w-4 h-4 text-current" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -93,6 +98,10 @@
                                 @else
                                     <span class="bg-red-100 uppercase text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">@lang('app.inactive')</span>
                                 @endif
+                                </td>
+
+                                <td class="py-2.5 px-4 text-sm text-gray-900 whitespace-nowrap dark:text-white text-center">
+                                    @include('common.date-time-display', ['date' => $item->created_at])
                                 </td>
 
                                 <td class="py-2.5 px-4 space-x-2 whitespace-nowrap text-right">
@@ -132,7 +141,7 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">
                                 <td class="py-2.5 px-4 space-x-6" colspan="8">
                                     @lang('messages.noRestaurantFound')
                                 </td>
