@@ -67,6 +67,7 @@ return array (
   'ipv4Addres' => 'Add Printer IPv4 Address',
   'enterGoogleMapApiKey' => 'Enter Google Map API Key e.g., AIzaSyD-xxxxxxxxxxxxxxxxx',
   'enterPrivacyPolicyLink' => 'Enter privacy policy URL e.g., https://yoursite.com/privacy-policy',
+  'enterTermsAndConditionsLink' => 'Enter terms and conditions URL e.g., https://yoursite.com/terms-and-conditions',
   'addressLabelPlaceholder' => 'e.g., home, office, etc.',
   'addressPlaceholder' => 'e.g., 123 Main St, City, Country',
   'addItemNotesPlaceholder' => 'Special Instructions? (e.g., no onions, extra spicy)',

@@ -261,7 +261,7 @@
                             <td>
                                 <span class="order-number">{{ $order->show_formatted_order_number }}</span>
                             </td>
-                            <td class="space_left">{{ $order->date_time->timezone(timezone())->translatedFormat('d M Y h:i A') }}</td>
+                            <td class="space_left">{{ $order->date_time->timezone(timezone())->translatedFormat('d M Y H:i') }}</td>
                         </tr>
                     </table>
                 </div>
@@ -303,7 +303,7 @@
                                 @if ($order->order_type === 'pickup')
                                     @if ($order->pickup_date)
                                         <span class="">
-                                            : {{ \Carbon\Carbon::parse($order->pickup_date)->translatedFormat('d M Y h:i A') }}
+                                            : {{ \Carbon\Carbon::parse($order->pickup_date)->translatedFormat('d M Y H:i') }}
                                         </span>
                                     @endif
                                 @endif
@@ -588,7 +588,7 @@
                                     <td class="payment-method">@lang('modules.order.' . $payment->payment_method)</td>
                                     <td class="price">
                                         @if($payment->payment_method != 'due')
-                                            {{ $payment->created_at->timezone(timezone())->translatedFormat('d M Y h:i A') }}
+                                            {{ $payment->created_at->timezone(timezone())->translatedFormat('d M Y H:i') }}
                                         @endif
                                     </td>
                                 </tr>

@@ -274,7 +274,7 @@
             <div class="flex justify-between p-2 text-xs font-medium text-gray-500 bg-gray-100 dark:bg-gray-700">
                 <div>@lang('menu.kot') #{{ $kot->kot_number }}</div>
 
-                <div>{{ $kot->created_at->timezone(timezone())->translatedFormat('d F, h:i A') }}</div>
+                <div>{{ $kot->created_at->timezone(timezone())->translatedFormat('d F, H:i') }}</div>
             </div>
 
             <div class="flex flex-col rounded">

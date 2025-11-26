@@ -193,7 +193,7 @@
                             <ul>
                                 <li
                                     class="me-1 inline-flex items-center text-sm text-gray-800 dark:text-neutral-200">
-                                    {{ $restaurant->created_at->timezone(global_setting()->timezone ?? 'Asia/Kolkata')->translatedFormat('D, d M Y, h:i A') }}
+                                    {{ $restaurant->created_at->timezone(global_setting()->timezone ?? 'Asia/Kolkata')->translatedFormat('D, d M Y, H:i') }}
                                 </li>
                             </ul>
                         </dd>

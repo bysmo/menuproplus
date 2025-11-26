@@ -168,13 +168,24 @@
                         <x-checkbox name="termsAndPrivacy" id="termsAndPrivacy" wire:model.live="termsAndPrivacy" />
                         <div class="ms-2">
                             <span class="text-sm text-gray-600 dark:text-gray-400">
-                                {{ __('I accept the Terms & Conditions and') }}
-                                @if(global_setting()->privacy_policy_link)
-                                    <a href="{{ global_setting()->privacy_policy_link }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline dark:text-blue-400 dark:hover:text-blue-300">
-                                        {{ __('Privacy Policy') }}
+                                {{ __('app.I accept the') }}
+
+                                 @if(global_setting()->terms_and_conditions_link)
+                                    <a href="{{ global_setting()->terms_and_conditions_link }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline dark:text-blue-400 dark:hover:text-blue-300">
+                                        {{ __('app.Terms & Conditions') }}
                                     </a>
                                 @else
-                                    {{ __('Privacy Policy') }}
+                                    {{ __('app.Terms & Conditions') }}
+                                @endif
+
+                                {{ __('app.and') }}
+
+                                @if(global_setting()->privacy_policy_link)
+                                    <a href="{{ global_setting()->privacy_policy_link }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline dark:text-blue-400 dark:hover:text-blue-300">
+                                        {{ __('app.Privacy Policy') }}
+                                    </a>
+                                @else
+                                    {{ __('app.Privacy Policy') }}
                                 @endif
                             </span>
                         </div>
@@ -189,7 +200,7 @@
                         <x-checkbox name="marketingEmails" id="marketingEmails" wire:model.live="marketingEmails" />
                         <div class="ms-2">
                             <span class="text-sm text-gray-600 dark:text-gray-400">
-                                {{ __('I agree to receive marketing emails.') }}
+                                {{ __('app.I agree to receive marketing emails.') }}
                             </span>
                         </div>
                     </div>

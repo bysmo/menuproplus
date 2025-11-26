@@ -50,7 +50,7 @@
                             {{ Str::title(ucwords(str_replace('_', ' ', $kot->order->order_type))) }}
                             @if($kot->order->order_type === 'pickup' && $kot->order->pickup_date)
                                 <span class="ml-2 text-xs opacity-75 font-semibold" style="letter-spacing:0.5px;">
-                                    {{ \Carbon\Carbon::parse($kot->order->pickup_date)->translatedFormat('h:i A') }}
+                                    {{ \Carbon\Carbon::parse($kot->order->pickup_date)->translatedFormat('H:i') }}
                                 </span>
                             @endif
                         </span>
@@ -70,7 +70,7 @@
                     @endif
                 </div>
                 <div class="text-xs text-gray-600 dark:text-gray-400">
-                    {{ $kot->created_at->timezone(timezone())->translatedFormat('M d, h:i A') }}
+                    {{ $kot->created_at->timezone(timezone())->translatedFormat('d M Y,  H:i') }}
                 </div>
             </div>
 

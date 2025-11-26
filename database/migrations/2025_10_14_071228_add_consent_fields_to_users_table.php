@@ -18,6 +18,7 @@ return new class extends Migration
 
         Schema::table('global_settings', function (Blueprint $table) {
             $table->boolean('show_privacy_consent_checkbox')->default(false)->after('privacy_policy_link');
+            $table->boolean('show_terms_and_conditions_checkbox')->default(false)->after('show_privacy_consent_checkbox');
         });
     }
 
@@ -32,6 +33,7 @@ return new class extends Migration
 
         Schema::table('global_settings', function (Blueprint $table) {
             $table->dropColumn('show_privacy_consent_checkbox');
+            $table->dropColumn('show_terms_and_conditions_checkbox');
         });
     }
 };

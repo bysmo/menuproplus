@@ -1,6 +1,11 @@
 <?php
-
 return array(
+    'I accept the' => 'I accept the',
+    'Terms & Conditions' => 'Terms & Conditions',
+    'and' => 'and',
+    'I agree to the :terms_of_service and :privacy_policy' => 'I agree to the :terms_of_service and :privacy_policy',
+    'I agree to receive marketing emails.' => 'I agree to receive marketing emails.',
+    'Privacy Policy' => 'Privacy Policy',
     'close' => 'Close',
     'cancel' => 'Cancel',
     'save' => 'Save',

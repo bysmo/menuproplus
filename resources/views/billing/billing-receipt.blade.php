@@ -274,7 +274,7 @@
                         <tr>
                             <td class="heading-table-left text-capitalize">@lang('modules.billing.paymentDate')</td>
                             <td class="heading-table-right">
-                                {{ $invoice->pay_date->format('D, d M, Y')}}
+                                @include('common.date-display', ['date' => $invoice->pay_date])
                             </td>
                         </tr>
                         <tr>

@@ -4,7 +4,7 @@
             <div>
                 <h6>Please set the following cron command on your server (Ignore if already done)</h6>
             </div>
-            <div class="mb-3 flex justify-between items-center">
+            <!--div class="mb-3 flex justify-between items-center">
                 <a href="https://www.youtube.com/watch?v=W-3pKLf3Hq4&t=18s&pp=ygURY3JvbmpvYiB3b3Jrc3VpdGU%3D"
                    target="_blank"
                    class="inline-flex items-center text-sm text-red-600 hover:text-red-700">
@@ -16,7 +16,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                 </a>
-            </div>
+            </div-->
         </div>
 
         <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-4">

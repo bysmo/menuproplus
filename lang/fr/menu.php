@@ -1,4 +1,4 @@
-<?php 
+<?php
 return [
   'dashboard' => 'Tableau de bord',
   'menu' => 'Menu',
@@ -53,4 +53,5 @@ return [
   'superadminPaymentSetting' => 'Paramètres de paiement',
   'adminPaymentSetting' => 'Paramètres de paiement du restaurant',
   'customerDisplay' => 'Affichage du client',
+  'deliveryAppReport' => 'Rapport de l\'application de livraison',
 ];

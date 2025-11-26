@@ -83,10 +83,10 @@
                                 {{ ucfirst($invoice->package_type) }}
                             </td>
                             <td class="py-2.5 px-4 text-sm text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ $invoice->pay_date ? $invoice->pay_date->format('D, d M Y') : '--' }}
+                                @include('common.date-display', ['date' => $invoice->pay_date])
                             </td>
                             <td class="py-2.5 px-4 text-sm text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ $invoice->next_pay_date ? $invoice->next_pay_date->format('D, d M Y') : '--' }}
+                                @include('common.date-display', ['date' => $invoice->next_pay_date])
                             </td>
                             <td class="py-2.5 px-4 text-sm text-gray-900 whitespace-nowrap dark:text-white">
                                 {{ $invoice->transaction_id }}

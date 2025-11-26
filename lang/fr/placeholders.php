@@ -1,4 +1,4 @@
-<?php 
+<?php
 return [
   'menuNamePlaceholder' => 'par exemple Petit-déjeuner',
   'searchMenus' => 'Recherchez votre menu ici',
@@ -66,6 +66,7 @@ return [
   'ipv4Addres' => 'Ajouter l\'adresse IPv4 de l\'imprimante',
   'enterGoogleMapApiKey' => 'Entrez la touche API Google Map, par exemple, Aizasyd-xxxxxxxxxxxxxxx',
   'enterPrivacyPolicyLink' => 'Saisissez l\'URL de la politique de confidentialité, par exemple https://yoursite.com/privacy-policy',
+  'enterTermsAndConditionsLink' => 'Saisissez l\'URL des termes et conditions, par exemple https://yoursite.com/terms-and-conditions',
   'addressLabelPlaceholder' => 'par exemple, maison, bureau, etc.',
   'addressPlaceholder' => 'par exemple, 123 Main St, ville, pays',
   'addItemNotesPlaceholder' => 'Instructions spéciales? (par exemple, pas d\'oignons, extra épicé)',

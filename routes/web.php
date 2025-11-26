@@ -65,14 +65,32 @@ use App\Http\Controllers\SuperAdmin\FlutterwaveWebhookController;
 use App\Http\Middleware\CheckRestaurantPackage;
 
 
-Route::get('/manifest.json', [HomeController::class, 'manifest'])->name('manifest');
 
-Route::group(['prefix' => 'restaurant', 'middleware' => ['subdomain.redirect']], function () {
-    Route::get('/table/{hash}', [ShopController::class, 'tableOrder'])->name('table_order')->where('id', '.*');
-});
+// ✅ AJOUTER CES LIGNES EN PREMIER - AVANT TOUTE AUTRE ROUTE
+if (class_exists(\Livewire\Livewire::class)) {
+    \Livewire\Livewire::setUpdateRoute(function ($handle) {
+        return Route::post('/livewire/update', $handle)
+            ->middleware(['web'])
+            ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])
+            ->name('livewire.update');
+    });
+
+    \Livewire\Livewire::setScriptRoute(function ($handle) {
+        return Route::get('/livewire/livewire.js', $handle)
+            ->name('livewire.javascript');
+    });
+}
+
+
+
+Route::get('/manifest.json', [HomeController::class, 'manifest'])->name('manifest');
 
 
 Route::group(['prefix' => 'restaurant'], function () {
+    // QR Codes
+    Route::get('table/{code}', [ShopController::class, 'tableOrder'])
+        ->name('table_order')
+        ->where('code', '[-A-Za-z0-9]+');
     Route::get('/my-orders/{hash}', [ShopController::class, 'myOrders'])->name('my_orders');
     Route::get('/my-bookings/{hash}', [ShopController::class, 'myBookings'])->name('my_bookings');
     Route::get('/my-addresses/{hash}',  [ShopController::class, 'myAddresses'])->name('my_addresses');

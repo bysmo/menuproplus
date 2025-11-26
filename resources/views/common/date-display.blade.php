@@ -1,48 +1,41 @@
 @php
-    $now = \Carbon\Carbon::now();
+    use Carbon\Carbon;
+
+    Carbon::setLocale('fr');
+
+    $now = Carbon::now(timezone());
     $color = 'text-gray-500';
     $isToday = false;
 
-    if ($date?->isToday()) {
-        $color = 'text-green-600';
-        $isToday = true;
-    } elseif ($date?->isYesterday()) {
-        $color = 'text-blue-800';
-    } elseif ($date?->diffInDays($now) < 7) {
-        $color = 'text-yellow-600';
-    } elseif ($date?->diffInDays($now) < 30) {
-        $color = 'text-orange-500';
-    }
+    $date = isset($date) && $date ? Carbon::parse($date)->locale('fr')->setTimezone(timezone()) : null;
 
-    // Format date - hide year if it's current year and add ordinal suffix
-    $day = $date?->translatedFormat('j'); // Day without leading zero
-    $month = $date?->translatedFormat('M');
-    $year = $date?->translatedFormat('Y');
-
-    // Add ordinal suffix
-    $ordinal = '';
-    if ($day >= 11 && $day <= 13) {
-        $ordinal = 'th';
-    } else {
-        switch ($day % 10) {
-            case 1: $ordinal = 'st'; break;
-            case 2: $ordinal = 'nd'; break;
-            case 3: $ordinal = 'rd'; break;
-            default: $ordinal = 'th'; break;
+    if ($date) {
+        if ($date->isToday()) {
+            $color = 'text-green-600';
+            $isToday = true;
+        } elseif ($date->isYesterday()) {
+            $color = 'text-blue-800';
+        } elseif ($date->between($now->copy()->subDays(7), $now)) {
+            $color = 'text-yellow-600';
+        } elseif ($date->between($now->copy()->subDays(30), $now)) {
+            $color = 'text-orange-500';
         }
-    }
 
-    $dateFormat = $date?->year === $now->year ? "{$day}<sup>{$ordinal}</sup> {$month}" : "{$day}<sup>{$ordinal}</sup> {$month} {$year}";
+        $dateFormat = $date->year === $now->year
+            ? $date->translatedFormat('j F')        // ex: 22 août
+            : $date->translatedFormat('j F Y');     // ex: 22 août 2025
+
+        $time = $date->translatedFormat('H:i');     // ex: 03:08
+    }
 @endphp
 
 @if($date)
     @if(!$isToday)
-        <span class="{{ $color }} text-xs">{!! $dateFormat !!}</span>
+        <span class="{{ $color }} text-xs">{{ $dateFormat }}</span>
+    @else
+        <span class="{{ $color }} text-xs">{{ $time }}</span>
     @endif
-    @if($isToday)
-        <span class="{{ $color }} text-xs">{{ $date?->translatedFormat('h:i A') }}</span>
-    @endif
-    <p class="text-[11px] text-gray-400">{{ $date?->diffForHumans(short:true) }}</p>
+    <p class="text-[11px] text-gray-400">{{ $date->diffForHumans(short: true) }}</p>
 @else
     -
 @endif

@@ -12,7 +12,10 @@
                 <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
             </svg>
 
-            {{ now()->timezone(timezone())->translatedFormat('l, d M, h:i A') }}
+            {{ now()->timezone(timezone())->translatedFormat('l, d F Y, H:i') }}
+
+
+
         </div>
     </div>
 
@@ -23,17 +26,17 @@
 @php
     $restaurantModules = restaurant_modules();
     $restaurantId = user()->restaurant_id;
-    
+
     // Get stats for all three modules
     $orderStats = branch() ? getRestaurantOrderStats(branch()->id) : null;
     $staffStats = getRestaurantStaffStats($restaurantId);
     $menuItemStats = getRestaurantMenuItemStats($restaurantId);
-    
+
     // Check which limits are exceeded
     $orderLimitExceeded = in_array('Order', $restaurantModules) && $orderStats && !$orderStats['unlimited'] && $orderStats['current_count'] >= $orderStats['order_limit'];
     $staffLimitExceeded = in_array('Staff', $restaurantModules) && $staffStats && !$staffStats['unlimited'] && $staffStats['current_count'] >= $staffStats['staff_limit'];
     $menuItemLimitExceeded = in_array('Menu Item', $restaurantModules) && $menuItemStats && !$menuItemStats['unlimited'] && $menuItemStats['current_count'] >= $menuItemStats['menu_items_limit'];
-    
+
     $anyLimitExceeded = $orderLimitExceeded || $staffLimitExceeded || $menuItemLimitExceeded;
 @endphp
 

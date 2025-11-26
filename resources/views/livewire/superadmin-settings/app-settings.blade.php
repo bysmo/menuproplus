@@ -193,7 +193,40 @@
                 </p>
             </div>
 
-            <div >
+            <div>
+                <x-label for="showTermsAndConditionsCheckbox">
+                    <div class="flex items-start space-x-4 p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200 dark:border-gray-700 dark:hover:bg-gray-700/50">
+                        <div class="flex-shrink-0">
+                            <x-checkbox
+                                class="mt-1 h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+                                name="showTermsAndConditionsCheckbox"
+                                id="showTermsAndConditionsCheckbox"
+                                wire:model.live='showTermsAndConditionsCheckbox'
+                            />
+                        </div>
+
+                        <div class="flex-1">
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                                @lang('modules.settings.showTermsAndConditionsCheckbox')
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                @lang('modules.settings.showTermsAndConditionsCheckboxHelp')
+                            </p>
+                        </div>
+                    </div>
+                </x-label>
+            </div>
+
+            <div x-show="$wire.showTermsAndConditionsCheckbox" x-transition>
+                <x-label for="termsAndConditionsLink" :value="__('modules.settings.termsAndConditionsLink')" />
+                <x-input id="termsAndConditionsLink" class="block mt-1 w-full" type="url" wire:model='termsAndConditionsLink' placeholder="{{ __('placeholders.enterTermsAndConditionsLink')}}" />
+                <x-input-error for="termsAndConditionsLink" class="mt-2" />
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    @lang('modules.settings.termsAndConditionsLinkHelp')
+                </p>
+            </div>
+
+            <div>
                 <x-label for="requiresApproval">
                     <div class="flex items-start space-x-4 p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200 dark:border-gray-700 dark:hover:bg-gray-700/50">
                         <div class="flex-shrink-0">

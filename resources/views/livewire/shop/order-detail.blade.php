@@ -11,7 +11,7 @@
     </div>
 
     <div class="overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800">
-   
+
         <!-- Order Status Header -->
         <div class="px-4 py-3 border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
             @if ($order->order_status->value === 'cancelled')
@@ -175,7 +175,7 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        {{ $order->date_time->timezone(timezone())->translatedFormat('M d, Y h:i A') }}
+                        {{ $order->date_time->timezone(timezone())->translatedFormat('d M Y,  H:i') }}
                     </div>
                     <div class="flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -603,7 +603,7 @@
                                             @lang('modules.order.' . $payment->payment_method)
                                         </p>
                                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $payment->created_at->timezone(timezone())->translatedFormat('M d, Y h:i A') }}
+                                            {{ $payment->created_at->timezone(timezone())->translatedFormat('d M Y,  H:i') }}
                                         </p>
                                         @if($payment->transaction_id)
                                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">

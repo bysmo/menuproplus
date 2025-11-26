@@ -1,50 +1,37 @@
 @php
-    $now = \Carbon\Carbon::now(timezone());
+    use Carbon\Carbon;
+
+    Carbon::setLocale('fr');
+
+    $now = Carbon::now(timezone());
     $color = 'text-gray-500';
     $isToday = false;
 
-    $date = $date->setTimezone(timezone());
+    $date = isset($date) && $date ? Carbon::parse($date)->locale('fr')->setTimezone(timezone()) : null;
 
-    if ($date->isToday()) {
-        $color = 'text-green-600';
-        $isToday = true;
-    } elseif ($date->isYesterday()) {
-        $color = 'text-blue-800';
-    }
-
-    // Format date - hide year if it's current year and add ordinal suffix
-    $day = $date->translatedFormat('j'); // Day without leading zero
-    $month = $date->translatedFormat('M');
-    $year = $date->translatedFormat('Y');
-
-    $time = $date->translatedFormat('h:i A');
-
-
-
-    // Add ordinal suffix
-    $ordinal = '';
-    if ($day >= 11 && $day <= 13) {
-        $ordinal = 'th';
-    } else {
-        switch ($day % 10) {
-            case 1: $ordinal = 'st'; break;
-            case 2: $ordinal = 'nd'; break;
-            case 3: $ordinal = 'rd'; break;
-            default: $ordinal = 'th'; break;
+    if ($date) {
+        if ($date->isToday()) {
+            $color = 'text-green-600';
+            $isToday = true;
+        } elseif ($date->isYesterday()) {
+            $color = 'text-blue-800';
         }
-    }
 
-    $dateFormat = $date?->year === $now->year ? "{$day}<sup>{$ordinal}</sup> {$month}, {$time}" : "{$day}<sup>{$ordinal}</sup> {$month} {$year} {$time}";
+        $dateTimeFormat = $date->year === $now->year
+            ? $date->translatedFormat('j F \\à H:i')       // ex: 22 août à 03:08
+            : $date->translatedFormat('j F Y \\à H:i');    // ex: 22 août 2025 à 03:08
+
+        $time = $date->translatedFormat('H:i');           // ex: 03:08
+    }
 @endphp
 
 @if($date)
     @if(!$isToday)
-        <span class="{{ $color }} text-xs">{!! $dateFormat !!} </span>
-    @endif
-    @if($isToday)
+        <span class="{{ $color }} text-xs">{{ $dateTimeFormat }}</span>
+    @else
         <span class="{{ $color }} text-xs">{{ $time }}</span>
     @endif
-    <p class="text-[11px] text-gray-400">{{ $date?->diffForHumans(short:true) }}</p>
+    <p class="text-[11px] text-gray-400">{{ $date->diffForHumans(short: true) }}</p>
 @else
     -
 @endif

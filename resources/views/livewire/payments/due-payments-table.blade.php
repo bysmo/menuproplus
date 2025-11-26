@@ -45,7 +45,7 @@
                                     </a>
                                 </td>
                                 <td class="py-2.5 px-4 text-sm text-gray-900 whitespace-nowrap dark:text-white">
-                                    {{ $item->created_at->timezone(timezone())->translatedFormat('d M Y, h:i A') }}
+                                    {{ $item->created_at->timezone(timezone())->translatedFormat('d M Y, H:i') }}
                                 </td>
                                 <td class="py-2.5 px-4 space-x-2 whitespace-nowrap text-right">
                                     <x-secondary-button-table wire:click='showPayment({{ $item->order_id }})'

@@ -1,11 +1,11 @@
 <div class="w-full py-5 dark:bg-gray-800">
-    @php 
+    @php
         $restaurantModules = restaurant_modules();
         $stats = getRestaurantStaffStats(user()->restaurant_id);
         $menuItemStats = getRestaurantMenuItemStats(user()->restaurant_id);
         $orderStats = getRestaurantOrderStats(branch()->id);
     @endphp
-    
+
     {{-- Show Staff Limit Alert only if Staff module is enabled --}}
     @if(in_array('Staff', $restaurantModules) && $stats && !$stats['unlimited'] && $stats['current_count'] > $stats['staff_limit'])
         <div class="flex items-center justify-between w-full mb-3">
@@ -17,14 +17,14 @@
 
             <a href="{{ route('staff.index') }}">
                 <x-button class="inline-flex items-center shadow-md hover:origin-center group p-3 px-4 mb-4">
-            
+
                 <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" />
                 {{ __('modules.staff.manageStaff') }}
                 </x-button>
             </a>
         </div>
     @endif
-    
+
     {{-- Show Menu Item Limit Alert only if Menu Item module is enabled --}}
     @if(in_array('Menu Item', $restaurantModules) && $menuItemStats && !$menuItemStats['unlimited'] && $menuItemStats['current_count'] > $menuItemStats['menu_items_limit'])
         <div class="flex items-center justify-between w-full mb-3">
@@ -42,7 +42,7 @@
             </a>
         </div>
     @endif
-    
+
     {{-- Show Order Limit Alert only if Order module is enabled --}}
     @if(in_array('Order', $restaurantModules) && $orderStats && !$orderStats['unlimited'] && $orderStats['current_count'] > $orderStats['order_limit'])
         <div class="flex items-center justify-between w-full mb-3">
@@ -118,7 +118,7 @@
                                 ? trans_choice('modules.billing.daysLeft', $daysLeft, ['count' => $daysLeft])
                                 : ($daysLeft === 0 ? __('modules.billing.expiringToday') : '');
                         @endphp
-                            {{ $expiryDate->translatedFormat('d F, Y') }}
+                            {{ $expiryDate('d M Y,  H:i')('d F, Y') }}
                         @if ($status)
                             <span class="text-sm text-gray-500">({{ $status }})</span>
                         @endif

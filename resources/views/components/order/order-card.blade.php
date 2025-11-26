@@ -105,17 +105,17 @@
                 <div class="flex flex-col gap-1 text-xs text-gray-600 dark:text-gray-400">
                     <div class="flex items-center gap-1">
                         <span class="font-semibold">@lang('modules.order.pickupDate')</span>
-                        <span>{{ \Illuminate\Support\Carbon::parse($order->pickup_date)->translatedFormat('M d, Y h:i A') }}</span>
+                        <span>{{ \Illuminate\Support\Carbon::parse($order->pickup_date)->translatedFormat('d M Y,  H:i') }}</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="font-semibold">@lang('modules.order.orderDate')</span>
-                        <span>{{ $order->date_time->timezone(timezone())->translatedFormat('M d, Y h:i A') }}</span>
+                        <span>{{ $order->date_time->timezone(timezone())->translatedFormat('d M Y,  H:i') }}</span>
                     </div>
                 </div>
             @else
                 <div class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
                     <span class="font-semibold">@lang('modules.order.orderDate')</span>
-                    <span>{{ $order->date_time->timezone(timezone())->translatedFormat('M d, Y h:i A') }}</span>
+                    <span>{{ $order->date_time->timezone(timezone())->translatedFormat('d M Y,  H:i') }}</span>
                 </div>
             @endif
             <div class="text-sm font-medium text-gray-800 dark:text-gray-400">

@@ -32,12 +32,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // Add CORS middleware globally to handle all CORS requests
         $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
     })
-      ->withMiddleware(function (Middleware $middleware) {
-    $middleware->alias([
-        'subdomain.redirect' => \App\Http\Middleware\SubdomainRedirect::class,
-    ]);
-})
-
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

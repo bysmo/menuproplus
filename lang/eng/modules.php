@@ -553,7 +553,7 @@ return [
     ],
 
     'settings' => [
-        'noQrCode' => 'No QR Code',
+         'noQrCode' => 'No QR Code',
         'appSettings' => 'App Settings',
         'restaurantInformation' => 'Restaurant Information',
         'restaurantName' => 'Restaurant Name',
@@ -1134,7 +1134,12 @@ return [
         'privacyPolicyLink' => 'Legal Consent Page Link (Privacy Policy)',
         'privacyPolicyLinkHelp' => 'Enter the URL to your legal consent page. This will be used for legal compliance and user consent.',
         'showPrivacyConsentCheckbox' => 'Legal Consent Checkbox',
-        'showPrivacyConsentCheckboxHelp' => 'Enable this to show a legal consent checkbox on the signup page. When enabled, you must provide a legal link.',
+         'showPrivacyConsentCheckboxHelp' => 'Enable this to show a legal consent checkbox on the signup page. When enabled, you must provide a legal link.',
+
+        //terms and conditions
+        'termsAndConditionsLink' => 'Terms & Conditions Link',
+        'termsAndConditionsLinkHelp' => 'Enter the URL to your terms and conditions page. This will be used for legal compliance and user consent.',
+        'showTermsAndConditionsCheckboxHelp' => 'Enable this to show a terms and conditions checkbox on the signup page. When enabled, you must provide a terms and conditions link.',
         'uploadPlatformLogoDescription' => 'Upload platform logo (PNG, JPG, GIF up to 2MB)',
         'sample' => 'Sample',
     ],

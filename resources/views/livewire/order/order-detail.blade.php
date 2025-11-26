@@ -45,11 +45,11 @@
                             @if($order->order_type == 'pickup')
                                 <div class="text-xs text-gray-600 dark:text-gray-400">
                                     @lang('modules.order.pickupDate')
-                                    {{ \Carbon\Carbon::parse($order->pickup_date)->translatedFormat('M d, Y h:i A') }}
+                                    {{ \Carbon\Carbon::parse($order->pickup_date)->translatedFormat('d M Y,  H:i') }}
                                 </div>
                             @else
                                 <div class="text-xs text-gray-600 dark:text-gray-400">
-                                    {{ $order->date_time->timezone(timezone())->translatedFormat('M d, Y h:i A') }}
+                                    {{ $order->date_time->timezone(timezone())->translatedFormat('d M Y,  H:i') }}
                                 </div>
                             @endif
                         </div>
@@ -109,7 +109,7 @@
                                             class="text-sm underline underline-offset-2">&plus; @lang('modules.order.addCustomerDetails')</a>
                                     @endif
                                     <div class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                        {{ $order->date_time->timezone(timezone())->translatedFormat('M d, Y h:i A') }}
+                                        {{ $order->date_time->timezone(timezone())->translatedFormat('d M Y,  H:i') }}
                                     </div>
                                 </div>
                             </div>
@@ -423,10 +423,10 @@
                                             $modifier->setPriceContext($orderTypeId, $selectedDeliveryApp);
                                         }
                                     }
-                                    
+
                                     // Get prices with context applied
-                                    $baseItemPrice = $item->menuItemVariation 
-                                        ? $item->menuItemVariation->price 
+                                    $baseItemPrice = $item->menuItemVariation
+                                        ? $item->menuItemVariation->price
                                         : $item->menuItem->price;
                                     $modifierTotal = $item->modifierOptions->sum('price');
                                     $displayPrice = $baseItemPrice + $modifierTotal;

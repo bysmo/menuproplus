@@ -17,10 +17,15 @@
         <div>{{ $latestSubscription?->currency?->currency_symbol }}{{ number_format($latestSubscription?->currentInvoice->total, 2) }}</div>
 
         <div class="font-semibold text-gray-700 dark:text-gray-300">{{ __('modules.package.paymentDate') }}</div>
-        <div>{{ $latestSubscription->currentInvoice->pay_date ? \Carbon\Carbon::parse($latestSubscription->currentInvoice->pay_date)->format('d-m-Y') : '--' }}</div>
+        <div>
+            @include('common.date-display', ['date' => $latestSubscription->currentInvoice->pay_date])
+        </div>
 
         <div class="font-semibold text-gray-700 dark:text-gray-300">{{ __('modules.package.nextPaymentDate') }}</div>
-        <div>{{ $latestSubscription->currentInvoice->next_pay_date ? $latestSubscription->currentInvoice->next_pay_date->format('d-m-Y') : '--' }}</div>
+        <div>
+            @include('common.date-display', ['date' => $latestSubscription->currentInvoice->next_pay_date])
+        </div>
+
 
         <div class="font-semibold text-gray-700 dark:text-gray-300">{{ __('modules.package.licenseExpiresOn') }}</div>
         <div>{{ $latestSubscription->license_expire_on ? $latestSubscription->license_expire_on->format('d-m-Y') : '--' }}</div>

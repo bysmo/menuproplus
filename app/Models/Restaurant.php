@@ -21,23 +21,18 @@ class Restaurant extends BaseModel
     const FAVICON_BASE_PATH_RESTAURANT = 'favicons/restaurant/';
 
     const ABOUT_US_DEFAULT_TEXT = '<p class="text-lg text-gray-600 mb-6">
-          Welcome to our restaurant, where great food and good vibes come together! We\'re a local, family-owned spot that loves bringing people together over delicious meals and unforgettable moments. Whether you\'re here for a quick bite, a family dinner, or a celebration, we\'re all about making your time with us special.
+          Bienvenue chez nous, là où la bonne cuisine et les bons moments se rencontrent ! Nous sommes un restaurant familial, ancré dans notre quartier, et nous adorons rassembler les gens autour de plats savoureux et d’instants inoubliables. Que vous veniez pour un petit creux, un dîner en famille ou une célébration, notre priorité est de rendre votre passage mémorable.
         </p>
         <p class="text-lg text-gray-600 mb-6">
-          Our menu is packed with dishes made from fresh, quality ingredients because we believe food should taste as
-          good as it makes you feel. From our signature dishes to seasonal specials, there\'s always something to excite
-          your taste buds.
+          Notre carte regorge de plats préparés avec des ingrédients frais et de qualité, parce que nous croyons que la cuisine doit faire plaisir autant qu’elle nourrit. Entre nos spécialités phares et nos suggestions saisonnières, il y a toujours quelque chose pour éveiller vos papilles.
         </p>
         <p class="text-lg text-gray-600 mb-6">
-          But we\'re not just about the food—we\'re about community. We love seeing familiar faces and welcoming new ones.
-          Our team is a fun, friendly bunch dedicated to serving you with a smile and making sure every visit feels like
-          coming home.
+          Mais nous ne sommes pas qu’un restaurant — nous sommes une communauté. Nous adorons retrouver nos habitués et accueillir les nouveaux visages. Notre équipe est chaleureuse et souriante, et elle met tout en œuvre pour que chaque visite vous donne l’impression d’être à la maison.
         </p>
         <p class="text-lg text-gray-600">
-          So, come on in, grab a seat, and let us take care of the rest. We can\'t wait to share our love of food with
-          you!
+          Alors entrez, installez-vous, et laissez-nous nous occuper du reste. On a hâte de partager notre passion de la bonne cuisine avec vous !
         </p>
-        <p class="text-lg text-gray-800 font-semibold mt-6">See you soon! 🍽️✨</p>';
+        <p class="text-lg text-gray-800 font-semibold mt-6">À très bientôt ! 🍽️✨</p>';
 
     protected $appends = [
         'logo_url',

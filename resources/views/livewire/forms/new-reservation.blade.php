@@ -98,7 +98,7 @@
                                    }}">
                             <div class="block text-center">
                                 <div class="w-full text-md font-medium">
-                                    {{ \Carbon\Carbon::parse($timeSlot['time'])->translatedFormat('h:i A') }}
+                                    {{ \Carbon\Carbon::parse($timeSlot['time'])->translatedFormat('H:i') }}
                                 </div>
                             </div>
                         </label>

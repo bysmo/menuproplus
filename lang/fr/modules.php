@@ -1,4 +1,4 @@
-<?php 
+<?php
 return [
   'menu' => [
     'addMenu' => 'Ajouter le menu',
@@ -553,7 +553,7 @@ return [
     'pricing' => 'Prix',
     'payNow' => 'Payer maintenant',
     'paymentSource' => 'Source de paiement',
-    'appName' => 'Nom de l\'application',
+    'appName' => "Nom de l'application",
     'paymentUpgradeHeading' => 'Mettre à niveau pour accepter les paiements de manière transparente',
     'paymentUpgradeInfo' => 'Faites passer l\'efficacité de votre restaurant au niveau supérieur en intégrant les passerelles de paiement. Mettre à niveau maintenant pour offrir à vos clients des options de paiement sécurisées, rapides et pratiques comme Stripe et Razorpay',
     'themeUpgradeHeading' => 'Mettre à niveau pour une expérience de marque personnalisée',
@@ -976,10 +976,18 @@ return [
     'tableSettings' => 'Paramètres du tableau',
     'tableLockTimeoutMinutes' => 'Délai d\'expiration du verrouillage de la table (minutes)',
     'tableLockTimeoutMinutesDescription' => 'Définissez la durée pendant laquelle une table reste verrouillée lorsqu\'un membre du personnel y travaille.',
+
     'privacyPolicyLink' => 'Lien vers la page de consentement légal (Politique de confidentialité)',
     'privacyPolicyLinkHelp' => 'Saisissez l\'URL de votre page de consentement légal. Ceci sera utilisé pour la conformité légale et le consentement de l’utilisateur.',
     'showPrivacyConsentCheckbox' => 'Case à cocher Consentement légal',
     'showPrivacyConsentCheckboxHelp' => 'Activez cette option pour afficher une case à cocher de consentement légal sur la page d\'inscription. Lorsqu\'il est activé, vous devez fournir un lien légal.',
+
+    // terms et conditions
+    'termsAndConditionsLink' => 'Lien vers les termes et conditions',
+    'termsAndConditionsLinkHelp' => 'Saisissez l\'URL de votre page de termes et conditions. Ceci sera utilisé pour la conformité légale et le consentement de l’utilisateur.',
+    'showTermsAndConditionsCheckbox' => 'Case à cocher des termes et conditions',
+     'showTermsAndConditionsCheckboxHelp' => 'Activez cette option pour afficher une case à cocher des termes et conditions sur la page d\'inscription. Lorsqu\'il est activé, vous devez fournir un lien légal.',
+
     'sample' => 'Échantillon',
   ],
   'delivery' => [

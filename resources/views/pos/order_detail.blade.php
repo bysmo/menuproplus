@@ -82,7 +82,7 @@
                         <a href="javascript:;" wire:click="$dispatch('showAddCustomerModal', { id: {{ $orderDetail->id }}, customerId: null, fromPos: true })"
                         class="text-sm underline dark:text-gray-300 underline-offset-2">&plus; @lang('modules.order.addCustomerDetails')</a>
                     @endif
-                    <div class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ $orderDetail->date_time->timezone(timezone())->translatedFormat('M d, Y h:i A') }}</div>
+                    <div class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ $orderDetail->date_time->timezone(timezone())->translatedFormat('d M Y,  H:i') }}</div>
                 </div>
 
             </div>
@@ -257,10 +257,10 @@
                                 $modifier->setPriceContext($orderTypeId, $selectedDeliveryApp);
                             }
                         }
-                        
+
                         // Get prices with context applied
-                        $baseItemPrice = $item->menuItemVariation 
-                            ? $item->menuItemVariation->price 
+                        $baseItemPrice = $item->menuItemVariation
+                            ? $item->menuItemVariation->price
                             : $item->menuItem->price;
                         $modifierTotal = $item->modifierOptions->sum('price');
                         $displayPrice = $baseItemPrice + $modifierTotal;
