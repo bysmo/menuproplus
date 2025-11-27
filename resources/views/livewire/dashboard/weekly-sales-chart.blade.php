@@ -1,3 +1,7 @@
+@php
+    $currencyPosition = restaurant()->currency->currency_position;
+@endphp
+
 <div
     class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
     <div class="flex items-center justify-between mb-4">
@@ -43,12 +47,14 @@
                 chart.updateOptions(getMainChartOptions());
             });
 
-            
+
         }
 
         function getMainChartOptions()
         {
             let mainChartColors = {}
+            let currencyPosition = "{{ $currencyPosition }}";
+
 
             if (document.documentElement.classList.contains('dark')) {
                 mainChartColors = {
@@ -158,7 +164,19 @@
                             fontWeight: 500,
                         },
                         formatter: function (value) {
-                            return '{{ currency() }}' + value;
+                            // Adjust based on currency position
+                            if (currencyPosition == 'left') {
+                                return '{{ currency() }}' + value;
+                            } else if (currencyPosition == 'right') {
+                                return value + '{{ currency() }}';
+                            } else if (currencyPosition == 'left_space') {
+                                return '{{ currency() }} ' + value;
+                            } else if (currencyPosition == 'right_space') {
+                                return value + ' ' + '{{ currency() }}';
+                            }
+                            else {
+                                return value + ' ' + '{{ currency() }}';
+                            }
                         }
                     },
                 },
@@ -187,7 +205,7 @@
                 ]
             }
         }
-        
+
     </script>
     @endscript
 

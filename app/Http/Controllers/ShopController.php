@@ -202,7 +202,7 @@ class ShopController extends Controller
     }
 
 
-    public function tableOrder(string $table)
+    public function tableOrderLast(string $table)
 {
     try {
         \Log::info('=== DEBUT TABLE ORDER ===', [
@@ -396,7 +396,7 @@ private function getPackageModules(?Restaurant $restaurant): array
     /**
      * Show table order page
      */
-    public function OldtableOrder(string $table)
+    public function tableOrder(string $table)
 {
     $table = trim($table);
 

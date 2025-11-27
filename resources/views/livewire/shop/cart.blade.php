@@ -493,7 +493,7 @@
                                                     @php
                                                         $orderStats = getRestaurantOrderStats($shopBranch->id);
                                                     @endphp
-                                                    @if(($orderStats['unlimited'] || $orderStats['current_count'] < $orderStats['order_limit']))  
+                                                    @if(($orderStats['unlimited'] || $orderStats['current_count'] < $orderStats['order_limit']))
                                                         <x-cart-button
                                                                 wire:click='addCartItems({{ $item->id }}, {{ $item->variations_count }} , {{ $item->modifier_groups_count }})'
                                                                 wire:key='item-input-{{ $item->id . microtime() }}'>@lang('app.add')</x-cart-button>
@@ -1049,6 +1049,18 @@
                                                 @lang('modules.order.placeOrder')
                                             </x-button>
                                         @endif
+
+                                        <!-- 🔥 NOUVEAU : Bouton Vider le Panier -->
+                                        <button
+                                            wire:click="emptyCart"
+                                            wire:confirm="Êtes-vous sûr de vouloir vider le panier ?"
+                                            class="w-full bg-red-100 text-red-600 hover:bg-red-200 py-3 rounded-lg border border-red-300 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Vider le panier
+                                        </button>
                                     @else
                                         <x-button class="flex items-center justify-center w-full gap-2"
                                             wire:click="placeOrder" wire:loading.delay.attr="disabled">

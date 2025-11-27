@@ -142,190 +142,76 @@ class Cart extends Component
     public $is_within_radius = true; // Flag for location radius check
 
 
-
     /**
-     * ðŸ”¥ NOUVEAU : Recharger le panier depuis la session aprÃ¨s chaque requÃªte Livewire
+     * 🔥 NOUVEAU : Recharger le panier depuis la session après chaque requête Livewire
      */
     public function hydrate()
     {
-        // $this->loadCartFromSession();
+        $this->loadCartFromSession();
     }
 
- /**
- * 🔥 CORRIGÉ : Charger le panier depuis la session et recalculer
- */
-private function loadCartFromSession()
-{
-    $sessionKey = $this->getCartSessionKey();
+        /**
+     * 🔥 NOUVEAU : Charger le panier depuis la session
+     */
+    private function loadCartFromSession()
+    {
+        $sessionKey = $this->getCartSessionKey();
 
-    // Charger uniquement si le panier existe en session
-    if (session()->has($sessionKey)) {
-        $cartData = session($sessionKey);
+        // Charger uniquement si le panier existe en session
+        if (session()->has($sessionKey)) {
+            $cartData = session($sessionKey);
 
-        // 🔥 IMPORTANT : Reconstruire les objets MenuItem depuis les IDs
-        $this->orderItemList = [];
-        if (!empty($cartData['orderItemIds'])) {
-            foreach ($cartData['orderItemIds'] as $key => $itemData) {
-                if (isset($itemData['type']) && $itemData['type'] === 'variation') {
-                    // Charger une variation
-                    $variation = MenuItemVariation::find($itemData['id']);
-                    if ($variation) {
-                        $this->orderItemList[$key] = $variation;
-                    }
-                } else {
-                    // Charger un menu item normal
-                    $menuItem = MenuItem::with(['taxes', 'modifierGroups.modifierOptions'])
-                        ->find($itemData['id']);
-                    if ($menuItem) {
-                        $this->orderItemList[$key] = $menuItem;
-                    }
-                }
-            }
-        }
+            $this->orderItemList = $cartData['orderItemList'] ?? [];
+            $this->cartItemQty = $cartData['cartItemQty'] ?? [];
+            $this->orderItemQty = $cartData['orderItemQty'] ?? [];
+            $this->orderItemAmount = $cartData['orderItemAmount'] ?? [];
+            $this->orderItemVariation = $cartData['orderItemVariation'] ?? [];
+            $this->orderItemModifiersPrice = $cartData['orderItemModifiersPrice'] ?? [];
+            $this->itemModifiersSelected = $cartData['itemModifiersSelected'] ?? [];
+            $this->itemNotes = $cartData['itemNotes'] ?? [];
+            $this->subTotal = $cartData['subTotal'] ?? 0;
+            $this->total = $cartData['total'] ?? 0;
+            $this->cartQty = $cartData['cartQty'] ?? 0;
 
-        $this->cartItemQty = $cartData['cartItemQty'] ?? [];
-        $this->orderItemQty = $cartData['orderItemQty'] ?? [];
-        $this->orderItemAmount = $cartData['orderItemAmount'] ?? [];
-        $this->orderItemVariation = $cartData['orderItemVariation'] ?? [];
-        $this->orderItemModifiersPrice = $cartData['orderItemModifiersPrice'] ?? [];
-        $this->itemModifiersSelected = $cartData['itemModifiersSelected'] ?? [];
-        $this->itemNotes = $cartData['itemNotes'] ?? [];
-        $this->subTotal = $cartData['subTotal'] ?? 0;
-        $this->total = $cartData['total'] ?? 0;
-
-        // 🔥 NOUVEAU : Recalculer cartQty depuis orderItemQty
-        $this->cartQty = array_sum($this->orderItemQty);
-
-        \Log::info('🛒 Panier chargé depuis session', [
-            'session_key' => $sessionKey,
-            'items_count' => count($this->orderItemList),
-            'orderItemQty' => $this->orderItemQty,
-            'cartQty_recalculé' => $this->cartQty
-        ]);
-
-        // 🔥 NOUVEAU : Appliquer le contexte de prix si orderType est défini
-        if ($this->orderTypeId) {
-            foreach ($this->orderItemList as $key => $item) {
-                if ($item) {
-                    $item->setPriceContext($this->orderTypeId, null);
-                }
-            }
-            foreach ($this->orderItemVariation as $key => $variation) {
-                if ($variation) {
-                    $variation->setPriceContext($this->orderTypeId, null);
-                }
-            }
+            \Log::info('Panier chargé depuis session', [
+                'session_key' => $sessionKey,
+                'items_count' => count($this->orderItemList)
+            ]);
         }
     }
-}
-
-
-/**
- * 🔥 CORRIGÉ : Sauvegarder le panier en session
- */
-private function saveCartToSession()
-{
-    $sessionKey = $this->getCartSessionKey();
-
-    // 🔥 DEBUG : Vérifier ce qu'on sauvegarde
-    \Log::info('💾 AVANT sauvegarde', [
-        'orderItemList_count' => count($this->orderItemList),
-        'cartItemQty' => $this->cartItemQty,
-        'orderItemQty' => $this->orderItemQty,
-        'cartQty' => $this->cartQty
-    ]);
-
-    // 🔥 IMPORTANT : Stocker uniquement les IDs
-    $orderItemIds = [];
-    foreach ($this->orderItemList as $key => $item) {
-        if ($item instanceof MenuItemVariation) {
-            $orderItemIds[$key] = [
-                'id' => $item->id,
-                'type' => 'variation'
-            ];
-        } else {
-            $orderItemIds[$key] = [
-                'id' => $item->id,
-                'type' => 'menu_item'
-            ];
-        }
-    }
-
-    \Log::info('💾 IDs à sauvegarder', [
-        'orderItemIds' => $orderItemIds
-    ]);
-
-    session([
-        $sessionKey => [
-            'orderItemIds' => $orderItemIds,
-            'cartItemQty' => $this->cartItemQty,
-            'orderItemQty' => $this->orderItemQty,
-            'orderItemAmount' => $this->orderItemAmount,
-            'orderItemVariation' => $this->orderItemVariation,
-            'orderItemModifiersPrice' => $this->orderItemModifiersPrice,
-            'itemModifiersSelected' => $this->itemModifiersSelected,
-            'itemNotes' => $this->itemNotes,
-            'subTotal' => $this->subTotal,
-            'total' => $this->total,
-            'cartQty' => $this->cartQty,
-            'updated_at' => now()->toDateTimeString(),
-        ]
-    ]);
-
-    \Log::info('💾 Panier sauvegardé en session', [
-        'session_key' => $sessionKey,
-        'items_count' => count($orderItemIds),
-        'cart_qty' => $this->cartQty
-    ]);
-}
-
-
-/**
- * 🔥 NOUVEAU : Vider complètement le panier (accessible publiquement)
- */
-public function emptyCart()
-{
-    \Log::info('🗑️ Vidage du panier demandé');
-
-    // Vider toutes les propriétés du panier
-    $this->orderItemList = [];
-    $this->cartItemQty = [];
-    $this->orderItemQty = [];
-    $this->orderItemAmount = [];
-    $this->orderItemVariation = [];
-    $this->orderItemModifiersPrice = [];
-    $this->itemModifiersSelected = [];
-    $this->itemNotes = [];
-    $this->subTotal = 0;
-    $this->total = 0;
-    $this->cartQty = 0;
-    $this->deliveryFee = 0;
-    $this->extraCharges = 0;
-
-    // Vider la session
-    $sessionKey = $this->getCartSessionKey();
-    session()->forget($sessionKey);
-
-    \Log::info('✅ Panier vidé avec succès');
-
-    // Afficher une notification de succès
-    $this->alert('success', __('Le panier a été vidé'), [
-        'toast' => true,
-        'position' => 'top-end',
-        'timer' => 3000,
-        'timerProgressBar' => true,
-    ]);
-
-    // Retourner à la liste des menus
-    $this->showCart = false;
-    $this->showMenu = true;
-}
-
-
-
 
     /**
-     * ðŸ”¥ NOUVEAU : GÃ©nÃ©rer une clÃ© de session unique par contexte
+     * 🔥 NOUVEAU : Sauvegarder le panier en session
+     */
+    private function saveCartToSession()
+    {
+        $sessionKey = $this->getCartSessionKey();
+
+        session([
+            $sessionKey => [
+                'orderItemList' => $this->orderItemList,
+                'cartItemQty' => $this->cartItemQty,
+                'orderItemQty' => $this->orderItemQty,
+                'orderItemAmount' => $this->orderItemAmount,
+                'orderItemVariation' => $this->orderItemVariation,
+                'orderItemModifiersPrice' => $this->orderItemModifiersPrice,
+                'itemModifiersSelected' => $this->itemModifiersSelected,
+                'itemNotes' => $this->itemNotes,
+                'subTotal' => $this->subTotal,
+                'total' => $this->total,
+                'cartQty' => $this->cartQty,
+                'updated_at' => now()->toDateTimeString(),
+            ]
+        ]);
+
+        \Log::info('Panier sauvegardé en session', [
+            'session_key' => $sessionKey,
+            'items_count' => count($this->orderItemList)
+        ]);
+    }
+
+    /**
+     * 🔥 NOUVEAU : Générer une clé de session unique par contexte
      */
     private function getCartSessionKey()
     {
@@ -338,13 +224,13 @@ public function emptyCart()
     }
 
     /**
-     * ðŸ”¥ NOUVEAU : Vider complÃ¨tement le panier
+     * 🔥 NOUVEAU : Vider complètement le panier
      */
     private function clearCart()
     {
         $sessionKey = $this->getCartSessionKey();
 
-        // Vider les propriÃ©tÃ©s
+        // Vider les propriétés
         $this->orderItemList = [];
         $this->cartItemQty = [];
         $this->orderItemQty = [];
@@ -360,10 +246,8 @@ public function emptyCart()
         // Vider la session
         session()->forget($sessionKey);
 
-        \Log::info('Panier vidÃ©', ['session_key' => $sessionKey]);
+        \Log::info('Panier vidé', ['session_key' => $sessionKey]);
     }
-
-
 
 
     public function mount()
@@ -471,19 +355,7 @@ public function emptyCart()
                 }
             }
         }
-        // ðŸ”¥ NOUVEAU : Charger le panier existant depuis la session
-        $this->loadCartFromSession();
     }
-
-
-    /**
- * 🔥 NOUVEAU : Propriété computed pour le badge du panier
- */
-public function getCartQtyProperty()
-{
-    return array_sum($this->orderItemQty);
-}
-
 
     /**
      * Set default order type and ID
@@ -625,9 +497,6 @@ public function getCartQtyProperty()
         // Recalculate delivery-related estimates if needed
         $this->calculateMaxPreparationTime();
         $this->calculateTotal();
-
-        // ðŸ”¥ NOUVEAU : Sauvegarder la vidange en session
-        $this->saveCartToSession();
     }
 
     /**
@@ -756,14 +625,6 @@ public function getCartQtyProperty()
 
     public function addCartItems($id, $variationCount, $modifierCount)
     {
-
-    // 🔥 LOG DEBUG - ENTRÉE
-    \Log::info('🎯 addCartItems appelé', [
-        'id' => $id,
-        'variationCount' => $variationCount,
-        'modifierCount' => $modifierCount
-    ]);
-
         // Check radius restriction before allowing cart operations
         if (!$this->checkRadiusRestriction()) {
             // Check if location is set
@@ -870,13 +731,6 @@ public function getCartQtyProperty()
             $this->orderItemAmount[$id] = $this->orderItemQty[$id] * ($basePrice + ($this->orderItemModifiersPrice[$id] ?? 0));
             $this->cartItemQty[$id] = isset($this->cartItemQty[$this->menuItem->id]) ? ($this->cartItemQty[$this->menuItem->id] + 1) : 1;
             $this->calculateTotal();
-            // 🔥 LOG DEBUG
-        \Log::info('✅ Article ajouté dans syncCart', [
-            'id' => $id,
-            'menuItem_id' => $this->menuItem->id,
-            'orderItemList_count' => count($this->orderItemList),
-            'cartItemQty' => $this->cartItemQty
-        ]);
         } else {
             $this->addQty($id);
         }
@@ -884,14 +738,6 @@ public function getCartQtyProperty()
         if (!isset($this->itemNotes[$id])) {
             $this->itemNotes[$id] = '';
         }
-
-        // 🔥 NOUVEAU : Sauvegarder en session après modification
-    $this->saveCartToSession();
-
-    // 🔥 LOG DEBUG
-    \Log::info('✅ syncCart terminé - Panier sauvegardé');
-
-
     }
 
     #[On('addQty')]
@@ -933,16 +779,6 @@ public function getCartQtyProperty()
         $basePrice = $this->orderItemVariation[$id]->price ?? $this->orderItemList[$id]->price;
         $this->orderItemAmount[$id] = $this->orderItemQty[$id] * ($basePrice + ($this->orderItemModifiersPrice[$id] ?? 0));
         $this->calculateTotal();
-
-         // 🔥 NOUVEAU : Sauvegarder après modification
-    $this->saveCartToSession();
-
-    // 🔥 LOG DEBUG
-    \Log::info('✅ addQty terminé', [
-        'id' => $id,
-        'qty' => $this->orderItemQty[$id],
-        'cartQty' => $this->cartQty
-    ]);
     }
 
     #[On('subQty')]
@@ -983,16 +819,6 @@ public function getCartQtyProperty()
         }
 
         $this->calculateTotal();
-
-         // 🔥 NOUVEAU : Sauvegarder après modification
-    $this->saveCartToSession();
-
-    // 🔥 LOG DEBUG
-    \Log::info('✅ addQty terminé', [
-        'id' => $id,
-        'qty' => $this->orderItemQty[$id],
-        'cartQty' => $this->cartQty
-    ]);
     }
 
     public function calculateTotal()
@@ -1111,11 +937,6 @@ public function getCartQtyProperty()
     #[On('setPosVariation')]
     public function setPosVariation($variationId)
     {
-
-    // 🔥 LOG DEBUG
-    \Log::info('🎯 setPosVariation appelé', [
-        'variationId' => $variationId
-    ]);
         $this->showVariationModal = false;
         $menuItemVariation = MenuItemVariation::find($variationId);
 
@@ -1319,9 +1140,6 @@ public function getCartQtyProperty()
                 'showCancelButton' => true,
                 'cancelButtonText' => __('app.close')
             ]);
-
-            // ðŸ”¥ NOUVEAU : Vider le panier aprÃ¨s commande rÃ©ussie
-            $this->clearCart();
 
             $this->redirect(route('order_success', [$this->order->uuid]));
             return;
@@ -1963,12 +1781,6 @@ public function getCartQtyProperty()
     #[On('setPosModifier')]
     public function setPosModifier($modifierIds)
     {
-
-    // 🔥 LOG DEBUG
-    \Log::info('🎯 setPosModifier appelé', [
-        'modifierIds' => $modifierIds
-    ]);
-
         // Check radius restriction before adding items with modifiers
         if (!$this->checkRadiusRestriction()) {
             if (empty($this->addressLat) || empty($this->addressLng)) {
@@ -2026,9 +1838,6 @@ public function getCartQtyProperty()
         $this->orderItemModifiersPrice[$keyId] = $modifierTotal;
 
         $this->syncCart($keyId);
-
-        // ðŸ”¥ NOUVEAU : Sauvegarder en session
-        $this->saveCartToSession();
     }
 
     public function getModifierOptionsProperty()

@@ -38,7 +38,7 @@ return [
   'packages' => 'Packages',
   'offlineRequest' => 'Demande hors ligne',
   'users' => 'Utilisateurs',
-  'deliveryExecutive' => 'Gestionnaire des livraisons',
+  'deliveryExecutive' => 'Service de livraison',
   'landingSites' => 'Page d\'accueil',
   'waiterRequest' => 'Appels de serveur',
   'itemModifiers' => 'Modificateurs d\'articles',
