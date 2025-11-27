@@ -24,7 +24,7 @@ return [
   'twitterPlaceHolder' => 'Entrez votre manche Twitter',
   'yelpPlaceHolder' => 'Entrez votre URL Yelp',
   'metaKeywordPlaceHolder' => 'Entrez les mots clés séparés par des virgules',
-  'metaDescriptionPlaceHolder' => 'Entrez Meta Description',
+  'metaDescriptionPlaceHolder' => 'Entrez la méta description ici',
   'languageCodePlaceholder' => 'par exemple, en, ar, fr, etc.',
   'languageNamePlaceholder' => 'par exemple, anglais, arabe, français, etc.',
   'flagCodePlaceholder' => 'par exemple, États-Unis, GB, SA, etc.',

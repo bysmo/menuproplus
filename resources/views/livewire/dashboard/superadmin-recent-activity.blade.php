@@ -57,6 +57,22 @@
                                 <div>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">
                                         {{ $activity['title'] }}
+                                        <!-- effectuer une traduction dynamique en fonction du type d'activité -->
+                                        @if($activity['title'] == 'New Restaurant')
+                                            @lang('modules.dashboard.new_restaurant')
+                                        @elseif($activity['title'] == 'new Order')
+                                            @lang('modules.dashboard.new_order')
+                                        @elseif($activity['title'] == 'New User')
+                                            @lang('modules.dashboard.new_user')
+                                        @elseif($activity['title'] == 'Restaurant Approval')
+                                            @lang('modules.dashboard.restaurant_approval')
+                                        @elseif($activity['title'] == 'staff_welcome')
+                                            @lang('modules.dashboard.staff_welcome')
+                                        @elseif($activity['title'] == 'Subscription Update ')
+                                            @lang('modules.dashboard.subscription_update')
+                                        @else
+                                            {{ $activity['title'] }}
+                                        @endif
                                         <span class="font-medium text-gray-900 dark:text-white">
                                             {{ $activity['description'] }}
                                         </span>

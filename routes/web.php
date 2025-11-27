@@ -63,28 +63,31 @@ use App\Http\Controllers\SuperAdmin\PaystackWebhookController;
 use App\Http\Controllers\SuperAdmin\RazorpayWebhookController;
 use App\Http\Controllers\SuperAdmin\FlutterwaveWebhookController;
 use App\Http\Middleware\CheckRestaurantPackage;
-
-
-
-// ✅ AJOUTER CES LIGNES EN PREMIER - AVANT TOUTE AUTRE ROUTE
-if (class_exists(\Livewire\Livewire::class)) {
-    \Livewire\Livewire::setUpdateRoute(function ($handle) {
-        return Route::post('/livewire/update', $handle)
-            ->middleware(['web'])
-            ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])
-            ->name('livewire.update');
-    });
-
-    \Livewire\Livewire::setScriptRoute(function ($handle) {
-        return Route::get('/livewire/livewire.js', $handle)
-            ->name('livewire.javascript');
-    });
-}
-
+use Illuminate\Http\Request;
 
 
 Route::get('/manifest.json', [HomeController::class, 'manifest'])->name('manifest');
 
+
+// Intercepter les GET "bizarres" sur /livewire/update pour éviter le 405
+Route::get('/livewire/update', function (Request $request) {
+    \Log::warning('Unexpected GET on /livewire/update', [
+        'url'     => $request->fullUrl(),
+        'referer' => $request->headers->get('referer'),
+        'method'  => $request->method(),
+        'ua'      => $request->userAgent(),
+    ]);
+
+    // On renvoie l'utilisateur vers la page précédente si possible,
+    // sinon vers la page d'accueil (ou la route de ton choix)
+    $previous = url()->previous();
+
+    if (!$previous || $previous === $request->fullUrl()) {
+        $previous = url('/'); // ou route('home') si tu as une route home
+    }
+
+    return redirect()->to($previous);
+})->name('livewire.update.get');
 
 Route::group(['prefix' => 'restaurant'], function () {
     // QR Codes
