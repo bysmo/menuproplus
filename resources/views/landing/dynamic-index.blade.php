@@ -32,7 +32,7 @@
             <div class="relative  max-w-screen-lg flex justify-center mx-auto">
 
                 <div>
-                    <img src="{{ $frontDetails->image_url ?? asset('landing/dashboard.png') }}" class="shadow-lg border rounded-lg " alt="">
+                    <img src="{{ $frontDetails->image_url ?? asset('landing/dashboard.jpg') }}" class="shadow-lg border rounded-lg " alt="">
                 </div>
 
                 <!-- SVG Element -->
@@ -83,7 +83,7 @@
                         @if($index % 2 == 0)
                             <div class="w-full lg:w-[500px] lg:h-[500px] overflow-hidden rounded-xl border border-gray-100 shadow">
                                 <img class="w-full h-full object-cover object-center"
-                                    src="{{ $feature->image ? asset('user-uploads/front_feature/' . $feature->image) : asset('landing/order-management.png') }}"
+                                    src="{{ $feature->image ? asset('user-uploads/front_feature/' . $feature->image) : asset('landing/order-management.jpg') }}"
                                     alt="{{ $feature->title }}">
                             </div>
                             <!-- End Col -->
@@ -120,7 +120,7 @@
                             <!-- End Col -->
                             <div class="w-full lg:w-[500px] lg:h-[500px] overflow-hidden rounded-xl border border-gray-100 shadow order-1 md:order-2">
                                 <img class="w-full h-full object-cover object-center"
-                                    src="{{ $feature->image ? asset('user-uploads/front_feature/' . $feature->image) : asset('landing/table-reservation.png') }}"
+                                    src="{{ $feature->image ? asset('user-uploads/front_feature/' . $feature->image) : asset('landing/table-reservation.jpg') }}"
                                     alt="{{ $feature->title }}">
                             </div>
                             <!-- End Col -->
@@ -328,7 +328,7 @@
                     alt="Contact Image">
             @else
                 <img class="group-hover:scale-105 group-focus:scale-105 transition-transform duration-500 ease-in-out object-cover rounded-2xl"
-                    src="https://images.unsplash.com/photo-1572021335469-31706a17aaef?q=80&w=560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    src="{{ asset('landing/contact.jpg') }}"
                     alt="Contacts Image">
             @endif
 
