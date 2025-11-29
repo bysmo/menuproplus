@@ -118,7 +118,7 @@
                                 ? trans_choice('modules.billing.daysLeft', $daysLeft, ['count' => $daysLeft])
                                 : ($daysLeft === 0 ? __('modules.billing.expiringToday') : '');
                         @endphp
-                            {{ $expiryDate('d M Y,  H:i')('d F, Y') }}
+                            {{ $expiryDate->translatedFormat('d M Y,  H:i') }}
                         @if ($status)
                             <span class="text-sm text-gray-500">({{ $status }})</span>
                         @endif

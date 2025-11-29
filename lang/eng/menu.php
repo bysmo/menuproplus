@@ -25,6 +25,8 @@ return array(
     'categoryReport' => 'Category Report',
     'salesReport' => 'Sales Report',
     'deliveryAppReport' => 'Delivery App Report',
+    'cancelledOrderReport' => 'Cancelled Order Report',
+    'removedKotItemReport' => 'Removed KOT Item Report',
     'settings' => 'Settings',
     'signOut' => 'Sign Out',
     'appUpdate' => 'App Update',

@@ -160,6 +160,9 @@
                                     @if ($this->hasModule('Expense'))
                                         @livewire('sidebar-dropdown-menu', ['name' => __('menu.expenseReports'), 'link' => route('reports.expenseReports'), 'active' => request()->routeIs('reports.expenseReports')])
                                     @endif
+                                    @livewire('sidebar-dropdown-menu', ['name' => __('menu.cancelledOrderReport'), 'link' => route('reports.cancelledOrder'), 'active' => request()->routeIs('reports.cancelledOrder')])
+                                    @livewire('sidebar-dropdown-menu', ['name' => __('menu.removedKotItemReport'), 'link' => route('reports.removedKotItem'), 'active' => request()->routeIs('reports.removedKotItem')])
+
 
                                 </x-sidebar-dropdown-menu>
                             @endif
