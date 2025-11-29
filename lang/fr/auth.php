@@ -1,4 +1,4 @@
-<?php 
+<?php
 return [
   'failed' => 'Ces informations d\'identification ne correspondent pas à nos enregistrements.',
   'password' => 'Le mot de passe fourni est incorrect.',
@@ -6,7 +6,7 @@ return [
   'areYouNew' => 'Êtes-vous nouveau ici?',
   'createAccount' => 'Créer un compte',
   'createAccountSignup' => 'Créez votre compte :appName',
-  'goHome' => 'Aller à la maison',
+  'goHome' => 'Aller à l\'accueil',
   'alreadyRegisteredLoginHere' => 'Déjà inscrit? Connectez-vous ici',
   'signup' => 'S\'inscrire',
   'whoops' => 'Oups! Quelque chose s\'est mal passé.',

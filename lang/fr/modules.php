@@ -656,7 +656,7 @@ return [
         'selectEnvironment' => 'Sélectionner l\'environnement',
         'enablePushNotification' => 'Activer les notifications push',
         'pushNotificationSettings' => 'Paramètres de notification push',
-        'aboutUsSettings' => 'à propos de nous',
+        'aboutUsSettings' => 'A propos de nous',
         'customerSiteSettings' => 'Site client',
         'receiptSetting' => 'Paramètres de reçu',
         'allowCustomerDeliveryOrders' => 'Autoriser le client à passer des commandes de livraison',
