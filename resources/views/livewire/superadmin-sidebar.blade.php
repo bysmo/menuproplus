@@ -15,13 +15,13 @@
 
                         @livewire('sidebar-menu-item', ['name' => __('superadmin.menu.restaurants'), 'icon' => 'restaurants', 'link' => route('superadmin.restaurants.index'), 'active' => request()->routeIs('superadmin.restaurants.*')])
 
-                        @livewire('sidebar-menu-item', ['name' => __('menu.payments'), 'icon' => 'payments', 'link' => route('superadmin.restaurant-payments.index'), 'active' => request()->routeIs('superadmin.restaurant-payments.index')])
+                        {{-- @livewire('sidebar-menu-item', ['name' => __('menu.payments'), 'icon' => 'payments', 'link' => route('superadmin.restaurant-payments.index'), 'active' => request()->routeIs('superadmin.restaurant-payments.index')]) --}}
 
-                        @livewire('sidebar-menu-item', ['name' => __('menu.packages'), 'icon' => 'packages', 'link' => route('superadmin.packages.index'), 'active' => request()->routeIs('superadmin.packages.*')])
+                        @livewire('sidebar-menu-item', ['name' => __('menu.offlineRequest'), 'icon' => 'offline-plan-request', 'link' => route('superadmin.offline-plan-request'), 'active' => request()->routeIs('superadmin.offline-plan-request')])
 
                         @livewire('sidebar-menu-item', ['name' => __('menu.billing'), 'icon' => 'billing', 'link' => route('superadmin.invoices.index'), 'active' => request()->routeIs('superadmin.invoices.*')])
 
-                        @livewire('sidebar-menu-item', ['name' => __('menu.offlineRequest'), 'icon' => 'offline-plan-request', 'link' => route('superadmin.offline-plan-request'), 'active' => request()->routeIs('superadmin.offline-plan-request')])
+                        @livewire('sidebar-menu-item', ['name' => __('menu.packages'), 'icon' => 'packages', 'link' => route('superadmin.packages.index'), 'active' => request()->routeIs('superadmin.packages.*')])
 
                         @livewire('sidebar-menu-item', ['name' => __('superadmin.menu.superadmin'), 'icon' => 'staff', 'link' => route('superadmin.users.index'), 'active' => request()->routeIs('superadmin.users.*')])
 

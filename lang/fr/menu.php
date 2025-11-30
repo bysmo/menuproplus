@@ -39,7 +39,7 @@ return [
   'reservations' => 'Réservations',
   'customerSite' => 'Site client',
   'packages' => 'Packages',
-  'offlineRequest' => 'Demande hors ligne',
+  'offlineRequest' => 'Paiements',
   'users' => 'Utilisateurs',
   'deliveryExecutive' => 'Service de livraison',
   'landingSites' => 'Page d\'accueil',

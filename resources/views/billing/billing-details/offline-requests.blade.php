@@ -53,7 +53,8 @@
                                 {{ $request->offlineMethod->name }}
                             </td>
                             <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ $request->package->created_at->format('D, d M Y, h:i A') }}
+                                {{ $request->package->created_at->timezone($request->restaurant->timezone)->translatedFormat('D, d M Y, H:i') }}
+                                {{-- {{ $request->package->created_at->format('D, d M Y, h:i A') }} --}}
                             </td>
                             <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
                                 @if ($request->status == 'verified')

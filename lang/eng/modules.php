@@ -1618,6 +1618,8 @@ return [
         'paymentBy' => 'Payment By',
         'paymentDone' => 'Payment Done',
         'created' => 'Created',
+        'payDate' => 'Pay Date',
+        'nextPayDate' => 'Next Pay Date',
         'status' => 'Status',
         'receipt' => 'Receipt',
         'paymentDate' => 'Payment Date',

@@ -1626,6 +1626,8 @@ return [
         'package' => 'Forfait',
         'paymentBy' => 'Paiement par',
         'paymentDone' => 'Paiement effectué',
+        'payDate' => 'Date début',
+        'nextPayDate' => 'Date fin',
         'created' => 'Créé',
         'status' => 'Statut',
         'receipt' => 'Reçu',

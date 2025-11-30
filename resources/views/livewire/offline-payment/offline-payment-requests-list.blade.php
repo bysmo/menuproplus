@@ -25,6 +25,21 @@
                                     @lang('modules.billing.restaurant')
                                 </th>
                                 <th scope="col" class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    @lang('modules.billing.created')
+                                </th>
+                                 <th scope="col" class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    @lang('modules.billing.payDate')
+                                </th>
+                                 <th scope="col" class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    @lang('modules.billing.nextPayDate')
+                                </th>
+                                <th scope="col" class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                    @lang('app.status')
+                                </th>
+                                <th scope="col" class="py-2.5 px-4 text-xs font-medium text-gray-500 uppercase dark:text-gray-400 text-right">
+                                    @lang('app.action')
+                                </th>
+                                <th scope="col" class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.billing.packageDetails')
                                 </th>
                                 <th scope="col" class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
@@ -33,15 +48,7 @@
                                 <th scope="col" class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
                                     @lang('modules.billing.paymentBy')
                                 </th>
-                                <th scope="col" class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                    @lang('modules.billing.created')
-                                </th>
-                                <th scope="col" class="py-2.5 px-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
-                                    @lang('app.status')
-                                </th>
-                                <th scope="col" class="py-2.5 px-4 text-xs font-medium text-gray-500 uppercase dark:text-gray-400 text-right">
-                                    @lang('app.action')
-                                </th>
+
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700" wire:key='invoice-list-{{ microtime() }}'>
@@ -54,16 +61,13 @@
                                 {{ $request->restaurant->name }}
                             </td>
                             <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ $request->package->package_name }} ({{ ucfirst($request->package->package_type->value) }})
+                                {{ $request->created_at->timezone($request->restaurant->timezone)->translatedFormat('d/m/Y, H:i') }}
                             </td>
                             <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ ucfirst($request->package_type) }}
+                                {{ $request->pay_date->timezone($request->restaurant->timezone)->translatedFormat('d/m/Y') }}
                             </td>
                             <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ $request->offlineMethod->name }}
-                            </td>
-                            <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ $request->package->created_at->format('D, d M Y, h:i A') }}
+                                {{ $request->next_pay_date->timezone($request->restaurant->timezone)->translatedFormat('d/m/Y') }}
                             </td>
                             <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
                                 @if ($request->status == 'verified')
@@ -107,6 +111,16 @@
                                     </x-slot>
                                 </x-dropdown>
                             </td>
+                            <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ $request->package->package_name }} ({{ ucfirst($request->package->package_type->value) }})
+                            </td>
+                            <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ ucfirst($request->package_type) }}
+                            </td>
+                            <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ $request->offlineMethod->name }}
+                            </td>
+
                         </tr>
                         @empty
                         <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
