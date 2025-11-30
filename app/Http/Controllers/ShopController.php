@@ -396,67 +396,36 @@ private function getPackageModules(?Restaurant $restaurant): array
     /**
      * Show table order page
      */
-    public function tableOrder(string $table)
-{
-    $table = trim($table);
+    public function tableOrder(string $hash)
+    {
 
-    \Log::info('QR Scan Debug', [
-        'method' => request()->method(),
-        'url' => request()->url(),
-        'user_agent' => request()->userAgent(),
-        'table' => $table,
-        'headers' => request()->headers->all()
-    ]);
+        $table = Table::where('hash', $hash)->first();
 
+        if ($table) {
+            $shopBranch = $table->branch;
+            $restaurant = $table->branch->restaurant->load('currency');
+            $getTable = false;
+        } else {
+            $restaurant = Restaurant::with('currency')->where('id', $hash)->firstOrFail();
+            $shopBranch = $this->getShopBranch($restaurant);
+            $hash = null;
+            $getTable = true;
+        }
 
+        $this->redirectIfSubdomainIsEnabled($restaurant);
 
+        $packageModules = $this->getPackageModules($restaurant);
 
-    // 1) Résoudre la table par hash OU par id numérique
-    $tableModel = Table::query()
-        ->when(is_numeric($table), fn($q) => $q->orWhere('id', $table))
-        ->orWhere('hash', $table)
-        ->first();
-
-        // Log sur la tableModel trouvée
-    \Log::info('Table Model Found', [
-        'table_model' => $tableModel ? $tableModel->toArray() : null,
-    ]);
-
-    if ($tableModel) {
-        // Cas 1 : on a une table -> on déduit tout du contexte "table"
-        $shopBranch = $tableModel->branch;
-        $restaurant = $shopBranch->restaurant->load('currency');
-        $tableHash  = $tableModel->hash; // pour la vue
-        $getTable   = false;
-    } else {
-        // Cas 2 : aucune table trouvée -> on attend un hash de restaurant en query
-        $restaurantHash = request('hash'); // ex: belle-etoile
-        abort_unless($restaurantHash, 404, 'Restaurant hash is required');
-
-        $restaurant = Restaurant::with('currency')
-            ->where('hash', $restaurantHash)
-            ->firstOrFail();
-
-        $shopBranch = $this->getShopBranch($restaurant);
-        $tableHash  = null;
-        $getTable   = true;
+        return view('shop.index', [
+            'tableHash' => $hash,
+            'restaurant' => $restaurant,
+            'shopBranch' => $shopBranch,
+            'getTable' => $getTable,
+            'canCreateOrder' => in_array('Order', $packageModules)
+        ]);
     }
 
-    // Redirection sous-domaine si activée
-    $this->redirectIfSubdomainIsEnabled($restaurant);
-
-    $packageModules = $this->getPackageModules($restaurant);
-
-    return view('shop.index', [
-        'tableHash'      => $tableHash,
-        'restaurant'     => $restaurant,
-        'shopBranch'     => $shopBranch,
-        'getTable'       => $getTable,
-        'canCreateOrder' => in_array('Order', $packageModules),
-    ]);
-}
-
-public function OldredirectIfSubdomainIsEnabled(Restaurant $restaurant): void
+public function redirectIfSubdomainIsEnabled(Restaurant $restaurant): void
 {
     if (!module_enabled('Subdomain')) {
         // logger ici que le module n'est pas activé
