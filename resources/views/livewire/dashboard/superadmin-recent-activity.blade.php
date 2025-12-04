@@ -56,7 +56,7 @@
                             <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                                 <div>
                                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                                        {{ $activity['title'] }}
+
                                         <!-- effectuer une traduction dynamique en fonction du type d'activité -->
                                         @if($activity['title'] == 'New Restaurant')
                                             @lang('modules.dashboard.new_restaurant')
@@ -68,7 +68,7 @@
                                             @lang('modules.dashboard.restaurant_approval')
                                         @elseif($activity['title'] == 'staff_welcome')
                                             @lang('modules.dashboard.staff_welcome')
-                                        @elseif($activity['title'] == 'Subscription Update ')
+                                        @elseif($activity['title'] == 'Subscription Update')
                                             @lang('modules.dashboard.subscription_update')
                                         @else
                                             {{ $activity['title'] }}

@@ -1312,6 +1312,7 @@ return [
         'expired' => 'Expired',
         'subscriptionUpdates' => 'Subscription Updates',
         'newUsers' => 'New Users',
+        'subscription_update' => 'Subscription Update',
     ],
 
     'update' => [

@@ -165,6 +165,7 @@
                         },
                         formatter: function (value) {
                             // Adjust based on currency position
+                            /*
                             if (currencyPosition == 'left') {
                                 return '{{ currency() }}' + value;
                             } else if (currencyPosition == 'right') {
@@ -177,6 +178,8 @@
                             else {
                                 return value + ' ' + '{{ currency() }}';
                             }
+                                */
+                            return '{{ currency_format('+parseFloat(value)+', restaurant()->currency_id) }}';
                         }
                     },
                 },

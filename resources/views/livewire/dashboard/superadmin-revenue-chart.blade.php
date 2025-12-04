@@ -1,3 +1,8 @@
+@php
+//global settings currency position
+    $currencyPosition = global_setting()->defaultCurrency->currency_position ?? 'right_space';
+    $currency_symbol = global_setting()->defaultCurrency->currency_symbol ?? '$';
+@endphp
 <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm 2xl:col-span-2 dark:border-gray-700 sm:p-6 dark:bg-gray-800">
     <div class="flex items-center justify-between mb-4">
         <div class="flex-shrink-0">
@@ -233,7 +238,19 @@
                             fontWeight: 500,
                         },
                         formatter: function (value) {
-                            return '{{ global_setting() && global_setting()->defaultCurrency ? global_setting()->defaultCurrency->currency_symbol : '$' }}' + value;
+                            if (currencyPosition == 'left') {
+                                return currency_symbol + value;
+                            } else if (currencyPosition == 'right') {
+                                return value + currency_symbol;
+                            } else if (currencyPosition == 'left_space') {
+                                return currency_symbol +' '+ value;
+                            } else if (currencyPosition == 'right_space') {
+                                return value + ' ' + currency_symbol;
+                            }
+                            else {
+                                return value + ' ' + currency_symbol;
+                            }
+                            //return '{{ global_setting() && global_setting()->defaultCurrency ? global_setting()->defaultCurrency->currency_symbol : '$' }}' + value;
                         }
                     },
                 },
