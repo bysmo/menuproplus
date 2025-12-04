@@ -73,6 +73,7 @@ class FortifyServiceProvider extends ServiceProvider
 
             $this->checkMigrateStatus();
 
+            /*
             if (!$this->isLegal()) {
                 if (!module_enabled('Subdomain')) {
                     return redirect('verify-purchase');
@@ -84,6 +85,7 @@ class FortifyServiceProvider extends ServiceProvider
                     return redirect('verify-purchase');
                 }
             }
+            */
 
             return view('auth.login');
         });
