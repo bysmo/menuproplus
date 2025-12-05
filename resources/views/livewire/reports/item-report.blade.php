@@ -6,8 +6,8 @@
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                 @lang('modules.report.itemReportMessage')
                 @php
-                    $formattedStartTime = \Carbon\Carbon::parse($startTime)->format('h:i A');
-                    $formattedEndTime = \Carbon\Carbon::parse($endTime)->format('h:i A');
+                    $formattedStartTime = \Carbon\Carbon::parse($startTime)->format('H:i');
+                    $formattedEndTime = \Carbon\Carbon::parse($endTime)->format('H:i');
                 @endphp
                 <strong>
                     ({{ $startDate === $endDate

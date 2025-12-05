@@ -14,8 +14,6 @@
 
             {{ now()->timezone(timezone())->translatedFormat('l, d F Y, H:i') }}
 
-
-
         </div>
     </div>
 

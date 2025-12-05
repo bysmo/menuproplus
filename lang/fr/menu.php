@@ -10,6 +10,7 @@ return [
   'areas' => 'Zones',
   'tables' => 'Tables',
   'orders' => 'Commandes',
+  'slates' => 'Ardoises',
   'pos' => 'Point de vente',
   'kot' => 'Bon de cuisine',
   'myAccount' => 'Mon compte',

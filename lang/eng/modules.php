@@ -1,6 +1,37 @@
 <?php
 
 return [
+
+    //module slate
+    'slate' => [
+        'title' => 'My Slate',
+        'paySlate' => 'Pay Slate',
+        'code' => 'Code',
+        'remaining' => 'Remaining',
+        'total' => 'Total',
+        'joinSlate' => 'Join Slate',
+        'joinSlateCode' => 'Slate Code',
+        'close' => 'Close',
+        'loadingSlate' => 'Loading Slate',
+        'refresh' => 'Refresh',
+        'ordersOnSlate' => 'Orders on Slate',
+        'paid' => 'Paid',
+        'copyCode' => 'Copy Code',
+        'order' => 'Order',
+        'table' => 'Table',
+        'cleanSlateOrders' => 'Clean',
+        'cleanSlateOrdersSuccessMessage' => 'Slate orders cleaned successfully!',
+        'orderAddedToSlateSuccessMessage' => 'Order added to slate successfully!',
+        'refreshSlateDataSuccessMessage' => 'Slate data refreshed successfully!',
+        'copySlateCodeSuccessMessage' => 'Slate code :code copied successfully!',
+        'joinSlateSuccessMessage' => 'You have successfully joined slate :code!',
+        'joinSlateInvalidCodeMessage' => 'Invalid or expired slate code.',
+        'deviceUuidMissingMessage' => 'Device UUID is missing. Please refresh the page.',
+        'noOrders' => 'No orders found',
+        'noOrdersDescription' => 'You have no orders on your slate. Please add an order to your slate to start billing.',
+    ],
+
+
     'menu' => [
         'addMenu' => 'Add Menu',
         'menuName' => 'Menu Name',

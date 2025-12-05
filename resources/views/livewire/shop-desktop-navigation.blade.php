@@ -67,6 +67,12 @@
                     @livewire('forms.callWaiterButton', ['tableNumber' => $table->id ?? null, 'shopBranch' => $shopBranch])
                 @endif
 
+                 <div class="hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                @if (languages()->count() > 1)
+                    @livewire('shop.languageSwitcher')
+                @endif
+                </div>
+
 
                 <button id="theme-toggle" data-tooltip-target="tooltip-toggle" type="button"
                     class=" text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
@@ -86,6 +92,14 @@
                 class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip">
                 @lang('app.toggleDarkMode')
                 <div class="tooltip-arrow" data-popper-arrow></div>
+                </div>
+
+                {{-- Bouton Ardoise, avec un fond d'origine vert et effet jaune au survol --}}
+                <div class="bg-green hover:bg-green-100 dark:hover:bg-yellow-900 rounded-full text-sm p-1">
+                @livewire('shop.slate-manager', [
+                    'restaurant' => $restaurant,
+                    'shopBranch' => $shopBranch,
+                ])
                 </div>
 
 

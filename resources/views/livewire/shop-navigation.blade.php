@@ -11,9 +11,11 @@
 
 
             <div class="flex items-center gap-2">
-                @if (languages()->count() > 1)
-                    @livewire('shop.languageSwitcher')
-                @endif
+                <div class="hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+                    @if (languages()->count() > 1)
+                        @livewire('shop.languageSwitcher')
+                    @endif
+                </div>
 
                 <button id="theme-toggle" data-tooltip-target="tooltip-toggle" type="button"
                     class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
@@ -28,11 +30,26 @@
                             fill-rule="evenodd" clip-rule="evenodd"></path>
                     </svg>
                 </button>
+                 {{-- Bouton Ardoise, avec un fond d'origine vert et effet jaune au survol --}}
+                <div class="hover:bg-green-100 dark:hover:bg-yellow-900 rounded-full text-sm p-1">
+                @livewire('shop.slate-manager', [
+                    'restaurant' => $restaurant,
+                    'shopBranch' => $shopBranch,
+                ])
+                </div>
 
                 <div id="tooltip-toggle" role="tooltip"
                     class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip">
                     @lang('app.toggleDarkMode')
                     <div class="tooltip-arrow" data-popper-arrow></div>
+                </div>
+
+                {{-- Bouton Ardoise, avec un fond d'origine vert et effet jaune au survol --}}
+                <div class="bg-green hover:bg-green-100 dark:hover:bg-yellow-900 rounded-full text-sm p-1">
+                @livewire('shop.slate-manager', [
+                    'restaurant' => $restaurant,
+                    'shopBranch' => $shopBranch,
+                ])
                 </div>
 
                 <button data-collapse-toggle="mobile-menu-2" type="button" class="inline-flex items-center p-2 ml-1 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="mobile-menu-2" aria-expanded="false">

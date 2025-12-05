@@ -1,6 +1,38 @@
 <?php
 
 return [
+
+    //module slate
+    'slate' => [
+        'title' => 'Mon Ardoise',
+        'paySlate' => 'Payer l\'Ardoise',
+        'code' => 'Code',
+        'remaining' => 'Reste à payer',
+        'total' => 'Total',
+        'joinSlate' => 'Rejoindre une Ardoise',
+        'joinSlateCode' => 'Code de l\'Ardoise',
+        'close' => 'Fermer',
+        'loadingSlate' => 'Chargement de l\'Ardoise...',
+        'refresh' => 'Rafraîchir',
+        'ordersOnSlate' => 'Commandes sur l\'Ardoise',
+        'paid' => 'Payé',
+        'copyCode' => 'Copier le code',
+        'order' => 'Commande',
+        'table' => 'Table',
+        'cleanSlateOrders' => 'Nettoyer',
+        'cleanSlateOrdersSuccessMessage' => 'Commandes de l\'ardoise nettoyées avec succès !',
+        'orderAddedToSlateSuccessMessage' => 'Commande ajoutée à l\'ardoise avec succès !',
+        'refreshSlateDataSuccessMessage' => 'Données de l\'ardoise rafraîchies avec succès !',
+        'copySlateCodeSuccessMessage' => 'Code de l\'ardoise :code copié avec succès !',
+        'joinSlateSuccessMessage' => 'Vous avez rejoint l\'ardoise :code avec succès !',
+        'joinSlateInvalidCodeMessage' => 'Code d\'ardoise invalide ou expiré.',
+        'deviceUuidMissingMessage' => 'UUID de l\'appareil manquant. Veuillez rafraîchir la page.',
+         'noOrders' => 'Aucune commande trouvée',
+        'noOrdersDescription' => 'Vous n\'avez aucune commande sur votre ardoise. Veuillez ajouter une commande à votre ardoise pour commencer la facturation.',
+
+    ],
+
+
     'menu' => [
         'addMenu' => 'Ajouter un menu',
         'menuName' => 'Nom du menu',

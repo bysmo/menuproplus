@@ -110,8 +110,10 @@
                                         @if($this->hasModule('Order'))
                                             @if (user_can('Show Order'))
                                                 @livewire('sidebar-dropdown-menu', ['name' => __('menu.orders'), 'link' => route('orders.index'), 'active' => request()->routeIs('orders.*')])
+                                                @livewire('sidebar-dropdown-menu', ['name' => __('menu.slates'), 'link' => route('slates.index'), 'active' => request()->routeIs('slates.*')])
                                             @endif
                                         @endif
+
                                     </x-sidebar-dropdown-menu>
                                 @endif
                             @endif

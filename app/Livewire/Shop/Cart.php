@@ -45,6 +45,7 @@ use App\Events\OrderUpdated;
 use App\Traits\PrinterSetting;
 use App\Models\KotPlace;
 use App\Models\Printer;
+use App\Models\Slate;
 
 class Cart extends Component
 {
@@ -140,6 +141,7 @@ class Cart extends Component
     public $isHeaderDisabled = false;
     public $showLocationModal = false;
     public $is_within_radius = true; // Flag for location radius check
+    public $deviceUuid = null;
 
 
 
@@ -473,6 +475,18 @@ public function emptyCart()
         }
         // ðŸ”¥ NOUVEAU : Charger le panier existant depuis la session
         $this->loadCartFromSession();
+    }
+
+    #[On('deviceUuidUpdated')]
+    public function setDeviceUuid($uuid)
+    {
+        $this->deviceUuid = $uuid;
+
+        \Log::info('🔑 UUID appareil mis à jour dans Cart', [
+            'uuid' => $uuid,
+            'restaurant_id' => $this->restaurant->id,
+            'branch_id' => $this->shopBranch->id ?? null,
+        ]);
     }
 
 
@@ -935,14 +949,14 @@ public function getCartQtyProperty()
         $this->calculateTotal();
 
          // 🔥 NOUVEAU : Sauvegarder après modification
-    $this->saveCartToSession();
+        $this->saveCartToSession();
 
-    // 🔥 LOG DEBUG
-    \Log::info('✅ addQty terminé', [
-        'id' => $id,
-        'qty' => $this->orderItemQty[$id],
-        'cartQty' => $this->cartQty
-    ]);
+        // 🔥 LOG DEBUG
+        \Log::info('✅ addQty terminé', [
+            'id' => $id,
+            'qty' => $this->orderItemQty[$id],
+            'cartQty' => $this->cartQty
+        ]);
     }
 
     #[On('subQty')]
@@ -987,12 +1001,6 @@ public function getCartQtyProperty()
          // 🔥 NOUVEAU : Sauvegarder après modification
     $this->saveCartToSession();
 
-    // 🔥 LOG DEBUG
-    \Log::info('✅ addQty terminé', [
-        'id' => $id,
-        'qty' => $this->orderItemQty[$id],
-        'cartQty' => $this->cartQty
-    ]);
     }
 
     public function calculateTotal()
@@ -1413,6 +1421,60 @@ public function getCartQtyProperty()
                 'placed_via' => 'shop',
                 'tax_mode' => $this->taxMode,
             ]);
+
+            // gestion de l'ardoise
+                \Log::info('🛒 placeOrder - Début liaison ardoise', [
+                'order_id' => $order->id ?? 'NULL',
+                'device_uuid' => $this->deviceUuid ?? 'NULL',
+                'restaurant_id' => $this->restaurant->id,
+                'branch_id' => $this->shopBranch->id ?? 'NULL',
+            ]);
+
+            // Si l'UUID n'est pas disponible, essayer de le récupérer du cookie
+            if (!$this->deviceUuid) {
+                $cookieName = 'menupro_' . $this->restaurant->id . '_' . ($this->shopBranch->id ?? '0');
+                $this->deviceUuid = request()->cookie($cookieName);
+
+                \Log::info('🍪 UUID récupéré depuis cookie dans placeOrder', [
+                    'cookie_name' => $cookieName,
+                    'device_uuid' => $this->deviceUuid ?? 'NULL',
+                ]);
+            }
+
+            // Si nous avons un UUID et une commande valide
+            if ($this->deviceUuid && isset($order) && $order->id) {
+
+                \Log::info('✅ Conditions remplies pour liaison ardoise', [
+                    'order_id' => $order->id,
+                    'device_uuid' => $this->deviceUuid,
+                ]);
+
+                // Récupérer ou créer l'ardoise avec cet UUID
+                $slate = \App\Models\Slate::getOrCreateForDevice(
+                    $this->deviceUuid,
+                    $this->restaurant->id,
+                    $this->shopBranch->id,
+                    auth()->id()
+                );
+
+                if ($slate) {
+
+
+                    // ⚠️ IMPORTANT : Mettre à jour la commande avec le slate_id
+                    $order->slate_id = $slate->id;
+                    $order->is_on_slate = true;
+                    $order->save();
+
+
+                    // Recalculer les montants de l'ardoise
+                    $slate->recalculateAmounts();
+
+                    // Dispatcher l'événement pour rafraîchir le composant SlateManager
+                    $this->dispatch('orderAddedToSlate', orderId: $order->id);
+
+                }
+
+            }
         }
 
         if ($this->customer && $this->orderType === 'delivery' && !empty($this->deliveryAddress) && isset($deliverySetting)) {

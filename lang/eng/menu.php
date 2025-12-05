@@ -10,6 +10,7 @@ return array(
     'areas' => 'Areas',
     'tables' => 'Tables',
     'orders' => 'Orders',
+    'slates' => 'Slates',
     'pos' => 'POS',
     'kot' => 'KOT',
     'myAccount' => 'My Account',

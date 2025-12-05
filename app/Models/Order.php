@@ -36,6 +36,39 @@ class Order extends BaseModel
         });
     }
 
+    // Slate relationship
+
+    public function slate()
+    {
+        return $this->belongsTo(Slate::class);
+    }
+
+    public function addToSlate(Slate $slate)
+    {
+        $this->slate_id = $slate->id;
+        $this->is_on_slate = true;
+        $this->save();
+
+        $slate->recalculateAmounts();
+
+        return $this;
+    }
+
+    public function removeFromSlate()
+    {
+        $slate = $this->slate;
+
+        $this->slate_id = null;
+        $this->is_on_slate = false;
+        $this->save();
+
+        if ($slate) {
+            $slate->recalculateAmounts();
+        }
+
+        return $this;
+    }
+
     public function getRouteKeyName(): string
     {
         return 'uuid';

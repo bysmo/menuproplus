@@ -15,6 +15,7 @@ use App\Http\Controllers\PlanController;
 use App\Http\Controllers\ShopController;
 use App\Http\Middleware\DisableFrontend;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\SlateController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\TableController;
 use App\Http\Middleware\LocaleMiddleware;
@@ -168,6 +169,9 @@ Route::middleware(['auth', config('jetstream.auth_session'), 'verified', VerifyR
     Route::get('orders/print/{id}', [OrderController::class, 'printOrder'])->name('orders.print');
     Route::get('orders/pdf/{id}', [OrderController::class, 'generateOrderPdf'])->name('orders.pdf');
     Route::resource('orders', OrderController::class);
+    Route::resource('slates', SlateController::class);
+    Route::get('slates/print-invoice/{id}', [SlateController::class, 'printInvoice'])->name('slates.print-invoice');
+    Route::get('/{slate}/download-invoice', [SlateController::class, 'downloadInvoice'])->name('download-invoice');
 
     Route::get('pos/order/{id}', [PosController::class, 'order'])->name('pos.order');
     Route::get('pos/kot/{id}', [PosController::class, 'kot'])->name('pos.kot');

@@ -1745,6 +1745,70 @@
 
         @endpush
 
+         @push('scripts')
+        <script>
+            function getDeviceUUID() {
+                const restaurantId = {{ $restaurant->id }};
+                const branchId = {{ $shopBranch->id ?? 0 }};
+                const cookieName = `menupro_${restaurantId}_${branchId}`;
+
+                let uuid = getCookie(cookieName);
+
+                if (!uuid) {
+                    uuid = generateUUID();
+                    setCookie(cookieName, uuid, 90);
+                    console.log('🆕 Nouveau UUID généré:', uuid);
+                } else {
+                    console.log('✅ UUID existant trouvé:', uuid);
+                }
+
+                return uuid;
+            }
+
+            function generateUUID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return null;
+            }
+
+            function setCookie(name, value, days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                const expires = `expires=${date.toUTCString()}`;
+                document.cookie = `${name}=${value};${expires};path=/;SameSite=Lax`;
+                console.log('🍪 Cookie défini:', name, '=', value);
+            }
+
+            // ⚠️ IMPORTANT : Envoyer l'UUID à Livewire au chargement
+            document.addEventListener('DOMContentLoaded', function() {
+                const uuid = getDeviceUUID();
+
+                console.log('📤 Envoi UUID à Livewire:', uuid);
+
+                // Envoyer à TOUS les composants Livewire
+                if (window.Livewire) {
+                    Livewire.dispatch('deviceUuidUpdated', { uuid: uuid });
+                }
+            });
+
+            // ⚠️ IMPORTANT : Également envoyer après l'initialisation de Livewire
+            document.addEventListener('livewire:initialized', () => {
+                const uuid = getDeviceUUID();
+                console.log('📤 Livewire initialisé - Envoi UUID:', uuid);
+                Livewire.dispatch('deviceUuidUpdated', { uuid: uuid });
+            });
+        </script>
+        @endpush
+
         <script>
 
             $wire.on('paymentInitiated', (payment) => {
