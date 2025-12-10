@@ -1,0 +1,390 @@
+/* ============================================
+   Aladin Technologies Solutions - Theme CSS
+   Colors: Yellow (#FBBF24) & Blue (#1E40AF)
+   ============================================ */
+
+:root {
+    /* === Couleurs Principales Aladin === */
+    --aladin-blue-primary: #1E40AF;
+    --aladin-blue-light: #3B82F6;
+    --aladin-blue-dark: #1E3A8A;
+    --aladin-blue-50: #EFF6FF;
+    --aladin-blue-100: #DBEAFE;
+
+    --aladin-yellow-primary: #FBBF24;
+    --aladin-yellow-light: #FCD34D;
+    --aladin-yellow-dark: #F59E0B;
+    --aladin-yellow-50: #FFFBEB;
+    --aladin-yellow-100: #FEF3C7;
+
+    /* === Gradients === */
+    --aladin-gradient-primary: linear-gradient(135deg, #1E40AF 0%, #FBBF24 100%);
+    --aladin-gradient-reverse: linear-gradient(135deg, #FBBF24 0%, #1E40AF 100%);
+    --aladin-gradient-hover: linear-gradient(135deg, #1E3A8A 0%, #F59E0B 100%);
+    --aladin-gradient-subtle: linear-gradient(135deg, #EFF6FF 0%, #FFFBEB 100%);
+
+    /* === Ombres === */
+    --aladin-shadow-sm: 0 2px 4px rgba(30, 64, 175, 0.1);
+    --aladin-shadow-md: 0 4px 6px rgba(30, 64, 175, 0.15);
+    --aladin-shadow-lg: 0 10px 15px rgba(30, 64, 175, 0.2);
+    --aladin-shadow-xl: 0 20px 25px rgba(30, 64, 175, 0.25);
+    --aladin-shadow-yellow: 0 4px 14px rgba(251, 191, 36, 0.4);
+
+    /* === Glassmorphism === */
+    --aladin-glass-bg: rgba(255, 255, 255, 0.95);
+    --aladin-glass-bg-dark: rgba(30, 64, 175, 0.05);
+    --aladin-glass-border: rgba(30, 64, 175, 0.2);
+    --aladin-glass-blur: blur(10px);
+}
+
+/* === Animations === */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse-yellow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
+    }
+
+    50% {
+        box-shadow: 0 0 0 10px rgba(251, 191, 36, 0);
+    }
+}
+
+@keyframes pulse-blue {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(30, 64, 175, 0.7);
+    }
+
+    50% {
+        box-shadow: 0 0 0 10px rgba(30, 64, 175, 0);
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+/* === Bouton Aladin === */
+.aladin-btn {
+    position: relative;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    color: white;
+    background: var(--aladin-blue-primary);
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    box-shadow: var(--aladin-shadow-md);
+}
+
+.aladin-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.aladin-btn:hover::before {
+    left: 100%;
+}
+
+.aladin-btn:hover {
+    background: var(--aladin-blue-dark);
+    box-shadow: var(--aladin-shadow-lg), 0 0 0 3px rgba(251, 191, 36, 0.3);
+    transform: translateY(-2px);
+}
+
+.aladin-btn:active {
+    transform: translateY(0);
+    box-shadow: var(--aladin-shadow-sm);
+}
+
+.aladin-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* === Input Aladin === */
+.aladin-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.aladin-input:focus {
+    outline: none;
+    border-color: var(--aladin-blue-primary);
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.aladin-input::placeholder {
+    color: #9CA3AF;
+}
+
+.aladin-input.error {
+    border-color: #EF4444;
+}
+
+.aladin-input.error:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* === Card Glassmorphism === */
+.aladin-card {
+    background: var(--aladin-glass-bg);
+    backdrop-filter: var(--aladin-glass-blur);
+    border: 1px solid var(--aladin-glass-border);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--aladin-shadow-lg);
+}
+
+.aladin-card-dark {
+    background: var(--aladin-glass-bg-dark);
+    backdrop-filter: var(--aladin-glass-blur);
+    border: 1px solid var(--aladin-glass-border);
+}
+
+/* === Pattern Background === */
+.aladin-pattern-bg {
+    position: relative;
+    overflow: hidden;
+}
+
+.aladin-pattern-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(30, 64, 175, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(251, 191, 36, 0.1) 0%, transparent 50%);
+    z-index: -1;
+}
+
+.aladin-pattern-dots {
+    background-image: radial-gradient(circle, var(--aladin-blue-primary) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.1;
+}
+
+/* === Logo Container === */
+.aladin-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.aladin-logo-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--aladin-blue-primary);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    border: 2px solid var(--aladin-yellow-primary);
+}
+
+.aladin-logo-text {
+    color: var(--aladin-blue-primary);
+}
+
+/* === Split Layout === */
+.aladin-split-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: 100vh;
+}
+
+@media (min-width: 1024px) {
+    .aladin-split-layout {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.aladin-split-left {
+    background: var(--aladin-blue-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.aladin-split-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--aladin-gradient-subtle);
+}
+
+/* === Error Page Styles === */
+.aladin-error-code {
+    font-size: 8rem;
+    font-weight: 800;
+    color: var(--aladin-blue-primary);
+    line-height: 1;
+    margin: 0;
+    text-shadow: 4px 4px 0 var(--aladin-yellow-primary);
+}
+
+.aladin-error-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--aladin-blue-dark);
+    margin: 1rem 0;
+}
+
+.aladin-error-description {
+    font-size: 1.125rem;
+    color: #6B7280;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* === Utilities === */
+.aladin-text-gradient {
+    background: var(--aladin-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.aladin-animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.aladin-animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.aladin-animate-slide-in-right {
+    animation: slideInRight 0.6s ease-out;
+}
+
+.aladin-animate-slide-in-left {
+    animation: slideInLeft 0.6s ease-out;
+}
+
+.aladin-animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* === Responsive === */
+@media (max-width: 640px) {
+    .aladin-error-code {
+        font-size: 5rem;
+    }
+
+    .aladin-error-title {
+        font-size: 1.5rem;
+    }
+
+    .aladin-split-left {
+        display: none;
+    }
+}
+
+/* === Dark Mode Support === */
+@media (prefers-color-scheme: dark) {
+    .aladin-card {
+        background: rgba(30, 41, 59, 0.95);
+        border-color: rgba(30, 64, 175, 0.3);
+    }
+
+    .aladin-input {
+        background: rgba(30, 41, 59, 0.5);
+        border-color: rgba(30, 64, 175, 0.3);
+        color: white;
+    }
+
+    .aladin-error-description {
+        color: #D1D5DB;
+    }
+}

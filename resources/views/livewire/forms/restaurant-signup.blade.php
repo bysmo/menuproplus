@@ -1,4 +1,4 @@
-<div class="w-full mx-auto bg-white dark:bg-gray-700 p-6 rounded-lg h-fit shadow-md">
+<div class="w-full mx-auto">
 
     @if ($showUserForm)
         <form wire:submit="submitForm">

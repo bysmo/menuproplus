@@ -30,13 +30,16 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    <!-- Aladin Theme -->
+    <link rel="stylesheet" href="{{ asset('css/aladin-theme.css') }}">
 
     <!-- Styles -->
     @livewireStyles
 
     @include('sections.theme_style', [
-        'baseColor' => $globalSetting->theme_rgb,
-        'baseColorHex' => $globalSetting->theme_hex,
+        'baseColor' => global_setting()->theme_rgb,
+        'baseColorHex' => global_setting()->theme_hex,
     ])
 
     <script>
@@ -74,15 +77,7 @@
 
         <div
             class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-            <div class="flex flex-col justify-center items-center space-y-4">
-                <a class="flex gap-2 items-center text-xl font-medium dark:text-white app-logo">
-                    <img src="{{ $appTheme->logoUrl }}" class="h-8" alt="Logo" />
-                    @if ($appTheme->show_logo_text)
-                        {{ $appTheme->name }}
-                    @endif
-                </a>
-            </div>
-
+            
             {{ $slot }}
 
 

@@ -1,95 +1,179 @@
 <x-auth-layout>
-    <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
-
-        <x-validation-errors class="mb-4"/>
-
-        @session('status')
-        <div class="mb-4 font-medium text-sm text-green-600 dark:text-green-400">
-            {{ $value }}
+    <link rel="stylesheet" href="{{ asset('css/aladin-theme.css') }}">
+    
+    <div class="aladin-split-layout">
+        <!-- Left Side - Illustration -->
+        <div class="aladin-split-left aladin-animate-fade-in hidden lg:flex">
+            <div class="absolute inset-0 opacity-10">
+                <x-aladin-pattern variant="dots" />
+            </div>
+            
+            <div class="relative z-10 text-center text-white max-w-md">
+                <!-- Logo MenuPro avec animation -->
+                <div class="aladin-animate-float mb-8">
+                    <div class="w-32 h-32 mx-auto bg-white/10 backdrop-blur-sm rounded-2xl p-6 border-2 border-yellow-400 flex items-center justify-center">
+                        <img src="{{ restaurantOrGlobalSetting()->logo_url }}" class="w-full h-full object-contain" alt="MenuPro Logo" />
+                    </div>
+                </div>
+                
+                <!-- Titre MenuPro -->
+                <h2 class="text-3xl font-bold mb-2">
+                    {{ global_setting()->name ?? 'MenuPro+' }}
+                </h2>
+                
+                <h3 class="text-xl font-semibold mb-4 text-yellow-400">{{ __('Connexion') }}</h3>
+                
+                <p class="text-lg opacity-90 mb-8">
+                    {{ __('La solution complète de gestion de restaurant par Aladin Technologies Solutions') }}
+                </p>
+                
+                <div class="mt-12 flex items-center justify-center gap-8">
+                    <div class="text-center p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-yellow-400/30">
+                        <div class="text-4xl font-bold text-yellow-400">500+</div>
+                        <div class="text-sm mt-1">{{ __('Restaurants') }}</div>
+                    </div>
+                    <div class="text-center p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-yellow-400/30">
+                        <div class="text-4xl font-bold text-yellow-400">50K+</div>
+                        <div class="text-sm mt-1">{{ __('Commandes/jour') }}</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        @endsession
 
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
+        <!-- Right Side - Login Form -->
+        <div class="aladin-split-right aladin-animate-slide-in-right">
+            <div class="w-full max-w-md">
 
-            <div>
-                <x-label for="email" value="{{ __('app.email') }}"/>
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required
-                         autofocus autocomplete="username"/>
-            </div>
+                <!-- Card -->
+                <x-aladin-card class="aladin-animate-fade-in-up border-t-4 border-yellow-400">
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                            {{ __('app.login') }}
+                        </h1>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            {{ __('Connectez-vous à votre compte') }}
+                        </p>
+                    </div>
 
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('app.password') }}"/>
-                <x-input-password id="password" class="block mt-1 w-full" type="password" name="password" required
-                          :autocomplete="false" />
-            </div>
+                    <x-validation-errors class="mb-4"/>
 
-            <div class="flex items-center justify-between mt-4">
-                <div class="block">
-                    <label for="remember_me" class="flex items-center cursor-pointer">
-                        <x-checkbox id="remember_me" name="remember"/>
-                        <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('app.rememberMe') }}</span>
-                    </label>
+                    @session('status')
+                    <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+                        {{ $value }}
+                    </div>
+                    @endsession
+
+                    <form method="POST" action="{{ route('login') }}" id="loginForm">
+                        @csrf
+
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                {{ __('app.email') }}
+                            </label>
+                            <x-aladin-input 
+                                id="email" 
+                                type="email" 
+                                name="email" 
+                                :value="old('email')" 
+                                required 
+                                autofocus 
+                                autocomplete="username"
+                                placeholder="votre@email.com"
+                            />
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-4">
+                            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                {{ __('app.password') }}
+                            </label>
+                            <x-input-password 
+                                id="password" 
+                                name="password" 
+                                required 
+                                class="aladin-input"
+                            />
+                        </div>
+
+                        <!-- Remember Me & Forgot Password -->
+                        <div class="flex items-center justify-between mb-6">
+                            <label for="remember_me" class="flex items-center cursor-pointer">
+                                <x-checkbox id="remember_me" name="remember"/>
+                                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">
+                                    {{ __('app.rememberMe') }}
+                                </span>
+                            </label>
+
+                            <a href="{{ route('password.request') }}" 
+                               class="text-sm font-medium hover:underline"
+                               style="color: var(--aladin-blue-primary);">
+                                {{ __('app.forgotPassword') }}
+                            </a>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <x-aladin-button 
+                            type="submit" 
+                            class="w-full mb-4" 
+                            id="submitBtn"
+                        >
+                            {{ __('app.login') }}
+                        </x-aladin-button>
+
+                        <!-- Register Link -->
+                        @if(!module_enabled('Subdomain'))
+                        <div class="text-center text-sm text-gray-600 dark:text-gray-400">
+                            @lang('auth.areYouNew', ['appName' => global_setting()->name])
+                            <a href="{{ route('restaurant_signup') }}" 
+                               class="font-medium hover:underline"
+                               style="color: var(--aladin-blue-primary);">
+                                @lang('auth.createAccount')
+                            </a>
+                        </div>
+                        @endif
+
+                        <!-- Home Link -->
+                        @if(!module_enabled('Subdomain') && !global_setting()->disable_landing_site)
+                        <div class="text-center mt-4">
+                            <a href="{{ route('home') }}" 
+                               class="text-sm text-gray-500 hover:underline flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                                </svg>
+                                @lang('auth.goHome')
+                            </a>
+                        </div>
+                        @endif
+                    </form>
+                </x-aladin-card>
+
+                <!-- Footer -->
+                <div class="mt-8 text-center text-sm text-gray-500">
+                    <p>© {{ date('Y') }} Aladin Technologies Solutions</p>
+                    <p class="mt-1">Powered by MenuPro+</p>
                 </div>
-                <div>
-                    <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-                       href="{{ route('password.request') }}">
-                        {{ __('app.forgotPassword') }}
-                    </a>
-                </div>
             </div>
-            <div class="flex items-center justify-between mt-4">
-                @if(!module_enabled('Subdomain'))
-                <div class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">@lang('auth.areYouNew', ['appName' => global_setting()->name]) <a href="{{ route('restaurant_signup') }}"
-                    class="underline underline-offset-1 font-medium">@lang('auth.createAccount')</a></div>
-                @endif
-
-                <x-button class="ms-4 button" >
-                    <svg aria-hidden="true" class="hidden inline w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-                        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-                    </svg>
-                    {{ __('app.login') }}
-                </x-button>
-
-            </div>
-
-            {{-- <!-- OTP Login Link -->
-            <div class="text-center mt-4">
-                <a href="{{ route('otp.login') }}" class="text-sm text-gray-500 underline underline-offset-1">
-                    {{ __('auth.loginViaOneTimePassword') }}
-                </a>
-            </div> --}}
-
-            @if(!module_enabled('Subdomain') && !global_setting()->disable_landing_site)
-            <div class="flex items-center justify-center mt-4">
-                <a href="{{ route('home') }}"
-                   class="text-sm text-gray-500 underline underline-offset-1">
-
-                    @lang('auth.goHome')
-                </a>
-            </div>
-            @endif
-
-        </form>
+        </div>
     </div>
 
     <script>
-
-        document.querySelector('.button').addEventListener('click', () => {
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
             const emailField = document.getElementById('email');
             const passwordField = document.getElementById('password');
-            const button = document.querySelector('.button');
+            const submitBtn = document.getElementById('submitBtn');
 
-            if (emailField.checkValidity() && passwordField.checkValidity() && emailField.value && passwordField.value) {
-                button.classList.add('opacity-50', 'cursor-not-allowed');
-                button.innerHTML = `<svg aria-hidden="true" class="inline w-4 h-4 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" xmlns="http://www.w3.org/2000/svg">
-            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
-        </svg> @lang('app.loading')`;
+            if (emailField.checkValidity() && passwordField.checkValidity() && 
+                emailField.value && passwordField.value) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `
+                    <svg class="inline w-5 h-5 mr-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    ${@json(__('app.loading'))}
+                `;
             }
         });
-
     </script>
-
 </x-auth-layout>
