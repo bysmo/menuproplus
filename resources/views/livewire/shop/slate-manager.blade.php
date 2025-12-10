@@ -60,7 +60,7 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-3 gap-4 mt-3 text-center">
+                            <div class="grid grid-cols-4 gap-4 mt-3 text-center">
                                 <div>
                                     <p class="text-xs text-gray-600">@lang('modules.slate.total')</p>
                                     <p class="text-lg font-bold text-gray-900">
@@ -71,6 +71,12 @@
                                     <p class="text-xs text-gray-600">@lang('modules.slate.paid')</p>
                                     <p class="text-lg font-bold text-green-600">
                                         {{ currency_format($slate->paid_amount, $restaurant->currency_id) }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-600">En attente</p>
+                                    <p class="text-lg font-bold text-yellow-600">
+                                        {{ currency_format($slate->pending_payment, $restaurant->currency_id) }}
                                     </p>
                                 </div>
                                 <div>
@@ -351,6 +357,56 @@
 
 @push('scripts')
 <script>
+    // Fonctions de gestion des cookies pour l'UUID du device
+    function getDeviceUUID() {
+        const restaurantId = {{ $restaurant->id }};
+        const branchId = {{ $shopBranch->id ?? 0 }};
+        const cookieName = `menupro_device_${restaurantId}_${branchId}`;
+
+        let uuid = getCookie(cookieName);
+
+        if (!uuid) {
+            uuid = generateUUID();
+            setCookie(cookieName, uuid, 90);
+            console.log('🆕 Nouveau UUID généré pour ardoise:', uuid, 'Restaurant:', restaurantId, 'Branch:', branchId);
+        } else {
+            console.log('✅ UUID existant trouvé pour ardoise:', uuid, 'Restaurant:', restaurantId, 'Branch:', branchId);
+        }
+
+        return uuid;
+    }
+
+    function setDeviceUUID(uuid) {
+        const restaurantId = {{ $restaurant->id }};
+        const branchId = {{ $shopBranch->id ?? 0 }};
+        const cookieName = `menupro_device_${restaurantId}_${branchId}`;
+
+        setCookie(cookieName, uuid, 90);
+        console.log('🔄 UUID mis à jour pour ardoise:', uuid, 'Restaurant:', restaurantId, 'Branch:', branchId);
+    }
+
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
+    function setCookie(name, value, days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        const expires = `expires=${date.toUTCString()}`;
+        document.cookie = `${name}=${value};${expires};path=/;SameSite=Lax`;
+    }
+
     // Copier dans le presse-papiers
     Livewire.on('copyToClipboard', (event) => {
         navigator.clipboard.writeText(event.text).then(() => {
@@ -361,7 +417,24 @@
     // Mettre à jour le cookie UUID
     Livewire.on('updateDeviceUuid', (event) => {
         setDeviceUUID(event.uuid);
-        console.log('🔄 UUID mis à jour:', event.uuid);
+        console.log('🔄 UUID mis à jour depuis événement:', event.uuid);
+    });
+
+    // ⚠️ IMPORTANT : Envoyer l'UUID à Livewire au chargement pour SlateManager
+    document.addEventListener('DOMContentLoaded', function() {
+        const uuid = getDeviceUUID();
+        console.log('📤 Envoi UUID SlateManager à Livewire:', uuid);
+
+        if (window.Livewire) {
+            Livewire.dispatch('deviceUuidUpdated', { uuid: uuid });
+        }
+    });
+
+    // ⚠️ IMPORTANT : Également envoyer après l'initialisation de Livewire
+    document.addEventListener('livewire:initialized', () => {
+        const uuid = getDeviceUUID();
+        console.log('📤 Livewire initialisé - Envoi UUID SlateManager:', uuid);
+        Livewire.dispatch('deviceUuidUpdated', { uuid: uuid });
     });
 </script>
 @endpush

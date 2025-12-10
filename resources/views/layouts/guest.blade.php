@@ -129,6 +129,15 @@
 
     @livewireScripts
 
+    <script>
+        // Réinitialiser les composants Livewire après une navigation SPA
+        document.addEventListener('livewire:navigated', () => {
+            // Réinitialiser Flowbite pour les dropdowns et autres composants UI
+            if (typeof initFlowbite !== 'undefined') {
+                initFlowbite();
+            }
+        });
+    </script>
 
     @include('layouts.update-uri')
     <script src="{{ asset('vendor/livewire-alert/livewire-alert.js') }}" defer data-navigate-track></script>

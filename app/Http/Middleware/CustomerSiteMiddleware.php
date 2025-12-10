@@ -22,40 +22,41 @@ class CustomerSiteMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         $hash = $request->route('hash');
-        
+
         if ($hash) {
             $restaurant = Restaurant::where('hash', $hash)->first();
-    
+
             if ($restaurant && $restaurant->customer_site_language) {
-                // If session has locale (from language switcher), use it
-                if (session()->has('locale')) {
-                    $locale = session('locale');
-                    // Get RTL from the selected language, not from session
+                // If session has customer_locale (from language switcher), use it
+                if (session()->has('customer_locale')) {
+                    $locale = session('customer_locale');
+                    // Get RTL from the selected language
                     $language = LanguageSetting::where('language_code', $locale)->first();
                     $rtl = $language?->is_rtl ?? false;
                     // Update session with correct RTL
-                    session(['is_rtl' => $rtl]);
+                    session(['customer_is_rtl' => $rtl]);
                     session()->forget('isRtl'); // Clear admin session
                 } else {
                     // First visit - use restaurant's customer_site_language directly
                     $locale = $restaurant->customer_site_language;
-                    
+
                     // Get is_rtl from language settings
                     $language = LanguageSetting::where('language_code', $locale)->first();
                     $rtl = $language?->is_rtl ?? false;
-                    
+
                     // Set session for consistency
                     session([
+                        'customer_locale' => $locale,
                         'customer_site_language' => $locale,
-                        'is_rtl' => $rtl,
+                        'customer_is_rtl' => $rtl,
                     ]);
                     session()->forget('isRtl'); // Clear admin session
                 }
-                
+
                 App::setLocale($locale);
             }
         }
-    
+
         return $next($request);
     }
 }

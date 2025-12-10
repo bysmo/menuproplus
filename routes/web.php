@@ -90,7 +90,7 @@ Route::get('/livewire/update', function (Request $request) {
     return redirect()->to($previous);
 })->name('livewire.update.get');
 
-Route::group(['prefix' => 'restaurant'], function () {
+Route::group(['prefix' => 'restaurant', 'middleware' => 'customer.site'], function () {
     // QR Codes
     Route::get('table/{code}', [ShopController::class, 'tableOrder'])
         ->name('table_order')
@@ -105,7 +105,7 @@ Route::group(['prefix' => 'restaurant'], function () {
     Route::get('/orders-success/{id}', [ShopController::class, 'orderSuccess'])->name('order_success');
 });
 
-Route::get('/restaurant/{hash}', [ShopController::class, 'cart'])->name('shop_restaurant');
+Route::get('/restaurant/{hash}', [ShopController::class, 'cart'])->name('shop_restaurant')->middleware('customer.site');
 
 
 // Only register the root route if Subdomain module is not enabled

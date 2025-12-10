@@ -40,6 +40,17 @@
                     <div class="font-medium text-gray-600 text-sm dark:text-gray-400">
                         {{ $order->show_formatted_order_number }}
                     </div>
+                    @if($order->slate)
+                        <div class="text-xs text-purple-600 dark:text-purple-400 mt-0.5 font-medium">
+                            <span class="inline-flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                                </svg>
+                                Ardoise: {{ $order->slate->code }}
+                            </span>
+                        </div>
+                    @endif
                     @if($order->custom_order_type_name)
                         <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {{ $order->custom_order_type_name }}

@@ -100,7 +100,7 @@
                         @else
                             @if ($this->hasModule('Order') || $this->hasModule('KOT'))
                                 @if (user_can('Show Order') || user_can('Manage KOT'))
-                                    <x-sidebar-dropdown-menu :name='__("menu.orders")' icon='orders' :active='request()->routeIs(["orders.*", "kots.*"])'>
+                                    <x-sidebar-dropdown-menu :name='__("menu.orders")' icon='orders' :active='request()->routeIs(["orders.*", "kots.*", "slates.*"])'>
                                         @if($this->hasModule('KOT'))
                                             @if (user_can('Manage KOT'))
                                                 @livewire('sidebar-dropdown-menu', ['name' => __('menu.kot'), 'link' => route('kots.index'), 'active' => request()->routeIs('kots.*')])

@@ -375,6 +375,9 @@ class Orders extends Component
             });
         }
 
+        // Charger la relation slate pour l'affichage
+        $orderList = $orderList->load('slate');
+
         $receiptSettings = restaurant()->receiptSetting;
 
         return view('livewire.order.orders', [

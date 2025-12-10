@@ -103,19 +103,37 @@
                 </div>
 
 
-                <a href="javascript:;" wire:click="$dispatch('showCartItems')"
-                    class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 relative">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor"
-                        class="bi bi-cart2" viewBox="0 0 16 16">
-                        <path
-                            d="M0 2.5A.5.5 0 0 1 .5 2H2a.5.5 0 0 1 .485.379L2.89 4H14.5a.5.5 0 0 1 .485.621l-1.5 6A.5.5 0 0 1 13 11H4a.5.5 0 0 1-.485-.379L1.61 3H.5a.5.5 0 0 1-.5-.5M3.14 5l1.25 5h8.22l1.25-5zM5 13a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0m9-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0" />
-                    </svg>
-                    @if (isset($orderItemCount) && $orderItemCount > 0)
-                        <div
-                            class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-skin-base border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">
-                            {{ $orderItemCount }}</div>
-                    @endif
-                </a>
+                @if(request()->routeIs('shop_restaurant'))
+                    {{-- Sur la page d'accueil : ouvrir le popup du panier --}}
+                    <button type="button" wire:click="$dispatch('showCartItems')"
+                        class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor"
+                            class="bi bi-cart2" viewBox="0 0 16 16">
+                            <path
+                                d="M0 2.5A.5.5 0 0 1 .5 2H2a.5.5 0 0 1 .485.379L2.89 4H14.5a.5.5 0 0 1 .485.621l-1.5 6A.5.5 0 0 1 13 11H4a.5.5 0 0 1-.485-.379L1.61 3H.5a.5.5 0 0 1-.5-.5M3.14 5l1.25 5h8.22l1.25-5zM5 13a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0m9-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0" />
+                        </svg>
+                        @if (isset($orderItemCount) && $orderItemCount > 0)
+                            <div
+                                class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-skin-base border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">
+                                {{ $orderItemCount }}</div>
+                        @endif
+                    </button>
+                @else
+                    {{-- Sur les autres pages : rediriger vers la page d'accueil --}}
+                    <a href="{{ route('shop_restaurant', [$restaurant->hash]) }}?branch={{ $shopBranch->id }}"
+                        class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor"
+                            class="bi bi-cart2" viewBox="0 0 16 16">
+                            <path
+                                d="M0 2.5A.5.5 0 0 1 .5 2H2a.5.5 0 0 1 .485.379L2.89 4H14.5a.5.5 0 0 1 .485.621l-1.5 6A.5.5 0 0 1 13 11H4a.5.5 0 0 1-.485-.379L1.61 3H.5a.5.5 0 0 1-.5-.5M3.14 5l1.25 5h8.22l1.25-5zM5 13a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0m9-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0" />
+                        </svg>
+                        @if (isset($orderItemCount) && $orderItemCount > 0)
+                            <div
+                                class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-skin-base border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">
+                                {{ $orderItemCount }}</div>
+                        @endif
+                    </a>
+                @endif
 
                 @if (is_null(customer()) && $restaurant->customer_login_required)
                     <x-button type="button" wire:click="$dispatch('showSignup')">@lang('app.login')</x-button>

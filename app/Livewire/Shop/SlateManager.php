@@ -242,44 +242,55 @@ class SlateManager extends Component
                 return;
             }
 
-            // Recharger l'ardoise pour avoir les données les plus récentes
-            $this->slate->refresh();
+            // Début de la transaction
+            \DB::beginTransaction();
 
-            // Vérifier qu'il y a des commandes à payer
-            if ($this->slate->remaining_amount <= 0) {
-                $this->errorMessage = 'Aucune commande à payer sur cette ardoise.';
-                return;
-            }
-
-            \Log::info('💳 Début du paiement de l\'ardoise', [
-                'slate_id' => $this->slate->id,
-                'slate_code' => $this->slate->code,
-                'remaining_amount' => $this->slate->remaining_amount,
-            ]);
-
-            // Récupérer toutes les commandes non payées
-            $unpaidOrders = $this->slate->unpaidOrders()->get();
-
-            if ($unpaidOrders->isEmpty()) {
-                $this->errorMessage = 'Aucune commande à payer.';
-                \Log::warning('⚠️ Aucune commande non payée trouvée', [
+            try {
+                \Log::info('💳 Début du paiement de l\'ardoise', [
                     'slate_id' => $this->slate->id,
+                    'slate_code' => $this->slate->code,
                 ]);
-                return;
-            }
 
-            \Log::info('📋 Commandes à traiter', [
-                'count' => $unpaidOrders->count(),
-                'order_ids' => $unpaidOrders->pluck('id')->toArray(),
-            ]);
+                // Recharger l'ardoise avec verrou pour éviter les modifications concurrentes
+                $this->slate = Slate::lockForUpdate()->find($this->slate->id);
 
-            $totalPaid = 0;
-            $paidOrdersCount = 0;
-            $failedOrders = [];
+                // Vérifier qu'il y a des commandes à payer
+                if ($this->slate->remaining_amount <= 0) {
+                    \DB::rollBack();
+                    $this->errorMessage = 'Aucune commande à payer sur cette ardoise.';
+                    \Log::warning('⚠️ Ardoise déjà payée', [
+                        'slate_id' => $this->slate->id,
+                        'remaining_amount' => $this->slate->remaining_amount,
+                    ]);
+                    return;
+                }
 
-            // Parcourir toutes les commandes non payées
-            foreach ($unpaidOrders as $order) {
-                try {
+                \Log::info('💰 Montant restant à payer', [
+                    'remaining_amount' => $this->slate->remaining_amount,
+                ]);
+
+                // Récupérer toutes les commandes non payées avec verrou
+                $unpaidOrders = $this->slate->unpaidOrders()->lockForUpdate()->get();
+
+                if ($unpaidOrders->isEmpty()) {
+                    \DB::rollBack();
+                    $this->errorMessage = 'Aucune commande à payer.';
+                    \Log::warning('⚠️ Aucune commande non payée trouvée', [
+                        'slate_id' => $this->slate->id,
+                    ]);
+                    return;
+                }
+
+                \Log::info('📋 Commandes à traiter', [
+                    'count' => $unpaidOrders->count(),
+                    'order_ids' => $unpaidOrders->pluck('id')->toArray(),
+                ]);
+
+                $totalPaid = 0;
+                $paidOrdersCount = 0;
+
+                // Parcourir toutes les commandes non payées
+                foreach ($unpaidOrders as $order) {
                     \Log::info('💰 Traitement commande', [
                         'order_id' => $order->id,
                         'order_number' => $order->order_number,
@@ -323,69 +334,64 @@ class SlateManager extends Component
                         'paid_amount' => $remainingAmount,
                         'new_status' => $order->status,
                     ]);
-
-                } catch (\Exception $orderException) {
-                    \Log::error('❌ Erreur lors du traitement de la commande', [
-                        'order_id' => $order->id,
-                        'error' => $orderException->getMessage(),
-                        'trace' => $orderException->getTraceAsString(),
-                    ]);
-
-                    $failedOrders[] = [
-                        'order_id' => $order->id,
-                        'error' => $orderException->getMessage(),
-                    ];
                 }
-            }
 
-            // Recalculer les montants de l'ardoise
-            $this->slate->recalculateAmounts();
+                // Recalculer les montants de l'ardoise
+                $this->slate->recalculateAmounts();
 
-            // Recharger les commandes
-            $this->loadSlateOrders();
+                // Valider la transaction - toutes les opérations ont réussi
+                \DB::commit();
 
-            // Préparer le message de succès
-            if ($paidOrdersCount > 0) {
-                $this->successMessage = sprintf(
-                    '%d commande(s) soldée(s) pour un total de %s. En attente de vérification.',
-                    $paidOrdersCount,
-                    currency_format($totalPaid, $this->restaurant->currency_id)
-                );
-
-                \Log::info('🎉 Paiement de l\'ardoise terminé avec succès', [
+                \Log::info('🎉 Transaction validée avec succès', [
                     'slate_id' => $this->slate->id,
-                    'slate_code' => $this->slate->code,
                     'paid_orders_count' => $paidOrdersCount,
                     'total_paid' => $totalPaid,
-                    'failed_orders_count' => count($failedOrders),
                 ]);
 
-                // Dispatcher un événement pour notifier le restaurant
-                event(new \App\Events\SlatePaymentReceived($this->slate, $unpaidOrders));
+                // Recharger les commandes
+                $this->loadSlateOrders();
 
-            } else {
-                $this->errorMessage = 'Aucune commande n\'a pu être traitée.';
-            }
+                // Préparer le message de succès
+                if ($paidOrdersCount > 0) {
+                    $this->successMessage = sprintf(
+                        '%d commande(s) soldée(s) pour un total de %s. En attente de vérification.',
+                        $paidOrdersCount,
+                        currency_format($totalPaid, $this->restaurant->currency_id)
+                    );
 
-            // Afficher les erreurs s'il y en a
-            if (count($failedOrders) > 0) {
-                $this->errorMessage .= sprintf(
-                    ' %d commande(s) n\'ont pas pu être traitées.',
-                    count($failedOrders)
-                );
+                    \Log::info('🎉 Paiement de l\'ardoise terminé avec succès', [
+                        'slate_id' => $this->slate->id,
+                        'slate_code' => $this->slate->code,
+                        'paid_orders_count' => $paidOrdersCount,
+                        'total_paid' => $totalPaid,
+                    ]);
 
-                \Log::warning('⚠️ Certaines commandes ont échoué', [
-                    'failed_orders' => $failedOrders,
+                    // Dispatcher un événement pour notifier le restaurant
+                    event(new \App\Events\SlatePaymentReceived($this->slate, $unpaidOrders));
+
+                } else {
+                    $this->errorMessage = 'Aucune commande n\'a pu être traitée.';
+                }
+
+            } catch (\Exception $e) {
+                // Annuler la transaction en cas d'erreur
+                \DB::rollBack();
+
+                \Log::error('❌ Erreur dans la transaction de paiement - Rollback effectué', [
+                    'slate_id' => $this->slate->id ?? null,
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString(),
                 ]);
+
+                throw $e; // Relancer pour le catch externe
             }
 
         } catch (\Exception $e) {
             \Log::error('❌ Erreur fatale lors du paiement de l\'ardoise', [
                 'slate_id' => $this->slate->id ?? null,
                 'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             $this->errorMessage = 'Une erreur est survenue lors du paiement. Veuillez réessayer.';
@@ -395,10 +401,71 @@ class SlateManager extends Component
     // function to remove old paid orders from slate
     public function cleanSlateOrders()
     {
-        $this->slate->paidOrders()->delete();
-        //clean also canceled orders
-        $this->slate->canceledOrders()->delete();
-        $this->successMessage = __('modules.slate.cleanSlateOrdersSuccessMessage');
+        try {
+            if (!$this->slate) {
+                $this->errorMessage = 'Aucune ardoise à nettoyer.';
+                return;
+            }
+
+            \Log::info('🧹 Début du nettoyage de l\'ardoise', [
+                'slate_id' => $this->slate->id,
+                'slate_code' => $this->slate->code,
+            ]);
+
+            // Début de la transaction
+            \DB::beginTransaction();
+
+            try {
+                // Compter les commandes avant suppression
+                $paidOrdersCount = $this->slate->paidOrders()->count();
+                $canceledOrdersCount = $this->slate->canceledOrders()->count();
+
+                \Log::info('📊 Commandes à supprimer', [
+                    'paid_orders' => $paidOrdersCount,
+                    'canceled_orders' => $canceledOrdersCount,
+                ]);
+
+                // Supprimer les commandes payées
+                $this->slate->paidOrders()->delete();
+
+                // Supprimer les commandes annulées
+                $this->slate->canceledOrders()->delete();
+
+                // Valider la transaction
+                \DB::commit();
+
+                \Log::info('✅ Nettoyage de l\'ardoise terminé avec succès', [
+                    'slate_id' => $this->slate->id,
+                    'paid_orders_deleted' => $paidOrdersCount,
+                    'canceled_orders_deleted' => $canceledOrdersCount,
+                ]);
+
+                $this->successMessage = __('modules.slate.cleanSlateOrdersSuccessMessage');
+
+                // Recharger les commandes
+                $this->loadSlateOrders();
+
+            } catch (\Exception $e) {
+                // Annuler la transaction en cas d'erreur
+                \DB::rollBack();
+
+                \Log::error('❌ Erreur dans la transaction de nettoyage - Rollback effectué', [
+                    'slate_id' => $this->slate->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+
+                throw $e; // Relancer pour le catch externe
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('❌ Erreur fatale lors du nettoyage de l\'ardoise', [
+                'slate_id' => $this->slate->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+
+            $this->errorMessage = 'Erreur lors du nettoyage de l\'ardoise.';
+        }
     }
 
 }

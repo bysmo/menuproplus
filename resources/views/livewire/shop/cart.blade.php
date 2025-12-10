@@ -1750,16 +1750,16 @@
             function getDeviceUUID() {
                 const restaurantId = {{ $restaurant->id }};
                 const branchId = {{ $shopBranch->id ?? 0 }};
-                const cookieName = `menupro_${restaurantId}_${branchId}`;
+                const cookieName = `menupro_device_${restaurantId}_${branchId}`;
 
                 let uuid = getCookie(cookieName);
 
                 if (!uuid) {
                     uuid = generateUUID();
                     setCookie(cookieName, uuid, 90);
-                    console.log('🆕 Nouveau UUID généré:', uuid);
+                    console.log('🆕 Nouveau UUID généré:', uuid, 'Restaurant:', restaurantId, 'Branch:', branchId);
                 } else {
-                    console.log('✅ UUID existant trouvé:', uuid);
+                    console.log('✅ UUID existant trouvé:', uuid, 'Restaurant:', restaurantId, 'Branch:', branchId);
                 }
 
                 return uuid;

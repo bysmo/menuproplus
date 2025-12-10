@@ -176,7 +176,7 @@ private function loadCartFromSession()
                     }
                 } else {
                     // Charger un menu item normal
-                    $menuItem = MenuItem::with(['taxes', 'modifierGroups.modifierOptions'])
+                    $menuItem = MenuItem::with(['taxes', 'modifierGroups.options'])
                         ->find($itemData['id']);
                     if ($menuItem) {
                         $this->orderItemList[$key] = $menuItem;
@@ -1432,7 +1432,7 @@ public function getCartQtyProperty()
 
             // Si l'UUID n'est pas disponible, essayer de le récupérer du cookie
             if (!$this->deviceUuid) {
-                $cookieName = 'menupro_' . $this->restaurant->id . '_' . ($this->shopBranch->id ?? '0');
+                $cookieName = 'menupro_device_' . $this->restaurant->id . '_' . ($this->shopBranch->id ?? '0');
                 $this->deviceUuid = request()->cookie($cookieName);
 
                 \Log::info('🍪 UUID récupéré depuis cookie dans placeOrder', [

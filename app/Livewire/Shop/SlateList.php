@@ -130,39 +130,34 @@ class SlateList extends Component
         if ($slate->status === 'paid') {
             return [
                 'label' => 'Payé',
-                'class' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                'class' => 'bg-success'
+            ];
+        }
+
+        if ($slate->status === 'pending_verification') {
+            return [
+                'label' => 'En attente de vérification',
+                'class' => 'bg-warning'
             ];
         }
 
         if ($slate->paid_amount > 0 && $slate->remaining_amount > 0) {
             return [
                 'label' => 'Partiellement payé',
-                'class' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                'class' => 'bg-warning'
             ];
         }
 
         if ($slate->remaining_amount > 0) {
-            // Vérifier s'il y a des commandes en attente de vérification
-            $hasPendingVerification = $slate->orders()
-                ->where('status', 'pending_verification')
-                ->exists();
-
-            if ($hasPendingVerification) {
-                return [
-                    'label' => 'En attente de vérification',
-                    'class' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                ];
-            }
-
             return [
                 'label' => 'Non payé',
-                'class' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                'class' => 'bg-danger'
             ];
         }
 
         return [
             'label' => 'Actif',
-            'class' => 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+            'class' => 'bg-secondary'
         ];
     }
 

@@ -255,12 +255,12 @@
                     </div>
                 </div>
             </div>
-    </div>
+        </div>
 
-    <!-- Filter Section -->
-    <div class="flex flex-wrap justify-between items-center gap-4 p-4 bg-gray-50 rounded-lg dark:bg-gray-700">
-        <div class="lg:flex items-center mb-4 sm:mb-0">
-            <form  action="#" method="GET">
+        <!-- Filter Section -->
+        <div class="flex flex-wrap justify-between items-center gap-4 p-4 bg-gray-50 rounded-lg dark:bg-gray-700">
+            <div class="lg:flex items-center mb-4 sm:mb-0">
+                <form  action="#" method="GET">
 
                     <div class="lg:flex gap-2 items-center">
                         <x-select id="dateRangeType" class="block w-full sm:w-fit mb-2 lg:mb-0" wire:model="dateRangeType" wire:change="setDateRange">
@@ -329,217 +329,207 @@
                     @endforeach
                 </select>
             </div>
+        </div>
     </div>
 
     <!-- Sales Table -->
-    @php
-     $totalColumns = 1; // pour la date
-     $totalColumns += count($charges); // pour les charges
-     $totalColumns += count($taxes); // pour les taxes
-     $totalColumns += 1; // pour le total tax amount
-     $totalColumns += 4; // pour les methodes de paiement
-     $totalColumns += 1; // pour le delivery fee
-     $totalColumns += 1; // pour le discount amount
-     $totalColumns += 1; // pour le tip amount
-     $totalColumns += 2; // pour le total amount et le total excluding tip
-     @endphp
     <div class="overflow-x-auto bg-white dark:bg-gray-800 p-4">
         <table class="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
             <thead class="bg-gray-100 dark:bg-gray-700">
-                <tr>
-                    <th class="p-4 text-xs font-medium tracking-wider text-left text-gray-600 uppercase dark:text-gray-300">
-                    @lang('app.date')
-                    </th>
-                    <th class="p-4 text-xs font-medium tracking-wider text-center text-gray-600 uppercase dark:text-gray-300">
-                    @lang('modules.report.totalOrders')
-                    </th>
+            <tr>
+                <th class="p-4 text-xs font-medium tracking-wider text-left text-gray-600 uppercase dark:text-gray-300">
+                @lang('app.date')
+                </th>
+                <th class="p-4 text-xs font-medium tracking-wider text-center text-gray-600 uppercase dark:text-gray-300">
+                @lang('modules.report.totalOrders')
+                </th>
 
-                    <!-- Charges Column Group -->
-                    @if(count($charges) > 0)
-                    <th colspan="{{ count($charges) }}" class="p-4 text-xs font-medium tracking-wider text-center text-gray-600 uppercase dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20">
-                        @lang('modules.order.extraCharges')
-                    </th>
-                    @endif
+                <!-- Charges Column Group -->
+                @if(count($charges) > 0)
+                <th colspan="{{ count($charges) }}" class="p-4 text-xs font-medium tracking-wider text-center text-gray-600 uppercase dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20">
+                    @lang('modules.order.extraCharges')
+                </th>
+                @endif
 
-                    <!-- Taxes Column Group -->
-                    @if(count($taxes) > 0)
-                    <th colspan="{{ count($taxes) + 1 }}" class="p-4 text-xs font-medium tracking-wider text-center text-gray-600 uppercase dark:text-gray-300 bg-red-50 dark:bg-red-900/20">
-                        @lang('modules.order.taxes') (@lang('modules.report.fromActualBreakdown'))
-                    </th>
-                    @endif
+                <!-- Taxes Column Group -->
+                @if(count($taxes) > 0)
+                <th colspan="{{ count($taxes) + 1 }}" class="p-4 text-xs font-medium tracking-wider text-center text-gray-600 uppercase dark:text-gray-300 bg-red-50 dark:bg-red-900/20">
+                    @lang('modules.order.taxes') (@lang('modules.report.fromActualBreakdown'))
+                </th>
+                @endif
 
-                    <!-- Payment Methods Column Group -->
-                    <th colspan="{{ 4 + collect(['stripe', 'razorpay', 'flutterwave'])->filter(fn($method) => isset($paymentGateway) && $paymentGateway->{"{$method}_status"})->count() }}" class="p-4 text-xs font-medium tracking-wider text-center text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
-                        @lang('modules.report.paymentMethods')
-                    </th>
+                <!-- Payment Methods Column Group -->
+                <th colspan="{{ 4 + collect(['stripe', 'razorpay', 'flutterwave'])->filter(fn($method) => isset($paymentGateway) && $paymentGateway->{"{$method}_status"})->count() }}" class="p-4 text-xs font-medium tracking-wider text-center text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
+                    @lang('modules.report.paymentMethods')
+                </th>
 
-                    <!-- Due Payment Column -->
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-orange-50 dark:bg-orange-900/20">
-                        @lang('modules.order.due')
-                    </th>
+                <!-- Due Payment Column -->
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-orange-50 dark:bg-orange-900/20">
+                    @lang('modules.order.due')
+                </th>
 
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
-                    @lang('modules.order.deliveryFee')
-                    </th>
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
-                    @lang('modules.order.discount')
-                    </th>
-                    <th   class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
-                    @lang('modules.order.tip')
-                    </th>
-                    <th class="p-4 text-xs font-bold tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
-                    @lang('modules.order.total')
-                    </th>
-                    <th class="p-4 text-xs font-bold tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
-                    @lang('modules.order.total')
-                    </th>
-                </tr>
-                <tr>
-                    <th></th>
-                    <th></th>
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
+                @lang('modules.order.deliveryFee')
+                </th>
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
+                @lang('modules.order.discount')
+                </th>
+                <th   class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
+                @lang('modules.order.tip')
+                </th>
+                <th class="p-4 text-xs font-bold tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
+                @lang('modules.order.total')
+                </th>
+                <th class="p-4 text-xs font-bold tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
+                @lang('modules.order.total')
+                </th>
+            </tr>
+            <tr>
+                <th></th>
+                <th></th>
 
-                    <!-- Charges Subheaders -->
-                    @foreach ($charges as $charge)
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20">
-                        {{ $charge->charge_name }}
-                    </th>
-                    @endforeach
+                <!-- Charges Subheaders -->
+                @foreach ($charges as $charge)
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20">
+                    {{ $charge->charge_name }}
+                </th>
+                @endforeach
 
-                    <!-- Taxes Subheaders -->
-                    @foreach ($taxes as $tax)
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-red-50 dark:bg-red-900/20">
-                        {{ $tax->tax_name }} ({{ $tax->tax_percent }}%)
-                    </th>
-                    @endforeach
+                <!-- Taxes Subheaders -->
+                @foreach ($taxes as $tax)
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-red-50 dark:bg-red-900/20">
+                    {{ $tax->tax_name }} ({{ $tax->tax_percent }}%)
+                </th>
+                @endforeach
 
-                    <!-- Total Tax Amount Column -->
-                    @if(count($taxes) > 0)
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-red-50 dark:bg-red-900/20">
-                        @lang('modules.report.totalTaxAmount')
-                    </th>
-                    @endif
+                <!-- Total Tax Amount Column -->
+                @if(count($taxes) > 0)
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-red-50 dark:bg-red-900/20">
+                    @lang('modules.report.totalTaxAmount')
+                </th>
+                @endif
 
-                    <!-- Payment Methods Subheaders -->
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
-                    @lang('modules.order.cash')
-                    </th>
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
-                    @lang('modules.order.upi')
-                    </th>
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
-                    @lang('modules.order.card')
-                    </th>
-                    <th class=" py-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
-                    @lang('modules.order.bank_transfer')
-                    </th>
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-orange-50 dark:bg-orange-900/20">
+                <!-- Payment Methods Subheaders -->
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
+                @lang('modules.order.cash')
+                </th>
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
+                @lang('modules.order.upi')
+                </th>
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
+                @lang('modules.order.card')
+                </th>
+                <th class=" py-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
+                @lang('modules.order.bank_transfer')
+                </th>
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-orange-50 dark:bg-orange-900/20">
 
-                    </th>
-                    @if($paymentGateway->razorpay_status)
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
-                        @lang('modules.order.razorpay')
-                    </th>
-                    @endif
-                    @if($paymentGateway->stripe_status)
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
-                        @lang('modules.order.stripe')
-                    </th>
-                    @endif
-                    @if($paymentGateway->flutterwave_status)
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
-                        @lang('modules.order.flutterwave')
-                    </th>
-                    @endif
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
-                        @lang('modules.order.totalExcludingTip')
-                    </th>
-                </tr>
+                </th>
+                @if($paymentGateway->razorpay_status)
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
+                    @lang('modules.order.razorpay')
+                </th>
+                @endif
+                @if($paymentGateway->stripe_status)
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
+                    @lang('modules.order.stripe')
+                </th>
+                @endif
+                @if($paymentGateway->flutterwave_status)
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300 bg-green-50 dark:bg-green-900/20">
+                    @lang('modules.order.flutterwave')
+                </th>
+                @endif
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th class="p-4 text-xs font-medium tracking-wider text-right text-gray-600 uppercase dark:text-gray-300">
+                    @lang('modules.order.totalExcludingTip')
+                </th>
+            </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
-                @forelse ($menuItems as $item)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td class="p-4 text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
-                        {{ \Carbon\Carbon::parse($item['date'])->format('M d, Y') }}
-                        </td>
-                        <td class="p-4 text-sm text-center text-gray-900 dark:text-white">
-                        {{ $item['total_orders'] }}
-                        </td>
+            @forelse ($menuItems as $item)
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td class="p-4 text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                {{ \Carbon\Carbon::parse($item['date'])->format('M d, Y') }}
+                </td>
+                <td class="p-4 text-sm text-center text-gray-900 dark:text-white">
+                {{ $item['total_orders'] }}
+                </td>
 
-                        @foreach ($charges as $charge)
-                        <td class="p-4 text-sm font-normal text-right text-gray-900 dark:text-gray-100 bg-blue-50/50 dark:bg-blue-900/10">
-                        {{ currency_format($item['charges'][$charge->charge_name] ?? 0, $currencyId) }}
-                        </td>
-                        @endforeach
+                @foreach ($charges as $charge)
+                <td class="p-4 text-sm font-normal text-right text-gray-900 dark:text-gray-100 bg-blue-50/50 dark:bg-blue-900/10">
+                {{ currency_format($item['charges'][$charge->charge_name] ?? 0, $currencyId) }}
+                </td>
+                @endforeach
 
-                        @foreach ($taxes as $tax)
-                        <td class="p-4 text-sm font-normal text-right text-gray-900 dark:text-gray-100 bg-red-50/50 dark:bg-red-900/10">
-                            {{ currency_format($item['taxes'][$tax->tax_name] ?? 0, $currencyId) }}
-                        </td>
-                        @endforeach
+                @foreach ($taxes as $tax)
+                <td class="p-4 text-sm font-normal text-right text-gray-900 dark:text-gray-100 bg-red-50/50 dark:bg-red-900/10">
+                    {{ currency_format($item['taxes'][$tax->tax_name] ?? 0, $currencyId) }}
+                </td>
+                @endforeach
 
-                        @if(count($taxes) > 0)
-                        <td class="p-4 text-sm font-normal text-right text-gray-900 dark:text-gray-100 bg-red-50/50 dark:bg-red-900/10">
-                            {{ currency_format($item['total_tax_amount'], $currencyId) }}
-                        </td>
-                        @endif
+                @if(count($taxes) > 0)
+                <td class="p-4 text-sm font-normal text-right text-gray-900 dark:text-gray-100 bg-red-50/50 dark:bg-red-900/10">
+                    {{ currency_format($item['total_tax_amount'], $currencyId) }}
+                </td>
+                @endif
 
-                        <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
-                        {{ currency_format($item['cash_amount'], $currencyId) }}
-                        </td>
-                        <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
-                        {{ currency_format($item['upi_amount'], $currencyId) }}
-                        </td>
-                        <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
-                        {{ currency_format($item['card_amount'], $currencyId) }}
-                        </td>
-                        <td class="px-5 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
-                        {{ currency_format($item['bank_transfer_amount'], $currencyId) }}
-                        </td>
-                        <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-orange-50/50 dark:bg-orange-900/10">
-                            {{ currency_format($item['outstanding_amount'], $currencyId) }}
-                        </td>
-                        @if($paymentGateway->razorpay_status)
-                        <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
-                            {{ currency_format($item['razorpay_amount'], $currencyId) }}
-                        </td>
-                        @endif
-                        @if($paymentGateway->stripe_status)
-                        <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
-                            {{ currency_format($item['stripe_amount'], $currencyId) }}
-                        </td>
-                        @endif
-                        @if($paymentGateway->flutterwave_status)
-                        <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
-                            {{ currency_format($item['flutterwave_amount'], $currencyId) }}
-                        </td>
-                        @endif
-                        <td class="p-4 text-sm text-right text-gray-900 dark:text-white ">
-                            {{ currency_format($item['delivery_fee'], $currencyId) }}
-                        </td>
-                        <td class="p-4 text-sm text-right text-gray-900 dark:text-white">
-                            {{ currency_format($item['discount_amount'], $currencyId) }}
-                        </td>
-                        <td class="p-4 text-sm text-right text-gray-900 dark:text-white">
-                        {{ currency_format($item['tip_amount'], $currencyId) }}
-                        </td>
-                        <td class="p-4 text-sm font-bold text-right text-gray-900 dark:text-white">
-                        {{ currency_format($item['total_amount'], $currencyId) }}
-                        </td>
-                        <td class="p-4 text-sm font-bold text-right text-gray-900 dark:text-white">
-                        {{ currency_format($item['total_excluding_tip'], $currencyId) }}
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ $totalColumns }}" class="p-4 text-sm text-center text-gray-500 dark:text-gray-400">
-                        @lang('messages.noItemAdded')
-                        </td>
-                    </tr>
-                @endforelse
+                <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
+                {{ currency_format($item['cash_amount'], $currencyId) }}
+                </td>
+                <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
+                {{ currency_format($item['upi_amount'], $currencyId) }}
+                </td>
+                <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
+                {{ currency_format($item['card_amount'], $currencyId) }}
+                </td>
+                <td class="px-5 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
+                {{ currency_format($item['bank_transfer_amount'], $currencyId) }}
+                </td>
+                <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-orange-50/50 dark:bg-orange-900/10">
+                    {{ currency_format($item['outstanding_amount'], $currencyId) }}
+                </td>
+                @if($paymentGateway->razorpay_status)
+                <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
+                    {{ currency_format($item['razorpay_amount'], $currencyId) }}
+                </td>
+                @endif
+                @if($paymentGateway->stripe_status)
+                <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
+                    {{ currency_format($item['stripe_amount'], $currencyId) }}
+                </td>
+                @endif
+                @if($paymentGateway->flutterwave_status)
+                <td class="p-4 text-sm text-right text-gray-900 dark:text-white bg-green-50/50 dark:bg-green-900/10">
+                    {{ currency_format($item['flutterwave_amount'], $currencyId) }}
+                </td>
+                @endif
+                <td class="p-4 text-sm text-right text-gray-900 dark:text-white ">
+                    {{ currency_format($item['delivery_fee'], $currencyId) }}
+                </td>
+                <td class="p-4 text-sm text-right text-gray-900 dark:text-white">
+                    {{ currency_format($item['discount_amount'], $currencyId) }}
+                </td>
+                <td class="p-4 text-sm text-right text-gray-900 dark:text-white">
+                {{ currency_format($item['tip_amount'], $currencyId) }}
+                </td>
+                <td class="p-4 text-sm font-bold text-right text-gray-900 dark:text-white">
+                {{ currency_format($item['total_amount'], $currencyId) }}
+                </td>
+                <td class="p-4 text-sm font-bold text-right text-gray-900 dark:text-white">
+                {{ currency_format($item['total_excluding_tip'], $currencyId) }}
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="14" class="p-4 text-sm text-center text-gray-500 dark:text-gray-400">
+                @lang('messages.noItemAdded')
+                </td>
+            </tr>
+            @endforelse
             </tbody>
         </table>
     </div>
@@ -547,18 +537,16 @@
     @script
     <script>
         const datepickerEl1 = document.getElementById('datepicker-range-start');
-        if (datepickerEl1) {
-            datepickerEl1.addEventListener('changeDate', (event) => {
-                $wire.dispatch('setStartDate', { start: datepickerEl1.value });
-            });
-        }
+
+        datepickerEl1.addEventListener('changeDate', (event) => {
+            $wire.dispatch('setStartDate', { start: datepickerEl1.value });
+        });
 
         const datepickerEl2 = document.getElementById('datepicker-range-end');
-        if (datepickerEl2) {
-            datepickerEl2.addEventListener('changeDate', (event) => {
-                $wire.dispatch('setEndDate', { end: datepickerEl2.value });
-            });
-        }
+
+        datepickerEl2.addEventListener('changeDate', (event) => {
+            $wire.dispatch('setEndDate', { end: datepickerEl2.value });
+        });
     </script>
     @endscript
 </div>

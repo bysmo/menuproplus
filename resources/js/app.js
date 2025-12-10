@@ -18,6 +18,10 @@ if (localStorage.getItem("menu-collapsed") === "true") {
 
 document.addEventListener("livewire:navigating", () => {
     // Mutate the HTML before the page is navigated away...
+});
+
+document.addEventListener("livewire:navigated", () => {
+    // Réinitialiser Flowbite après la navigation
     initFlowbite();
 });
 

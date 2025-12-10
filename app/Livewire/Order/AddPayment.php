@@ -466,6 +466,14 @@ class AddPayment extends Component
         $this->order->status = $orderPaidAmount >= $this->order->total ? 'paid' : 'payment_due';
         $this->order->save();
 
+        // Recalculer les montants de l'ardoise si la commande est sur une ardoise
+        if ($this->order->slate_id) {
+            $slate = $this->order->slate;
+            if ($slate) {
+                $slate->recalculateAmounts();
+            }
+        }
+
         // Handle due payments - always delete existing due payments first
         Payment::where('order_id', $this->order->id)->where('payment_method', 'due')->delete();
 
@@ -479,10 +487,10 @@ class AddPayment extends Component
 
         // Update table status
         $table = Table::find($this->order->table_id);
-        
+
         if ($table) {
             $table->update(['available_status' => 'available']);
-            
+
             // Release table session lock if exists
             if ($table->tableSession) {
                 $table->tableSession->releaseLock();
@@ -650,7 +658,7 @@ class AddPayment extends Component
                 }
             }
         }
-        
+
         // Update balance amount for items split
         if ($this->splitType === 'items') {
             $this->updateBalanceAmount();

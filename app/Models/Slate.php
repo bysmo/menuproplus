@@ -19,6 +19,7 @@ class Slate extends Model
         'customer_id',
         'total_amount',
         'paid_amount',
+        'pending_payment',
         'remaining_amount',
         'status',
         'expires_at',
@@ -28,6 +29,7 @@ class Slate extends Model
     protected $casts = [
         'total_amount' => 'decimal:2',
         'paid_amount' => 'decimal:2',
+        'pending_payment' => 'decimal:2',
         'remaining_amount' => 'decimal:2',
         'expires_at' => 'datetime',
         'last_activity_at' => 'datetime',
@@ -62,7 +64,7 @@ class Slate extends Model
                 $query->whereColumn('total', '>', 'amount_paid')
                     ->orWhereNull('amount_paid');
             })
-            ->whereNotIn('status', ['paid', 'canceled', 'draft']);
+            ->whereNotIn('status', ['paid', 'canceled', 'draft', 'pending_verification']);
     }
 
 
@@ -85,56 +87,145 @@ class Slate extends Model
 
     public function remainingOrders()
     {
-        // remaining if orders.total > orders.amount_paid and status not in ['paid', 'cancelled','draft','pending_verification','pending_payment']
-        return $this->orders()->where('total', '>', 'amount_paid')->whereNotIn('status', ['paid', 'cancelled','draft','pending_verification','pending_payment']);
+        // remaining if orders.total > orders.amount_paid and status not in ['paid', 'cancelled','draft']
+        return $this->orders()->where('total', '>', 'amount_paid')->whereNotIn('status', ['paid', 'cancelled','draft']);
     }
 
     // Génération du code incrémental par branche
     public static function generateCode($branchId)
     {
         $prefix = 'ARD';
+        $maxAttempts = 10;
+        $attempt = 0;
 
-        // Récupérer le dernier code pour cette branche
-        $lastSlate = self::where('branch_id', $branchId)
-            ->where('code', 'LIKE', $prefix . '%')
-            ->orderBy('id', 'desc')
-            ->first();
+        do {
+            // Récupérer le dernier code pour cette branche
+            $lastSlate = self::where('branch_id', $branchId)
+                ->where('code', 'LIKE', $prefix . '%')
+                ->orderBy('id', 'desc')
+                ->lockForUpdate()
+                ->first();
 
-        if ($lastSlate && preg_match('/^' . $prefix . '(\d+)$/', $lastSlate->code, $matches)) {
-            $nextNumber = intval($matches[1]) + 1;
-        } else {
-            $nextNumber = 1;
-        }
+            if ($lastSlate && preg_match('/^' . $prefix . '(\d+)$/', $lastSlate->code, $matches)) {
+                $nextNumber = intval($matches[1]) + 1;
+            } else {
+                $nextNumber = 1;
+            }
 
-        return $prefix . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+            $code = $prefix . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+
+            // Vérifier si le code existe déjà
+            $exists = self::where('code', $code)->exists();
+
+            if (!$exists) {
+                return $code;
+            }
+
+            $attempt++;
+
+            // Si le code existe, forcer le numéro suivant
+            if ($attempt < $maxAttempts) {
+                // Trouver le plus grand numéro utilisé
+                $maxSlate = self::where('branch_id', $branchId)
+                    ->where('code', 'LIKE', $prefix . '%')
+                    ->orderByRaw('CAST(SUBSTRING(code, 4) AS UNSIGNED) DESC')
+                    ->first();
+
+                if ($maxSlate && preg_match('/^' . $prefix . '(\d+)$/', $maxSlate->code, $matches)) {
+                    $nextNumber = intval($matches[1]) + 1;
+                    $code = $prefix . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+
+                    if (!self::where('code', $code)->exists()) {
+                        return $code;
+                    }
+                }
+            }
+
+        } while ($attempt < $maxAttempts);
+
+        // Si après plusieurs tentatives on ne trouve pas de code unique, utiliser un timestamp
+        return $prefix . time();
     }
 
     // Créer ou récupérer une ardoise pour un UUID appareil
     public static function getOrCreateForDevice($deviceUuid, $restaurantId, $branchId, $customerId = null)
     {
-        // Chercher une ardoise active pour cet appareil
+        // Chercher une ardoise pour cet appareil (UUID), ce restaurant ET cette branche
+        // On cherche d'abord une ardoise active, sinon n'importe quelle ardoise non expirée
         $slate = self::where('device_uuid', $deviceUuid)
+            ->where('restaurant_id', $restaurantId)
             ->where('branch_id', $branchId)
-            ->where('status', 'active')
             ->where('expires_at', '>', now())
+            ->orderByRaw("FIELD(status, 'active', 'pending_verification', 'paid')")
             ->first();
 
         if (!$slate) {
-            $slate = self::create([
-                'code' => self::generateCode($branchId),
-                'device_uuid' => $deviceUuid,
-                'restaurant_id' => $restaurantId,
-                'branch_id' => $branchId,
-                'customer_id' => $customerId,
-                'expires_at' => now()->addMonths(3),
-                'last_activity_at' => now(),
-            ]);
+            // Utiliser une transaction pour éviter les doublons
+            $slate = \DB::transaction(function () use ($deviceUuid, $restaurantId, $branchId, $customerId) {
+                // Vérifier à nouveau dans la transaction (sans filtre sur le status)
+                $existingSlate = self::where('device_uuid', $deviceUuid)
+                    ->where('restaurant_id', $restaurantId)
+                    ->where('branch_id', $branchId)
+                    ->where('expires_at', '>', now())
+                    ->lockForUpdate()
+                    ->first();
 
-            \Log::info('🆕 Nouvelle ardoise créée', [
-                'slate_id' => $slate->id,
-                'code' => $slate->code,
-                'device_uuid' => $deviceUuid,
-            ]);
+                if ($existingSlate) {
+                    \Log::info('✅ Ardoise existante trouvée', [
+                        'slate_id' => $existingSlate->id,
+                        'code' => $existingSlate->code,
+                        'device_uuid' => $deviceUuid,
+                        'restaurant_id' => $restaurantId,
+                        'branch_id' => $branchId,
+                        'status' => $existingSlate->status,
+                    ]);
+                    return $existingSlate;
+                }
+
+                $maxRetries = 3;
+                $retryCount = 0;
+
+                while ($retryCount < $maxRetries) {
+                    try {
+                        $slate = self::create([
+                            'code' => self::generateCode($branchId),
+                            'device_uuid' => $deviceUuid,
+                            'restaurant_id' => $restaurantId,
+                            'branch_id' => $branchId,
+                            'customer_id' => $customerId,
+                            'expires_at' => now()->addMonths(3),
+                            'last_activity_at' => now(),
+                        ]);
+
+                        \Log::info('🆕 Nouvelle ardoise créée', [
+                            'slate_id' => $slate->id,
+                            'code' => $slate->code,
+                            'device_uuid' => $deviceUuid,
+                        ]);
+
+                        return $slate;
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        // Si c'est une erreur de doublon de code, réessayer
+                        if ($e->errorInfo[1] == 1062 && strpos($e->getMessage(), 'slates_code_unique') !== false) {
+                            $retryCount++;
+                            \Log::warning("Tentative {$retryCount}/{$maxRetries} - Code en doublon détecté, nouvelle génération...");
+
+                            if ($retryCount >= $maxRetries) {
+                                throw new \Exception("Impossible de générer un code unique après {$maxRetries} tentatives");
+                            }
+
+                            // Attendre un court instant avant de réessayer
+                            usleep(100000); // 100ms
+                            continue;
+                        }
+
+                        // Pour toute autre erreur, la relancer
+                        throw $e;
+                    }
+                }
+
+                throw new \Exception("Erreur inattendue lors de la création de l'ardoise");
+            });
         }
 
         return $slate;
@@ -153,18 +244,38 @@ class Slate extends Model
     // Recalculer les montants de l'ardoise
     public function recalculateAmounts()
     {
-        $unpaidOrders = $this->unpaidOrders;
-        $paidOrders = $this->paidOrders;
+        // Récupérer toutes les commandes de l'ardoise (sauf annulées et brouillons)
+        $activeOrders = $this->orders()
+            ->whereNotIn('status', ['canceled', 'draft'])
+            ->get();
 
-        $this->total_amount = $unpaidOrders->sum('total') + $paidOrders->sum('total');
-        $this->paid_amount = $paidOrders->sum('total');
-        $this->remaining_amount = $unpaidOrders->sum('total');
+        // Total = somme de toutes les commandes actives
+        $this->total_amount = $activeOrders->sum('total');
+
+        // Séparer les commandes payées, en attente et non payées
+        $paidOrders = $activeOrders->where('status', 'paid');
+        $pendingOrders = $activeOrders->where('status', 'pending_verification');
+
+        // Payé = somme des montants confirmés (status = paid)
+        $this->paid_amount = $paidOrders->sum('amount_paid');
+
+        // En attente = somme des montants en attente de vérification
+        $this->pending_payment = $pendingOrders->sum('amount_paid');
+
+        // Reste à payer = Total - Payé - En attente
+        $this->remaining_amount = $this->total_amount - $this->paid_amount - $this->pending_payment;
+
         $this->last_activity_at = now();
 
-        // Si tout est payé, marquer comme payée mais garder active
-        if ($this->remaining_amount <= 0 && $this->total_amount > 0) {
+        // Déterminer le statut de l'ardoise
+        if ($this->remaining_amount <= 0 && $this->pending_payment <= 0 && $this->total_amount > 0) {
+            // Tout est payé et confirmé
             $this->status = 'paid';
+        } elseif ($this->pending_payment > 0 && $this->remaining_amount <= 0) {
+            // Tout est payé mais en attente de vérification
+            $this->status = 'pending_verification';
         } else {
+            // Partiellement payé ou non payé
             $this->status = 'active';
         }
 
@@ -175,7 +286,10 @@ class Slate extends Model
             'code' => $this->code,
             'total' => $this->total_amount,
             'paid' => $this->paid_amount,
+            'pending' => $this->pending_payment,
             'remaining' => $this->remaining_amount,
+            'status' => $this->status,
+            'orders_count' => $activeOrders->count(),
         ]);
 
         return $this;
