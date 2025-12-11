@@ -189,6 +189,16 @@ return [
         'pricingDetails' => 'Détails du prix',
         'hasVariationsHelp' => 'Activez ceci si l\'article a plusieurs variations avec des prix différents (ex : taille, saveur).',
         'finalPrice' => 'Prix final',
+        'basePriceDescription' => 'Ceci sera utilisé comme le prix par défaut si des prix spécifiques pour les types de commande ne sont pas définis.',
+        'orderTypesPricing' => 'Prix par types de commande',
+        'orderType' => 'Type de commande',
+        'delivery' => 'Livraison',
+        'defaultDeliveryPrice' => 'Prix de livraison par défaut',
+        'orderType_dine_in' => 'Sur place',
+        'orderType_pickup' => 'A emporter',
+        'orderType_delivery' => 'A livrer',
+        'deliveryPlatforms' => 'Plateformes de livraison',
+        'baseDeliveryPrice' => 'Prix de livraison par défaut',
     ],
 
     'table' => [

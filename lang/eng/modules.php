@@ -188,6 +188,16 @@ return [
         'pricingDetails' => 'Pricing Details',
         'hasVariationsHelp' => 'Enable this if the item has multiple variations with different prices (e.g., size, flavor).',
         'finalPrice' => 'Final Price',
+        'basePriceDescription' => 'This will be used as the default price if specific prices for order types are not defined.',
+        'orderTypesPricing' => 'Order Types Pricing',
+        'orderType' => 'Order Type',
+        'delivery' => 'Delivery',
+        'defaultDeliveryPrice' => 'Default Delivery Price',
+        'orderType_dine_in' => 'Dine In',
+        'orderType_pickup' => 'Pick Up',
+        'orderType_delivery' => 'Delivery',
+        'deliveryPlatforms' => 'Delivery Platforms',
+        'baseDeliveryPrice' => 'Base Delivery Price',
     ],
 
     'table' => [

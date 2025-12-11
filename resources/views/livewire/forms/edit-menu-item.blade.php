@@ -368,18 +368,17 @@
                     </div>
                 </x-label>
             </div>
+            
 
             @if ($showItemPrice)
                 <div wire:transition  wire:key="item-price">
                     <x-label for="itemPrice" :value="__('modules.menu.setPrice')"/>
-                    <div class="relative mt-1 rounded-md">
-                        <div class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
-                            <span class="text-gray-500">{{ restaurant()->currency->currency_symbol }}</span>
-                        </div>
-                        <x-input id="itemPrice" type="number" step="0.001" wire:model.live="itemPrice"
-                                class="block pl-10 w-full text-gray-900 rounded placeholder:text-gray-400"
-                                placeholder="0.00"/>
-                    </div>
+                    <x-currency-input
+                        id="itemPrice"
+                        wire:model.live="itemPrice"
+                        class="mt-1 sm:w-64"
+                        placeholder="1 000"
+                    />
                     <x-input-error for="itemPrice" class="mt-2"/>
                 </div>
             @else
@@ -399,14 +398,12 @@
                             <div>
                                 <x-label for="variationPrice.{{ $key }}" :value="__('modules.menu.setPrice')"/>
                                 <div class="inline-flex relative items-center mt-1 rounded-md">
-                                    <div class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
-                                        <span class="text-gray-500">{{ restaurant()->currency->currency_symbol }}</span>
-                                    </div>
-                                    <x-input id="variationPrice.{{ $key }}" type="number" step="0.001"
-                                            wire:model.live="variationPrice.{{ $key }}"
-                                            class="block pl-10 w-full text-gray-900 rounded placeholder:text-gray-400"
-                                            placeholder="0.00"/>
-
+                                    <x-currency-input
+                                        id="variationPrice.{{ $key }}"
+                                        wire:model.live="variationPrice.{{ $key }}"
+                                        class="block w-full sm:w-64"
+                                        placeholder="1 000"
+                                    />
                                     <x-danger-button class="ml-2" wire:click="removeField({{ $key }})"
                                                     wire:key='remove-variation-{{ $key }}'>&cross;
                                     </x-danger-button>
@@ -414,6 +411,7 @@
                                 <x-input-error for="variationPrice.{{ $key }}" class="mt-2"/>
                             </div>
                         </div>
+                        
                         {{-- Variation tax breakdown for this variation --}}
                         @if(!empty($variationBreakdowns[$key]['breakdown']))
                         <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 mb-4" wire:key="variation-breakdown-{{ $key }}">
@@ -504,9 +502,8 @@
                 <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">@lang('modules.menu.taxBreakdown')</h4>
 
                 @php
-                    $currencySymbol = restaurant()->currency->currency_symbol;
-                    $formatPrice = function($amount) use ($currencySymbol) {
-                        return $currencySymbol . ' ' . number_format($amount ?? 0, 2);
+                    $formatPrice = function($amount) {
+                        return currency_format($amount,restaurant()->currency_id);
                     };
                 @endphp
 

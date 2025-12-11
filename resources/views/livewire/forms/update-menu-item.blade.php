@@ -271,7 +271,7 @@
 
                         <!-- Item Image Upload -->
                         <div>
-                            <x-label for="itemImage" value="{{ __('modules.menu.itemImage') }}" />
+                            <x-label for="itemImage" :value="__('modules.menu.itemImage')" />
 
                             <input
                                 class="block w-full text-sm border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 text-slate-500 mt-1"
@@ -452,7 +452,12 @@
                                                     {{ !empty($variationName[$key]) ? $variationName[$key] : 'Variation ' . ($key + 1) }}
                                                 </h4>
                                                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                    <span class="font-medium">@lang('modules.menu.setPrice'):</span> {{ restaurant()->currency->currency_symbol }}{{ !empty($variationPrice[$key]) ? $variationPrice[$key] : '0.00' }}
+                                                    <span class="font-medium">@lang('modules.menu.setPrice'):</span> 
+                                                @if (restaurant()->currency->currency_position == 'left' || restaurant()->currency->currency_position == 'left_with_space')
+                                                    {{ restaurant()->currency->currency_symbol }}{{ !empty($variationPrice[$key]) ? $variationPrice[$key] : '0.00' }}
+                                                @else
+                                                    {{ !empty($variationPrice[$key]) ? $variationPrice[$key] : '0.00' }}{{ restaurant()->currency->currency_symbol }}
+                                                @endif
                                                 </p>
                                             </div>
                                         </div>
@@ -493,14 +498,12 @@
                                     </div>
                                     <div>
                                         <x-label for="variationPrice.{{ $key }}" :value="__('modules.menu.setPrice')" />
-                                        <div class="relative rounded-md mt-1">
-                                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                <span class="text-gray-500">{{ restaurant()->currency->currency_symbol }}</span>
-                                            </div>
-                                            <x-input id="variationPrice.{{ $key }}" type="number" step="0.001" min="0"
-                                                wire:model.live='variationPrice.{{ $key }}'
-                                                class="block w-full rounded pl-10 text-gray-900 placeholder:text-gray-400" placeholder="0.00" />
-                                        </div>
+                                        <x-currency-input 
+                                            id="variationPrice.{{ $key }}"
+                                            wire:model.live="variationPrice.{{ $key }}"
+                                            class="mt-1"
+                                            placeholder="1 000"
+                                        />
                                         <x-input-error for="variationPrice.{{ $key }}" class="mt-2" />
                                     </div>
                                 </div>
@@ -508,24 +511,22 @@
                                 <!-- Order Types Pricing -->
                                 @if($orderTypes->isNotEmpty())
                                 <div>
-                                    <x-label value="Order Types Pricing" class="mb-3 text-base font-semibold" />
+                                    <x-label value="{{ __('modules.menu.orderTypesPricing') }}" class="mb-3 text-base font-semibold" />
                                     <div class="space-y-2">
                                         @foreach($orderTypes->reject(fn($type) => strtolower($type->slug ?? $type->name) === 'delivery') as $orderType)
                                         <div wire:key="variation-order-type-{{ $key }}-{{ $orderType->id }}">
                                             <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                                 <div class="inline-flex items-center space-x-2">
                                                     <div @class(['w-3 h-3 rounded-full flex-shrink-0', $this->orderTypeColor($orderType->id)])></div>
-                                                    <span class="font-medium text-gray-900 dark:text-white text-sm truncate">{{ $orderType->order_type_name }}</span>
+                                                    <span class="font-medium text-gray-900 dark:text-white text-sm truncate">
+                                                        @lang('modules.menu.orderType_' . $orderType->slug)
+                                                    </span>
                                                 </div>
-                                                <div class="relative">
-                                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                        <span class="text-gray-500 text-sm">{{ restaurant()->currency->currency_symbol }}</span>
-                                                    </div>
-                                                    <x-input type="number" step="0.001" min="0"
-                                                            wire:model.blur="variationOrderTypePrices.{{ $key }}.{{ $orderType->id }}"
-                                                            class="block pl-8 pr-3 w-32"
-                                                            placeholder="0.00" />
-                                                </div>
+                                                <x-currency-input 
+                                                    wire:model.blur="variationOrderTypePrices.{{ $key }}.{{ $orderType->id }}"
+                                                    class="w-32"
+                                                    placeholder="1 000"
+                                                />
                                             </div>
                                             <x-input-error for="variationOrderTypePrices.{{ $key }}.{{ $orderType->id }}" class="mt-2" />
                                         </div>
@@ -537,25 +538,22 @@
                                 <!-- Delivery Platforms -->
                                 @if($deliveryApps->isNotEmpty())
                                 <div>
-                                    <x-label value="Delivery Platforms" class="mb-3 text-base font-semibold" />
+                                    <x-label value="{{ __('modules.menu.deliveryPlatforms') }}" class="mb-3 text-base font-semibold" />
                                     <div class="space-y-2">
                                         <!-- Base Delivery Price -->
                                         <div>
                                             <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                                 <div class="flex items-center space-x-2">
                                                     <svg class="w-5 h-5 text-gray-600 dark:text-gray-200" fill="currentColor" height="20" viewBox="0 0 64 64" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M4 16h14.001a3 3 0 0 1 3 3v11.001a3 3 0 0 1-3 3h-14a3 3 0 0 1-3.001-3v-11a3 3 0 0 1 3-3"/><circle cx="33.002" cy="7" r="5"/><path d="M12.003 35.852a5.92 5.92 0 0 0 1.7 4.15H29.96v-4.155a.996.996 0 0 0-.996-.996H12.998a1 1 0 0 0-.995 1.001"/><path d="M61.737 51.359a8.13 8.13 0 0 0-8.322-5.994 7 7 0 0 0 .24-1.791A5.93 5.93 0 0 0 51 38.75c-2.147-1.425-3.753-5.048-3.996-8.858h1.916a2.99 2.99 0 0 0 2.991-2.982v-1.986a2.99 2.99 0 0 0-2.991-2.982h-6.84c-5.782-1.665-7.522-3.583-8.561-4.732l-.063-.07a3.71 3.71 0 0 0-2.018-3.813 3.64 3.64 0 0 0-5.122 2.497l-2.869 13.71a2.983 2.983 0 0 0 2.598 3.571l4.917.544a.994.994 0 0 1 .887 1.043l-.774 13.106a5.27 5.27 0 0 1-1.477-5.796H14.313c-1.612 2.671-4.193 7.679-3.149 10.936a4.04 4.04 0 0 0 2.609 2.622 3.7 3.7 0 0 0 1.39.15 6.406 6.406 0 0 0 12.78 0h17.14a1.26 1.26 0 0 0 .875-.423 7 7 0 0 0 .587 1.703.996.996 0 0 0 1.716.14q.176-.25.376-.491a6.4 6.4 0 1 0 12.484-2.718.986.986 0 0 0 .875-1.075 8 8 0 0 0-.26-1.487m-40.184 8.318a4.407 4.407 0 0 1-4.385-3.967h8.77a4.407 4.407 0 0 1-4.385 3.967M40.94 48.754h-3.885l1.718-16.24a2.98 2.98 0 0 0-1.926-3.104l-4.9-1.829a.99.99 0 0 1-.622-1.149l.745-3.215a17.1 17.1 0 0 0 8.87 3.633zm14.586 11.218a4.413 4.413 0 0 1-4.961-4.86l.304-.38a11.08 11.08 0 0 1 7.676-1.51l.236.183a4.4 4.4 0 0 1-3.255 6.567"/></svg>
-                                                    <span class="font-medium text-gray-900 dark:text-white text-sm">Base Delivery Price</span>
+                                                    <span class="font-medium text-gray-900 dark:text-white text-sm">
+                                                        @lang('modules.menu.baseDeliveryPrice')
+                                                    </span>
                                                 </div>
-                                                <div class="relative">
-                                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                        <span class="text-gray-500 text-sm">{{ restaurant()->currency->currency_symbol }}</span>
-                                                    </div>
-                                                    <x-input type="number" step="0.001"
-                                                            wire:model.live="variationBaseDeliveryPrice.{{ $key }}"
-                                                            class="block pl-8 pr-3 w-32"
-                                                            min="0"
-                                                            placeholder="0.00" />
-                                                </div>
+                                                <x-currency-input 
+                                                    wire:model.live="variationBaseDeliveryPrice.{{ $key }}"
+                                                    class="w-32"
+                                                    placeholder="1 000"
+                                                />
                                             </div>
                                             <x-input-error for="variationBaseDeliveryPrice.{{ $key }}" class="mt-2" />
                                         </div>
@@ -593,7 +591,11 @@
                                                 </label>
                                                 <div class="text-right">
                                                     <div class="font-semibold text-sm text-gray-900 dark:text-white">
-                                                        {{ restaurant()->currency->currency_symbol }}{{ $variationDeliveryPrices[$key][$app->id] ?? '0.00' }}
+                                                        @if (restaurant()->currency->currency_position == 'left' || restaurant()->currency->currency_position == 'left_with_space')
+                                                            {{ restaurant()->currency->currency_symbol }}{{ $variationDeliveryPrices[$key][$app->id] ?? '0.00' }}
+                                                        @else
+                                                            {{ $variationDeliveryPrices[$key][$app->id] ?? '0.00' }}{{ restaurant()->currency->currency_symbol }}
+                                                        @endif
                                                     </div>
                                                     <div class="text-xs text-gray-500">Final</div>
                                                 </div>
@@ -611,7 +613,11 @@
                                     <div class="text-xs space-y-1">
                                         <div class="flex justify-between">
                                             <span>@lang('modules.menu.basePrice'):</span>
-                                            <span>{{ restaurant()->currency->currency_symbol }}{{ $variationBreakdowns[$key]['breakdown']['base_price'] ?? '0.00' }}</span>
+                                            @if (restaurant()->currency->currency_position == 'left' || restaurant()->currency->currency_position == 'left_with_space')
+                                                <span>{{ restaurant()->currency->currency_symbol }}{{ $variationBreakdowns[$key]['breakdown']['base_price'] ?? '0.00' }}</span>
+                                            @else
+                                                <span>{{ $variationBreakdowns[$key]['breakdown']['base_price'] ?? '0.00' }}{{ restaurant()->currency->currency_symbol }}</span>
+                                            @endif
                                         </div>
                                         @if(!empty($variationBreakdowns[$key]['breakdown']['tax_breakdown']))
                                         @foreach($variationBreakdowns[$key]['breakdown']['tax_breakdown'] as $tax)
@@ -650,39 +656,35 @@
                     <div class="space-y-6 mt-4" wire:key="simple-pricing-section">
                         <!-- Default Price (itemPrice) -->
                         <div>
-                            <x-label for="itemPrice" value="Base Price" />
-                            <div class="relative mt-1">
-                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <span class="text-gray-500">{{ restaurant()->currency->currency_symbol }}</span>
-                                </div>
-                                <x-input id="itemPrice" type="number" step="0.01" min="0" wire:model="itemPrice" class="block w-full pl-10 pr-4" placeholder="0.00" />
-                            </div>
+                            <x-label for="itemPrice" value="{{ __('modules.menu.basePrice') }}" />
+                            <x-currency-input 
+                                id="itemPrice"
+                                wire:model="itemPrice"
+                                class="mt-1"
+                                placeholder="1 000"
+                            />
                             <x-input-error for="itemPrice" class="mt-1" />
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">This will be used as the default price if order type specific prices are not set.</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ __('modules.menu.basePriceDescription') }}</p>
                         </div>
 
                         <!-- Order Types Pricing -->
                         <div>
-                            <x-label value="Order Types Pricing" class="mb-4 text-base font-semibold" />
+                            <x-label value="{{ __('modules.menu.orderTypesPricing') }}" class="mb-4 text-base font-semibold" />
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-3">
                                 @foreach($orderTypes->reject(fn($type) => strtolower($type->slug ?? $type->name) === 'delivery') as $orderType)
                                 <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600" wire:key="order-type-{{ $orderType->id }}">
                                     <div class="flex items-center space-x-3">
                                         <div @class(['w-3 h-3 rounded-full flex-shrink-0', $this->orderTypeColor($orderType->id)])></div>
                                         <span class="font-medium text-gray-900 dark:text-white">
-                                            {{ $orderType->order_type_name }}
+                                            @lang('modules.menu.orderType_' . $orderType->slug)
                                         </span>
                                     </div>
                                     <div class="flex items-center space-x-3">
-                                        <div class="relative">
-                                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                <span class="text-gray-500">{{ restaurant()->currency->currency_symbol }}</span>
-                                            </div>
-                                            <x-input type="number" step="0.001" min="0"
-                                                wire:model="orderTypePrices.{{ $orderType->id }}"
-                                                class="block pl-8 pr-3 border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:ring-skin-base focus:border-skin-base"
-                                                placeholder="0.00" />
-                                        </div>
+                                        <x-currency-input 
+                                            wire:model="orderTypePrices.{{ $orderType->id }}"
+                                            class="w-64"
+                                            placeholder="1 000"
+                                        />
                                     </div>
                                 </div>
                                 @endforeach
@@ -694,7 +696,7 @@
 
                         <!-- Delivery Platforms Display -->
                         <div>
-                            <x-label value="Delivery Platforms" class="mb-4 text-base font-semibold" />
+                            <x-label value="{{ __('modules.menu.deliveryPlatforms') }}" class="mb-4 text-base font-semibold" />
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-3">
 
                                 <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
@@ -702,23 +704,19 @@
                                         <svg class="w-6 h-6 text-gray-600 dark:text-gray-200" fill="currentColor" height="24" viewBox="0 0 64 64" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M4 16h14.001a3 3 0 0 1 3 3v11.001a3 3 0 0 1-3 3h-14a3 3 0 0 1-3.001-3v-11a3 3 0 0 1 3-3"/><circle cx="33.002" cy="7" r="5"/><path d="M12.003 35.852a5.92 5.92 0 0 0 1.7 4.15H29.96v-4.155a.996.996 0 0 0-.996-.996H12.998a1 1 0 0 0-.995 1.001"/><path d="M61.737 51.359a8.13 8.13 0 0 0-8.322-5.994 7 7 0 0 0 .24-1.791A5.93 5.93 0 0 0 51 38.75c-2.147-1.425-3.753-5.048-3.996-8.858h1.916a2.99 2.99 0 0 0 2.991-2.982v-1.986a2.99 2.99 0 0 0-2.991-2.982h-6.84c-5.782-1.665-7.522-3.583-8.561-4.732l-.063-.07a3.71 3.71 0 0 0-2.018-3.813 3.64 3.64 0 0 0-5.122 2.497l-2.869 13.71a2.983 2.983 0 0 0 2.598 3.571l4.917.544a.994.994 0 0 1 .887 1.043l-.774 13.106a5.27 5.27 0 0 1-1.477-5.796H14.313c-1.612 2.671-4.193 7.679-3.149 10.936a4.04 4.04 0 0 0 2.609 2.622 3.7 3.7 0 0 0 1.39.15 6.406 6.406 0 0 0 12.78 0h17.14a1.26 1.26 0 0 0 .875-.423 7 7 0 0 0 .587 1.703.996.996 0 0 0 1.716.14q.176-.25.376-.491a6.4 6.4 0 1 0 12.484-2.718.986.986 0 0 0 .875-1.075 8 8 0 0 0-.26-1.487m-40.184 8.318a4.407 4.407 0 0 1-4.385-3.967h8.77a4.407 4.407 0 0 1-4.385 3.967M40.94 48.754h-3.885l1.718-16.24a2.98 2.98 0 0 0-1.926-3.104l-4.9-1.829a.99.99 0 0 1-.622-1.149l.745-3.215a17.1 17.1 0 0 0 8.87 3.633zm14.586 11.218a4.413 4.413 0 0 1-4.961-4.86l.304-.38a11.08 11.08 0 0 1 7.676-1.51l.236.183a4.4 4.4 0 0 1-3.255 6.567"/></svg>
                                         <div>
                                             <span class="font-medium text-gray-900 dark:text-white">
-                                                Delivery
+                                                {{ __('modules.menu.orderType_delivery') }}
                                             </span>
                                             <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                Default delivery price
+                                                {{ __('modules.menu.defaultDeliveryPrice') }}
                                             </div>
                                         </div>
                                     </div>
                                     <div class="flex items-center space-x-3">
-                                        <div class="relative">
-                                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                <span class="text-gray-500">{{ restaurant()->currency->currency_symbol }}</span>
-                                            </div>
-                                            <x-input type="number" step="0.01" min="0"
-                                                wire:model.live="baseDeliveryPrice"
-                                                class="block pl-8 pr-3 border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:ring-skin-base focus:border-skin-base"
-                                                placeholder="{{ $baseDeliveryPrice ?: '0.00' }}" />
-                                        </div>
+                                        <x-currency-input 
+                                            wire:model.live="baseDeliveryPrice"
+                                            class="w-64"
+                                            placeholder="1 000"
+                                        />
                                     </div>
                                 </div>
                                 @forelse($deliveryApps as $app)
@@ -748,7 +746,11 @@
                                                 @if($app->commission_type === 'percent')
                                                     {{ $app->commission_value ?? 0 }}%
                                                 @else
-                                                    {{ restaurant()->currency->currency_symbol }}{{ $app->commission_value ?? 0 }}
+                                                    @if (restaurant()->currency->currency_position == 'left' || restaurant()->currency->currency_position == 'left_with_space')
+                                                        {{ restaurant()->currency->currency_symbol }}{{ $app->commission_value ?? 0 }}
+                                                    @else
+                                                        {{ $app->commission_value ?? 0 }}{{ restaurant()->currency->currency_symbol }}
+                                                    @endif
                                                 @endif
                                             </div>
                                         </div>
@@ -765,9 +767,13 @@
                                         <!-- Calculated Price Display -->
                                         <div class="text-right">
                                             <div class="font-semibold text-gray-900 dark:text-white">
-                                                {{ restaurant()->currency->currency_symbol }}{{ $deliveryPrices[$app->id] ?? '0.00' }}
+                                                @if (restaurant()->currency->currency_position == 'left' || restaurant()->currency->currency_position == 'left_with_space')
+                                                    {{ restaurant()->currency->currency_symbol }}{{ $deliveryPrices[$app->id] ?? '0.00' }}
+                                                @else
+                                                    {{ $deliveryPrices[$app->id] ?? '0.00' }}{{ restaurant()->currency->currency_symbol }}
+                                                @endif
                                             </div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">Final Price</div>
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">{{ __('modules.menu.finalPrice') }}</div>
                                         </div>
                                     </div>
                                 </div>
