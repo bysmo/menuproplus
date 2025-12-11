@@ -78,12 +78,7 @@
                     @case('fixed')
                         <div>
                             <x-label for="fixedFee" :value="__('modules.delivery.fixedFee')" />
-                            <div class="relative inline-flex items-center mt-1 rounded-md w-full">
-                                <div class="absolute inset-y-0 left-0 inline-flex items-center pl-4 pointer-events-none">
-                                    <span class="text-gray-500">{{ currency() }}</span>
-                                </div>
-                                <x-input id="fixedFee" class="block w-full text-gray-900 rounded pl-10 placeholder:text-gray-400" type="number" wire:model="fixedFee" step="0.01" autocomplete="off" min="0" placeholder="0.00" />
-                            </div>
+                            <x-currency-input id="fixedFee" wire:model="fixedFee" />
                             <x-input-error for="fixedFee" class="mt-2" />
                         </div>
                         @break
@@ -91,12 +86,7 @@
                     @case('per_distance')
                         <div>
                             <x-label for="perDistanceRate" :value="__('modules.delivery.feePerDistance', ['unit' => $unit])" />
-                            <div class="relative inline-flex items-center mt-1 rounded-md w-full">
-                                <div class="absolute inset-y-0 left-0 inline-flex items-center pl-4 pointer-events-none">
-                                    <span class="text-gray-500">{{ currency() }}</span>
-                                </div>
-                                <x-input id="perDistanceRate" class="block w-full text-gray-900 rounded pl-10 placeholder:text-gray-400" type="number" wire:model="perDistanceRate" step="0.01" min="0" autocomplete="off" placeholder="0.00" required />
-                            </div>
+                            <x-currency-input id="perDistanceRate" wire:model="perDistanceRate" />
                             <x-input-error for="perDistanceRate" class="mt-2" />
                         </div>
                         @break
@@ -177,12 +167,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <x-label for="freeDeliveryOverAmount" :value="__('modules.delivery.freeDeliveryOverAmount')" />
-                        <div class="relative inline-flex items-center mt-1 rounded-md w-full">
-                            <div class="absolute inset-y-0 left-0 inline-flex items-center pl-4 pointer-events-none">
-                                <span class="text-gray-500">{{ currency() }}</span>
-                            </div>
-                            <x-input id="freeDeliveryOverAmount" class="block w-full text-gray-900 rounded pl-10 placeholder:text-gray-400" type="number" wire:model="freeDeliveryOverAmount" step="0.01" autocomplete="off" min="0" placeholder="0.00" />
-                        </div>
+                        <x-currency-input id="freeDeliveryOverAmount" wire:model="freeDeliveryOverAmount" />
+                        <x-input-error for="freeDeliveryOverAmount" class="mt-2" />
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             @lang('modules.delivery.leaveEmptyToDisable')</p>
                         <x-input-error for="freeDeliveryOverAmount" class="mt-2" />

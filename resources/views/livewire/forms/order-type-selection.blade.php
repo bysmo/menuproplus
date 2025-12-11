@@ -75,7 +75,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="32" height="32" fill="currentColor" class="text-skin-base"><path d="M24 46a21.9 21.9 0 0 1-6.124-.865 1 1 0 0 1-.718-.889l-.92-12.915a1 1 0 0 1 .731-1.035A5.51 5.51 0 0 0 21 25c0-3.263-1.345-10-5.5-10S10 21.737 10 25a5.51 5.51 0 0 0 4.031 5.3 1 1 0 0 1 .731 1.035L14 41.966a1 1 0 0 1-1.522.781A22 22 0 1 1 46 24a21.87 21.87 0 0 1-10.48 18.747 1 1 0 0 1-1.52-.781l-.86-12.029a1 1 0 0 1 .77-1.046A3.98 3.98 0 0 0 37 25V15a1 1 0 0 1 2 0v10a5.97 5.97 0 0 1-3.812 5.584l.681 9.518A20 20 0 1 0 4 24a19.86 19.86 0 0 0 8.131 16.1l.581-8.144A7.52 7.52 0 0 1 8 25c0-4.64 2.036-12 7.5-12S23 20.36 23 25a7.52 7.52 0 0 1-4.712 6.958L19.1 43.4a20.24 20.24 0 0 0 9.794 0l.915-12.812A5.97 5.97 0 0 1 26 25V15a1 1 0 0 1 2 0v10a3.98 3.98 0 0 0 3.092 3.891 1 1 0 0 1 .77 1.046l-1.02 14.309a1 1 0 0 1-.718.889A21.9 21.9 0 0 1 24 46"/><path d="M34.25 22a1 1 0 0 1-1-1v-6a1 1 0 0 1 2 0v6a1 1 0 0 1-1 1m-3.5 0a1 1 0 0 1-1-1v-6a1 1 0 0 1 2 0v6a1 1 0 0 1-1 1"/></svg>
                                 @endif
                             </div>
-                            <span class="text-sm font-semibold text-gray-900 dark:text-white text-center">{{ $orderType->order_type_name }}</span>
+                            <span class="text-sm font-semibold text-gray-900 dark:text-white text-center">@lang('modules.menu.orderType_' . $orderType->slug)</span>
                         </button>
                         @empty
                         <div class="col-span-full text-center py-12">

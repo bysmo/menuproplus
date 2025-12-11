@@ -249,7 +249,7 @@
                                     <div class="flex-1">
                                         <x-label
                                             for="tokenSettings_{{ $orderType->id }}"
-                                            :value="$orderType->order_type_name"
+                                            :value="__('modules.order.orderType_' . $orderType->order_type_name)"
                                             class="!mb-1 font-medium" />
                                         <p class="text-sm text-gray-500 dark:text-gray-400">
                                             @lang('modules.order.tokenNumberSettingsDescriptionOrderType', ['orderType' => $orderType->order_type_name])

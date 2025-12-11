@@ -36,7 +36,7 @@
 
                         <!-- Order Type Name -->
                         <span class="text-lg font-semibold text-gray-900 dark:text-white">
-                            {{ $orderType->order_type_name }}
+                            @lang('modules.menu.orderType_' . $orderType->slug)
                         </span>
 
                         @if($orderType->type === 'dine_in')

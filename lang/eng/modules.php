@@ -558,6 +558,9 @@ return [
         'noOrders' => 'Waiting for orders...',
         'tokenNumberSettingsDescriptionOrderType' => 'Enable token numbers for :orderType orders. Tokens will be displayed on order details and reset daily.',
         'noOrderTypesFound' => 'No order types found for this branch.',
+        'orderType_Dine In' => 'Dine In',
+        'orderType_Delivery' => 'Delivery',
+        'orderType_Pickup' => 'Pickup',
     ],
 
     'customer' => [

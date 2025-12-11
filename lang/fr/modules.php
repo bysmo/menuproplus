@@ -559,6 +559,9 @@ return [
         'noOrders' => 'En attente de commandes...',
         'tokenNumberSettingsDescriptionOrderType' => 'Activer les numéros de jeton pour les commandes :orderType. Les jetons seront affichés sur les détails de commande et se réinitialisent quotidiennement.',
         'noOrderTypesFound' => 'Aucun type de commande trouvé pour cette succursale.',
+        'orderType_Dine In' => 'Sur place',
+        'orderType_Delivery' => 'A livrer',
+        'orderType_Pickup' => 'A emporter',
     ],
 
     'customer' => [

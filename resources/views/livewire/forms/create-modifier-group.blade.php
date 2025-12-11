@@ -447,7 +447,7 @@
                     <div class="space-y-2">
                         @foreach($orderTypes->reject(fn($type) => strtolower($type->slug ?? $type->name) === 'delivery') as $orderType)
                         <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
-                            <span class="font-medium text-gray-900 dark:text-white">{{ $orderType->order_type_name }}</span>
+                            <span class="font-medium text-gray-900 dark:text-white">@lang('modules.menu.orderType_' . $orderType->slug)</span>
                             <div class="relative">
                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                     <span class="text-gray-500 text-sm">{{ restaurant()->currency->currency_symbol }}</span>
