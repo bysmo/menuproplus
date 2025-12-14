@@ -4,14 +4,14 @@
 
 
 @layer base {
-    :root {
-      --color-base: 167, 139, 250;
-    }
+  :root {
+    --color-base: 167, 139, 250;
+  }
 }
 
-  
+
 [x-cloak] {
-    display: none;
+  display: none;
 }
 
 /* Hide Specific Trix Buttons */
@@ -20,26 +20,26 @@
 .trix-button--icon-decrease-nesting-level,
 .trix-button--icon-increase-nesting-level,
 .trix-button--icon-strike {
-    display: none !important;
+  display: none !important;
 }
 
 /* Trix Button Customization */
 .trix-button-group,
 .trix-button {
-    border: none !important;
-    border-top: none !important;
-    margin-left: 2px !important;
-    margin-right: 2px !important;
-    font-size: 13px !important;
-    padding: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  margin-left: 2px !important;
+  margin-right: 2px !important;
+  font-size: 13px !important;
+  padding: 0 !important;
 }
 
 /* Active Button Style */
 .trix-button.trix-active {
-    border: 1px solid #000000 !important;
-    background: white !important;
-    color: #000;
-    border-radius: 3px;
+  border: 1px solid #000000 !important;
+  background: white !important;
+  color: #000;
+  border-radius: 3px;
 }
 
 /* Trix Content Styles */
@@ -86,4 +86,45 @@
   border-left-width: 0.3em;
   margin-left: 0.3em;
   padding-left: 0.6em;
+}
+
+/* === Aladin Toast Customization === */
+div.swal2-popup.swal2-toast {
+  background: #1E40AF !important;
+  /* Aladin Blue Primary */
+  color: #ffffff !important;
+  box-shadow: 0 4px 6px rgba(30, 64, 175, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  /* Subtle yellow border */
+}
+
+div.swal2-popup.swal2-toast .swal2-title {
+  color: #FBBF24 !important;
+  /* Aladin Yellow Primary */
+  font-weight: 600;
+}
+
+div.swal2-popup.swal2-toast .swal2-html-container {
+  color: #ffffff !important;
+}
+
+div.swal2-popup.swal2-toast .swal2-success-circular-line-left,
+div.swal2-popup.swal2-toast .swal2-success-circular-line-right,
+div.swal2-popup.swal2-toast .swal2-success-fix {
+  background-color: transparent !important;
+}
+
+div.swal2-popup.swal2-toast .swal2-timer-progress-bar {
+  background-color: #FBBF24 !important;
+}
+
+/* Success Icon Customization for Toast */
+div.swal2-popup.swal2-toast .swal2-icon.swal2-success .swal2-success-ring {
+  border-color: #FBBF24 !important;
+  /* Yellow ring */
+}
+
+div.swal2-popup.swal2-toast .swal2-icon.swal2-success [class^='swal2-success-line'] {
+  background-color: #FBBF24 !important;
+  /* Yellow checkmark */
 }

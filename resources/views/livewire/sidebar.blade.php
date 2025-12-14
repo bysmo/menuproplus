@@ -2,22 +2,20 @@
     <aside id="sidebar"
         class="fixed top-0 ltr:left-0 rtl:right-0 z-20 flex flex-col flex-shrink-0 hidden w-64 h-full pt-16 font-normal duration-75 lg:flex transition-width menu-collapsed:hidden"
         aria-label="Sidebar">
-        <div class="relative flex flex-col flex-1 min-h-0 pt-0 bg-gray-50 ltr:border-r rtl:border-l border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="relative flex flex-col flex-1 min-h-0 pt-0 bg-[#1E40AF] ltr:border-r rtl:border-l border-[#1E3A8A]" style="background-color: #1E40AF; border-color: #1E3A8A;">
             <div class="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto mb-16 [&::-webkit-scrollbar]:w-1.5
                 [&::-webkit-scrollbar-track]:rounded-xl
                 [&::-webkit-scrollbar-thumb]:rounded-xl
-                [&::-webkit-scrollbar-track]:bg-gray-300
-                [&::-webkit-scrollbar-thumb]:bg-gray-400
-                hover:[&::-webkit-scrollbar-thumb]:bg-gray-500
-                dark:[&::-webkit-scrollbar-track]:bg-gray-700
-                dark:[&::-webkit-scrollbar-thumb]:bg-gray-500
-                dark:hover:[&::-webkit-scrollbar-thumb]:bg-gray-400">
-                <div class="flex-1 px-3 space-y-1 bg-gray-50 divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                [&::-webkit-scrollbar-track]:bg-[#1E3A8A]
+                [&::-webkit-scrollbar-thumb]:bg-white/20
+                hover:[&::-webkit-scrollbar-thumb]:bg-white/40"
+                style="scrollbar-color: rgba(255,255,255,0.2) #1E3A8A;">
+                <div class="flex-1 px-3 space-y-1 bg-[#1E40AF] divide-y divide-[#1E3A8A]" style="background-color: #1E40AF;">
 
                     @if (user()->hasRole('Admin_'.user()->restaurant_id))
                         @livewire('forms.change-branch')
                     @else
-                        <div class="text-sm text-gray-500 dark:text-gray-400 py-2 px-3 font-semibold flex items-center justify-between">
+                        <div class="text-sm text-white py-2 px-3 font-semibold flex items-center justify-between" style="color: white;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt" viewBox="0 0 16 16">
                                 <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10"/>
                                 <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
@@ -185,8 +183,8 @@
                 </div>
             </div>
 
-            <div class="absolute bottom-0 left-0 justify-center w-full p-2 space-x-4 bg-white md:flex dark:bg-gray-800 rtl:space-x-reverse" sidebar-bottom-menu>
-                <a href="{{ module_enabled('Subdomain') ? 'https://'.restaurant()->sub_domain : route('shop_restaurant', [restaurant()->hash]) }}" target="_blank" class="inline-flex justify-center items-center gap-1 p-2 w-full md:w-auto text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">
+            <div class="absolute bottom-0 left-0 justify-center w-full p-2 space-x-4 bg-[#1E3A8A] md:flex rtl:space-x-reverse" sidebar-bottom-menu style="background-color: #1E3A8A;">
+                <a href="{{ module_enabled('Subdomain') ? 'https://'.restaurant()->sub_domain : route('shop_restaurant', [restaurant()->hash]) }}" target="_blank" class="inline-flex justify-center items-center gap-1 p-2 w-full md:w-auto text-white/80 rounded cursor-pointer hover:text-white hover:bg-white/10">
                     @lang('menu.customerSite')
 
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">

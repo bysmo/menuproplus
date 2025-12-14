@@ -365,7 +365,7 @@
                                                         {{ $modifierOptionName[$index] ?: 'Option ' . ($index + 1) }}
                                                     </h4>
                                                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                        <span class="font-medium">@lang('modules.modifier.price'):</span> {{ restaurant()->currency->currency_symbol }}{{ $modifierOption['price'] ?? '0.00' }}
+                                                        <span class="font-medium">@lang('modules.modifier.price'):</span> {{ currency_format($modifierOption['price'] ?? '0.00', restaurant()->currency->currency_id) }}
                                                     </p>
                                                 </div>
                                             </div>
@@ -425,7 +425,7 @@
 
                     <div>
                         <x-label for="modifierOptions.{{ $index }}.price" :value="__('modules.modifier.defaultPrice')" />
-                        <x-input id="modifierOptions.{{ $index }}.price" type="number" step="0.001" class="mt-1 block w-full"
+                        <x-currency-input id="modifierOptions.{{ $index }}.price" type="number" step="5" class="mt-1 block w-full"
                             wire:model.live.debounce.500ms="modifierOptions.{{ $index }}.price" placeholder="{{ __('placeholders.modifierOptionPricePlaceholder') }}" />
                         <x-input-error for="modifierOptions.{{ $index }}.price" class="mt-2" />
                     </div>
@@ -443,19 +443,16 @@
                 <!-- Order Types Pricing -->
                 @if($orderTypes->isNotEmpty())
                 <div class="col-span-2">
-                    <x-label value="Order Types Pricing" class="mb-3 text-base font-semibold" />
+                    <x-label value="{{ __('modules.menu.orderTypesPricing') }}" class="mb-3 text-base font-semibold" />
                     <div class="space-y-2">
                         @foreach($orderTypes->reject(fn($type) => strtolower($type->slug ?? $type->name) === 'delivery') as $orderType)
                         <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                             <span class="font-medium text-gray-900 dark:text-white">@lang('modules.menu.orderType_' . $orderType->slug)</span>
                             <div class="relative">
-                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <span class="text-gray-500 text-sm">{{ restaurant()->currency->currency_symbol }}</span>
-                                </div>
-                                <x-input type="number" step="0.001"
+                                <x-currency-input type="number" step="5"
                                         wire:model.live="optionOrderTypePrices.{{ $index }}.{{ $orderType->id }}"
-                                        class="block pl-8 pr-3 w-32"
-                                        placeholder="0.00" />
+                                        class="block pl-8 pr-20 w-64"
+                                        placeholder="1000" />
                             </div>
                         </div>
                         @endforeach
@@ -465,22 +462,19 @@
 
                 <!-- Delivery Platforms -->
                 <div class="col-span-2">
-                    <x-label value="Delivery Platforms" class="mb-3 text-base font-semibold" />
+                    <x-label value="{{ __('modules.menu.deliveryPlatforms') }}" class="mb-3 text-base font-semibold" />
                     <div class="space-y-2">
                         <!-- Base Delivery Price -->
                         <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                             <div class="flex items-center space-x-2">
                                 <svg class="w-5 h-5 text-gray-600 dark:text-gray-200" fill="currentColor" height="20" viewBox="0 0 64 64" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M4 16h14.001a3 3 0 0 1 3 3v11.001a3 3 0 0 1-3 3h-14a3 3 0 0 1-3.001-3v-11a3 3 0 0 1 3-3"/><circle cx="33.002" cy="7" r="5"/><path d="M12.003 35.852a5.92 5.92 0 0 0 1.7 4.15H29.96v-4.155a.996.996 0 0 0-.996-.996H12.998a1 1 0 0 0-.995 1.001"/><path d="M61.737 51.359a8.13 8.13 0 0 0-8.322-5.994 7 7 0 0 0 .24-1.791A5.93 5.93 0 0 0 51 38.75c-2.147-1.425-3.753-5.048-3.996-8.858h1.916a2.99 2.99 0 0 0 2.991-2.982v-1.986a2.99 2.99 0 0 0-2.991-2.982h-6.84c-5.782-1.665-7.522-3.583-8.561-4.732l-.063-.07a3.71 3.71 0 0 0-2.018-3.813 3.64 3.64 0 0 0-5.122 2.497l-2.869 13.71a2.983 2.983 0 0 0 2.598 3.571l4.917.544a.994.994 0 0 1 .887 1.043l-.774 13.106a5.27 5.27 0 0 1-1.477-5.796H14.313c-1.612 2.671-4.193 7.679-3.149 10.936a4.04 4.04 0 0 0 2.609 2.622 3.7 3.7 0 0 0 1.39.15 6.406 6.406 0 0 0 12.78 0h17.14a1.26 1.26 0 0 0 .875-.423 7 7 0 0 0 .587 1.703.996.996 0 0 0 1.716.14q.176-.25.376-.491a6.4 6.4 0 1 0 12.484-2.718.986.986 0 0 0 .875-1.075 8 8 0 0 0-.26-1.487m-40.184 8.318a4.407 4.407 0 0 1-4.385-3.967h8.77a4.407 4.407 0 0 1-4.385 3.967M40.94 48.754h-3.885l1.718-16.24a2.98 2.98 0 0 0-1.926-3.104l-4.9-1.829a.99.99 0 0 1-.622-1.149l.745-3.215a17.1 17.1 0 0 0 8.87 3.633zm14.586 11.218a4.413 4.413 0 0 1-4.961-4.86l.304-.38a11.08 11.08 0 0 1 7.676-1.51l.236.183a4.4 4.4 0 0 1-3.255 6.567"/></svg>
-                                <span class="font-medium text-gray-900 dark:text-white text-sm">Base Delivery Price</span>
+                                <span class="font-medium text-gray-900 dark:text-white text-sm">{{ __('modules.menu.baseDeliveryPrice') }}</span>
                             </div>
                             <div class="relative">
-                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <span class="text-gray-500 text-sm">{{ restaurant()->currency->currency_symbol }}</span>
-                                </div>
-                                <x-input type="number" step="0.001"
+                               <x-currency-input type="number" step="5"
                                         wire:model.live="optionBaseDeliveryPrice.{{ $index }}"
-                                        class="block pl-8 pr-3 w-32"
-                                        placeholder="0.00" />
+                                        class="block pl-8 pr-20 w-64"
+                                        placeholder="1000" />
                             </div>
                         </div>
 
@@ -517,9 +511,9 @@
                                 </label>
                                 <div class="text-right">
                                     <div class="font-semibold text-sm text-gray-900 dark:text-white">
-                                        {{ restaurant()->currency->currency_symbol }}{{ $optionDeliveryPrices[$index][$app->id] ?? '0.00' }}
+                                        {{ currency_format($optionDeliveryPrices[$index][$app->id] ?? '0.00', restaurant()->currency->currency_id) }}
                                     </div>
-                                    <div class="text-xs text-gray-500">Final Price</div>
+                                    <div class="text-xs text-gray-500">@lang('modules.menu.deliveryPrice')</div>
                                 </div>
                             </div>
                         </div>

@@ -457,6 +457,7 @@
                                             id="variationPrice.{{ $key }}"
                                             wire:model.live.debounce.500ms="variationPrice.{{ $key }}"
                                             class="block w-full"
+                                            step="5"
                                             placeholder="1 000"
                                         />
                                         <x-input-error for="variationPrice.{{ $key }}" class="mt-2" />
@@ -479,7 +480,8 @@
                                             <div class="relative flex-shrink-0">
                                                  <x-currency-input
                                                         wire:model.blur="variationOrderTypePrices.{{ $key }}.{{ $orderType->id }}"
-                                                        class="block w-full"
+                                                        class="mt-1 pr-10 w-64"
+                                                        step="5"
                                                         placeholder="1 000" />
                                             </div>
                                         </div>
@@ -503,7 +505,8 @@
                                             <div class="relative flex-shrink-0">
                                                 <x-currency-input
                                                         wire:model.blur="variationBaseDeliveryPrice.{{ $key }}"
-                                                        class="block w-full"
+                                                        class="mt-1 pr-10 w-64"
+                                                        step="5"
                                                         placeholder="1 000" min="0" />
                                             </div>
                                         </div>
@@ -608,7 +611,8 @@
                             <x-currency-input
                                 id="itemPrice"
                                 wire:model.live.debounce.500ms="itemPrice"
-                                class="block w-full sm:w-64"
+                                class="mt-1 pr-10 w-64"
+                                step="5"
                                 placeholder="1 000"
                             />
                             <x-input-error for="itemPrice" class="mt-1" />
@@ -629,7 +633,8 @@
                                     </div>
                                     <x-currency-input 
                                         wire:model.live="orderTypePrices.{{ $orderType->id }}"
-                                        class="block w-full sm:w-64"
+                                        class="mt-1 pr-10 w-64"
+                                        step="5"
                                         placeholder="1 000" 
                                     />
                                 </div>
@@ -659,7 +664,8 @@
                                     </div>
                                     <x-currency-input 
                                         wire:model.live="baseDeliveryPrice"
-                                        class="w-full  sm:w-64"
+                                        class="mt-1 pr-10 w-64"
+                                        step="5"
                                         placeholder="1 000" 
                                     />
                                 </div>

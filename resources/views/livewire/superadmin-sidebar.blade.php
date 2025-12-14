@@ -3,10 +3,10 @@
         class="fixed top-0 ltr:left-0 rtl:right-0 z-20 flex flex-col flex-shrink-0 hidden w-64 h-full pt-16 font-normal duration-75 lg:flex transition-width"
         aria-label="Sidebar">
         <div
-            class="relative flex flex-col flex-1 min-h-0 pt-0 bg-gray-50 border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+            class="relative flex flex-col flex-1 min-h-0 pt-0 bg-[#1E40AF] border-r border-[#1E3A8A]" style="background-color: #1E40AF; border-color: #1E3A8A;">
             <div class="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
                 <div
-                    class="flex-1 px-3 space-y-1 bg-gray-50 divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                    class="flex-1 px-3 space-y-1 bg-[#1E40AF] divide-y divide-[#1E3A8A]" style="background-color: #1E40AF;">
 
                     <ul class="py-2 space-y-2">
 

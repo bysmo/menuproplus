@@ -1,6 +1,7 @@
 <li>
     <a href="{{ $link }}" wire:navigate
-        @class(['flex items-center p-2 text-base text-gray-900 rounded-xl hover:bg-gray-200 group dark:text-gray-200 dark:hover:bg-gray-700', 'hover:text-gray-800 text-white font-bold bg-gray-700' => $active])>
+        @class(['flex items-center p-2 text-base text-white/80 rounded-xl hover:bg-white/10 hover:text-white group', 'text-[#FBBF24] font-bold bg-white/10' => $active])
+        style="color: {{ $active ? '#FBBF24' : 'rgba(255,255,255,0.8)' }}; {{ $active ? 'background-color: rgba(255,255,255,0.1);' : '' }}">
         {!! $customIcon ?? $icon !!}
         <span class="ltr:ml-3 rtl:mr-3" sidebar-toggle-item>{{ $name }}</span>
     </a>

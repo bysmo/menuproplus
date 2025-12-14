@@ -96,14 +96,15 @@
                                     {{ $item->transaction_id }}
                                 </td>
                                 <td class="py-2.5 px-4 text-base text-gray-900 whitespace-nowrap dark:text-white">
-                                    <a href="javascript:;" class="underline underline-offset-2 decoration-dotted"
-
-                                    @if(user_can('Show Order'))
+                                @if(user_can('Show Order') && $item->order)    
+                                <a href="javascript:;" class="underline underline-offset-2 decoration-dotted"                        
                                     wire:click="$dispatch('showOrderDetail', { id: {{ $item->order->id }} })"
-                                    @endif
                                     >
                                         {{ $item->order->show_formatted_order_number }}
                                     </a>
+                                    @else
+                                    Commande introuvable
+                                    @endif
                                 </td>
                                 <td class="py-2.5 px-4 space-x-2 whitespace-nowrap text-right dark:text-white">
                                     @include('common.date-time-display', ['date' => $item->created_at])

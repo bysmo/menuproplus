@@ -100,6 +100,48 @@
 
     {{-- Include file for widgets if exist --}}
     @includeIf('sections.custom_script_admin')
+
+    <style>
+        /* === Aladin Toast Customization (Forced) === */
+        div.swal2-popup.swal2-toast {
+            background-color: #1E40AF !important; /* Aladin Blue Primary */
+            color: #ffffff !important;
+            box-shadow: 0 4px 6px rgba(30, 64, 175, 0.15) !important;
+            border: 1px solid rgba(251, 191, 36, 0.3) !important;
+        }
+
+        div.swal2-popup.swal2-toast .swal2-title {
+            color: #FBBF24 !important; /* Aladin Yellow Primary */
+            font-weight: 600 !important;
+        }
+
+        div.swal2-popup.swal2-toast .swal2-html-container {
+            color: #ffffff !important;
+        }
+
+        div.swal2-popup.swal2-toast .swal2-success-circular-line-left,
+        div.swal2-popup.swal2-toast .swal2-success-circular-line-right,
+        div.swal2-popup.swal2-toast .swal2-success-fix {
+            background-color: transparent !important;
+        }
+
+        div.swal2-popup.swal2-toast .swal2-timer-progress-bar {
+            background-color: #FBBF24 !important;
+        }
+
+        /* Success Icon Customization */
+        div.swal2-popup.swal2-toast .swal2-icon.swal2-success {
+            border-color: #FBBF24 !important;
+        }
+        
+        div.swal2-popup.swal2-toast .swal2-icon.swal2-success .swal2-success-ring {
+            border-color: transparent !important; 
+        }
+
+        div.swal2-popup.swal2-toast .swal2-icon.swal2-success [class^='swal2-success-line'] {
+            background-color: #FBBF24 !important;
+        }
+    </style>
 </head>
 
 

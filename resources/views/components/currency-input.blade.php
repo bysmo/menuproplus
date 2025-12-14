@@ -1,5 +1,5 @@
 @props([
-    'placeholder' => '0.00',
+    'placeholder' => '1 000',
 ])
 
 @php
@@ -44,7 +44,7 @@
     
     <input {{ $inputAttributes->merge(['class' => "block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white {$paddingClass} text-gray-900 placeholder:text-gray-400 focus:ring-skin-base focus:border-skin-base"]) }} 
            type="number" 
-           step="0.01" 
+           step="5" 
            min="0"
            placeholder="{{ $placeholder }}">
     

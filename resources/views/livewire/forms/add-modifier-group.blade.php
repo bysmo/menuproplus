@@ -126,7 +126,7 @@
 
                             <div>
                                 <x-label for="modifierOptions.{{ $index }}.price" :value="__('modules.modifier.price')" />
-                                <x-input id="modifierOptions.{{ $index }}.price" type="number" step="0.001" class="mt-1 block w-full"
+                                <x-currency-input id="modifierOptions.{{ $index }}.price" type="number" step="0.001" class="mt-1 block w-full"
                                     wire:model="modifierOptions.{{ $index }}.price" placeholder="{{ __('placeholders.modifierOptionPricePlaceholder') }}" />
                                 <x-input-error for="modifierOptions.{{ $index }}.price" class="mt-2" />
                             </div>
