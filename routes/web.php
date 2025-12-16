@@ -302,3 +302,4 @@ Route::get('/kot/{id}/preview/{kotPlaceid?}', [ViewPngController::class, 'previe
 Route::post('/kot/png', [ViewPngController::class, 'storeKot'])->name('kot.png.store'); // saves KOT PNG
 Route::post('/order/png', [ViewPngController::class, 'storeOrder'])->name('order.png.store'); // saves Order PNG
 Route::post('/report/png', [ViewPngController::class, 'storeReport'])->name('report.png.store'); // saves Report PNG
+Route::get('/test-419', function () { abort(419); });
