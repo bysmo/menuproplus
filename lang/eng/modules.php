@@ -1357,6 +1357,10 @@ return [
         'subscriptionUpdates' => 'Subscription Updates',
         'newUsers' => 'New Users',
         'subscription_update' => 'Subscription Update',
+        'subscriptionUpdated'=> 'Subscription Updated',
+        'joinedThePlatform' => 'Joined The Platform',
+        'paymentReceived' => 'Payment Received',
+        'newUser' => 'New User',
     ],
 
     'update' => [

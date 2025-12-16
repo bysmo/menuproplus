@@ -1364,7 +1364,11 @@ return [
         'new_subscription' => 'Nouvel abonnement',
         'subscription_updated' => 'Abonnement mis à jour',
         'subscription_update' => 'Mise à jour d\'abonnement',
+        'subscriptionUpdated'=> 'Mise à jour d\'abonnement',
         'subscription_expired' => 'Abonnement expiré',
+        'joinedThePlatform' => 's\'est joint(e) à la plateforme',
+        'paymentReceived' => 'Paiement reçu',
+        'newUser' => 'Nouvel utilisateur',
 
     ],
 

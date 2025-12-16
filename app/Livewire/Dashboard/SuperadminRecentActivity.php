@@ -55,7 +55,8 @@ class SuperadminRecentActivity extends Component
             $this->recentActivities->push([
                 'type' => 'restaurant',
                 'title' => 'New Restaurant',
-                'description' => "{$restaurant->name} joined the platform",
+                //traduction dynamique de la description, avec __('modules.dashboard.xxx')
+                'description' => "{$restaurant->name}" ." => ". __('modules.dashboard.joinedThePlatform'),
                 'amount' => null,
                 'time' => $restaurant->created_at,
                 'icon' => 'building-storefront',
@@ -68,7 +69,8 @@ class SuperadminRecentActivity extends Component
             $this->recentActivities->push([
                 'type' => 'payment',
                 'title' => 'Restaurant Payment',
-                'description' => "Payment from {$payment?->restaurant?->name}",
+                //traduction dynamique de la description, avec __('modules.dashboard.xxx')
+                'description' => "{$payment?->restaurant?->name}" . " => " . __('modules.dashboard.paymentReceived'),
                 'amount' => $payment->amount,
                 'time' => $payment->created_at,
                 'icon' => 'credit-card',
@@ -81,7 +83,8 @@ class SuperadminRecentActivity extends Component
             $this->recentActivities->push([
                 'type' => 'subscription',
                 'title' => 'Subscription Update',
-                'description' => "{$subscription?->restaurant?->name} - {$subscription?->package?->name}",
+                //traduction dynamique de la description, avec __('modules.dashboard.xxx')
+                'description' => "{$subscription?->restaurant?->name} - {$subscription?->package?->name}" . " => " . __('modules.dashboard.subscriptionUpdated'),
                 'amount' => $subscription->amount ?? null,
                 'time' => $subscription->created_at,
                 'icon' => 'check-circle',
@@ -94,7 +97,8 @@ class SuperadminRecentActivity extends Component
             $this->recentActivities->push([
                 'type' => 'user',
                 'title' => 'New User',
-                'description' => "User {$user->name} registered",
+                //traduction dynamique de la description, avec __('modules.dashboard.xxx')
+                'description' => "{$user->name}" . " => " . __('modules.dashboard.newUser'),
                 'amount' => null,
                 'time' => $user->created_at,
                 'icon' => 'user',
