@@ -502,7 +502,7 @@
                                             id="variationPrice.{{ $key }}"
                                             wire:model.live="variationPrice.{{ $key }}"
                                             class="mt-1 pr-10 w-64"
-                                            step="100"
+                                            step="5"
                                             placeholder="1 000"
                                         />
                                         <x-input-error for="variationPrice.{{ $key }}" class="mt-2" />
@@ -526,7 +526,7 @@
                                                 <x-currency-input 
                                                     wire:model.blur="variationOrderTypePrices.{{ $key }}.{{ $orderType->id }}"
                                                     class="mt-1 pr-10 w-64"
-                                                    step="100"
+                                                    step="5"
                                                     placeholder="1 000"
                                                 />
                                             </div>
@@ -554,7 +554,7 @@
                                                 <x-currency-input 
                                                     wire:model.live="variationBaseDeliveryPrice.{{ $key }}"
                                                     class="mt-1 pr-10 w-64"
-                                                    step="100"
+                                                    step="5"
                                                     placeholder="1 000"
                                                 />
                                             </div>
@@ -664,7 +664,7 @@
                                 id="itemPrice"
                                 wire:model="itemPrice"
                                 class="mt-1 pr-10 w-64"
-                                step="100"
+                                step="5"
                                 placeholder="1 000"
                             />
                             <x-input-error for="itemPrice" class="mt-1" />
@@ -687,7 +687,7 @@
                                         <x-currency-input 
                                             wire:model="orderTypePrices.{{ $orderType->id }}"
                                             class="mt-1 pr-10 w-64"
-                                            step="100"
+                                            step="5"
                                             placeholder="1 000"
                                         />
                                     </div>
@@ -720,7 +720,7 @@
                                         <x-currency-input 
                                             wire:model.live="baseDeliveryPrice"
                                             class="mt-1 pr-10 w-64"
-                                            step="100"
+                                            step="5"
                                             placeholder="1 000"
                                         />
                                     </div>

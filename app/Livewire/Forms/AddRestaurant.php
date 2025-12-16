@@ -155,7 +155,7 @@ class AddRestaurant extends Component
         $restaurant->facebook_link = $this->facebook;
         $restaurant->instagram_link = $this->instagram;
         $restaurant->twitter_link = $this->twitter;
-        $restaurant->customer_site_language = 'en';
+        $restaurant->customer_site_language = global_setting()->locale;
         $restaurant->save();
 
         $branch = Branch::create([

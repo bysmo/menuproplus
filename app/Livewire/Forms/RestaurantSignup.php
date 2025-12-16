@@ -289,7 +289,7 @@ class RestaurantSignup extends Component
             $restaurant->is_active = true;
             $restaurant->country_id = $this->country;
             $restaurant->about_us = Restaurant::ABOUT_US_DEFAULT_TEXT;
-            $restaurant->customer_site_language = 'en';
+            $restaurant->customer_site_language = global_setting()->locale;
             $restaurant->save();
 
             $branch = Branch::create([
