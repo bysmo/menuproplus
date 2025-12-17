@@ -72,13 +72,13 @@ class UpdatePackage extends Component
     private function setBillingCycleAndAmount()
     {
         if ($this->selectedPackage->is_free) {
-            $this->billingCycle = 'free';
+            $this->billingCycle = __('modules.package.free');
             $this->amount = 0;
         } elseif ($this->selectedPackage->package_type === PackageType::LIFETIME) {
-            $this->billingCycle = 'lifetime';
+            $this->billingCycle = __('modules.package.lifetime');
             $this->amount = $this->lifetimePrice;
         } else {
-            $this->billingCycle = 'monthly';
+            $this->billingCycle = __('modules.package.monthly');
             $this->amount = $this->monthlyPrice;
         }
         $this->updateAmountAndDates($this->billingCycle);
@@ -170,7 +170,7 @@ class UpdatePackage extends Component
                 'package_id' => $restaurant->package_id,
                 'package_type' => $subscription->package_type,
                 'total' => $this->amount,
-                'gateway_name' => 'offline',
+                'gateway_name' => __('modules.package.offline'),
                 'transaction_id' => $subscription->transaction_id,
                 'pay_date' => $subscription->subscribed_on_date,
                 'next_pay_date' => $this->nextPayDate,

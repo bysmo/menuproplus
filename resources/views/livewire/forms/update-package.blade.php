@@ -14,7 +14,7 @@
         <div> {{ $latestSubscription->package_type }}</div>
 
         <div class="font-semibold text-gray-700 dark:text-gray-300">{{ __('modules.package.amount') }}</div>
-        <div>{{ $latestSubscription?->currency?->currency_symbol }}{{ number_format($latestSubscription?->currentInvoice->total, 2) }}</div>
+        <div>{{ global_currency_format($latestSubscription?->currentInvoice->total, $selectedPackage?->currency_id) }}</div>
 
         <div class="font-semibold text-gray-700 dark:text-gray-300">{{ __('modules.package.paymentDate') }}</div>
         <div>
@@ -65,19 +65,19 @@
 
                 @if($selectedPackage->package_type === App\Enums\PackageType::LIFETIME)
                 <option value="lifetime">
-                    {{ __('modules.package.lifetime') }} - {{ $selectedPackage?->currency?->currency_symbol }}{{ $selectedPackage?->price }}
+                    {{ __('modules.package.lifetime') }} - {{ global_currency_format($selectedPackage?->price, $selectedPackage?->currency_id) }}
                 </option>
                 @endif
 
                 @if($packageMonthlyStatus)
                 <option value="monthly">
-                    {{ __('modules.package.monthly') }} - {{ $selectedPackage?->currency?->currency_symbol }}{{ $monthlyPrice }}
+                    {{ __('modules.package.monthly') }} - {{ global_currency_format($monthlyPrice,  $selectedPackage?->currency_id) }}
                 </option>
                 @endif
 
                 @if($packageAnnualStatus)
                 <option value="annual">
-                    {{ __('modules.package.annual') }} - {{ $selectedPackage?->currency?->currency_symbol }}{{ $annualPrice }}
+                    {{ __('modules.package.annual') }} - {{ global_currency_format($annualPrice, $selectedPackage?->currency_id) }}
                 </option>
                 @endif
             </x-select>

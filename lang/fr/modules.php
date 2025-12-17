@@ -199,6 +199,7 @@ return [
         'orderType_delivery' => 'A livrer',
         'deliveryPlatforms' => 'Plateformes de livraison',
         'baseDeliveryPrice' => 'Prix de livraison par défaut',
+        'deliveryExecutive'=>'Livreur',
     ],
 
     'table' => [
@@ -1114,9 +1115,9 @@ return [
         'taxMode' => 'Mode de taxe',
         'taxModeOrder' => 'Taxe au niveau de la commande',
         'taxModeOrderHelp' => 'Appliquer la taxe sur le montant total de la commande.',
-        'taxModeItem' => 'Taxe au Niveau de l\'article',
+        'taxModeItem' => 'Taxe au niveau de l\'article',
         'taxModeItemHelp' => 'Appliquer différents taux de taxe à chaque article.',
-        'defaultItemTaxType' => 'Type de Taxe sur l\'article',
+        'defaultItemTaxType' => 'Type de taxe sur l\'article',
         'taxInclusive' => 'Taxe inclusive',
         'taxExclusive' => 'Taxe exclusive',
         'taxInclusiveHelp' => 'Si activé, les prix des articles incluent la taxe. Sinon, la taxe est ajoutée au moment du paiement.',
@@ -1137,8 +1138,8 @@ return [
         'disableHeaderSectionDescription' => 'Activez cette option pour masquer la section d\'en-tête sur le site client.',
         'headerType' => 'Type d\'en-tête',
         'headerTypeDescription' => 'Choisissez d\'afficher du texte ou des images dans l\'en-tête de la page panier.',
-        'textHeader' => 'En-tête Texte',
-        'imageHeader' => 'En-tête Image',
+        'textHeader' => 'Texte d\'en-tête',
+        'imageHeader' => 'Image d\'en-tête',
         'headerText' => 'Texte de l\'en-tête',
         'headerTextDescription' => 'Entrez le texte à afficher dans l\'en-tête de la page panier.',
         'headerImages' => 'Images de l\'en-tête',
@@ -1281,6 +1282,8 @@ return [
         'estimatedTimeUnavailable' => 'Temps estimé non disponible. Veuillez contacter le restaurant pour plus de détails.',
         'additionalEtaBufferTime' => 'Temps tampon supplémentaire',
         'additionalEtaBufferTimeDescription' => 'Ajoutez un temps tampon facultatif (en minutes) pour couvrir les retards possibles. Par défaut 0 si non spécifié.',
+        'available' => 'Disponible',
+        'unavailable' => 'Indisponible',
     ],
 
     'dashboard' => [
@@ -1423,7 +1426,7 @@ return [
         'manageOrders' => 'Gérer les commandes',
         'staffLimitExceeded' => 'Limite de personnel atteinte',
         'staffLimitExceededMessage' => 'Vous avez atteint votre limite de personnel. Personnel actuel : :current / :limit. Veuillez mettre à niveau votre forfait pour ajouter plus de membres du personnel.',
-
+        'addExecutive'=>'Ajouter un livreur',
     ],
 
     'reservation' => [

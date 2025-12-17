@@ -315,4 +315,6 @@ return array(
     'logoRemoved' => 'Image supprimée avec succès',
     'menuItemBasePriceDescription' => 'Ceci sera utilisé comme prix par défaut si les prix spécifiques au type de commande ne sont pas définis.',
     'noDeliveryAppFound' => 'Aucune plateforme ou application de livraison n\'est disponible pour le moment.',
+    'atLeastOneCancellationType' => 'Veuillez indiquer au moins une raison pour l\'annulation',
+
 );

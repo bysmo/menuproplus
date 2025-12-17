@@ -14,19 +14,19 @@
             </div>
 
             <div>
-                <x-label for="tableCode" value="{{ __('modules.table.tableCode') }}" />
+                <x-label for="tableCode" :value="__('modules.table.tableCode')" />
                 <x-input id="tableCode" class="block mt-1 w-full" type="text" placeholder="{{ __('placeholders.tableCodePlaceholder') }}" wire:model='tableCode' />
                 <x-input-error for="tableCode" class="mt-2" />
             </div>
 
             <div>
-                <x-label for="seatingCapacity" value="{{ __('modules.table.seatingCapacity') }}" />
+                <x-label for="seatingCapacity" :value="__('modules.table.seatingCapacity')" />
                 <x-input id="seatingCapacity" class="block mt-1 w-full" type="number"  step='1' min='0' placeholder="{{ __('placeholders.tableSeatPlaceholder') }}" wire:model='seatingCapacity' />
                 <x-input-error for="seatingCapacity" class="mt-2" />
             </div>
 
             <div>
-                <x-label for="tableAvailability" value="{{ __('modules.table.tableAvailability') }}" />
+                <x-label for="tableAvailability" :value="__('modules.table.tableAvailability')" />
                 <x-select id="tableAvailability" class="mt-1 block w-full" wire:model="tableAvailability">
                     <option value="available">@lang('modules.table.available')</option>
                     <option value="running">@lang('modules.table.running')</option>
@@ -36,7 +36,7 @@
             </div>
 
             <div>
-                <x-label for="status" value="{{ __('app.status') }}" />
+                <x-label for="status" :value="__('app.status')" />
                 <ul class="flex w-full gap-4 mt-1"  wire:key='status-tbl-{{ microtime() }}'>
                     <li  wire:key='status-tbls-{{ microtime() }}'>
                         <input type="radio" id="typeActives"  value="active" class="hidden peer"

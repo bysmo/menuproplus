@@ -24,7 +24,7 @@ return [
   'reports' => 'Statistiques',
   'itemReport' => 'Rapport par mets',
   'categoryReport' => 'Rapport par catégorie',
-  'deliveryAppReport' => 'Rapport de l\'application de livraison',
+  'deliveryAppReport' => 'Rapport par service de livraison',
   'salesReport' => 'Rapport des ventes',
   'cancelledOrderReport' => 'Rapport des commandes annulées',
   'removedKotItemReport' => 'Rapport des BDC supprimés',
@@ -57,5 +57,4 @@ return [
   'superadminPaymentSetting' => 'Paramètres de paiement',
   'adminPaymentSetting' => 'Paramètres de paiement du restaurant',
   'customerDisplay' => 'Affichage du client',
-  'deliveryAppReport' => 'Rapport de l\'application de livraison',
 ];

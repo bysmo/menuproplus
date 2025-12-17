@@ -1283,6 +1283,8 @@ return [
         'estimatedTimeUnavailable' => 'Estimated time unavailable. Please contact the restaurant for more details.',
         'additionalEtaBufferTime' => 'Additional Time Buffer',
         'additionalEtaBufferTimeDescription' => 'Add optional buffer time (in minutes) to cover possible delays. Default is 0 if not specified.',
+        'available' => 'Available',
+        'unavailable' => 'Unavailable',
     ],
 
     'dashboard' => [
@@ -1414,6 +1416,7 @@ return [
         'manageOrders' => 'Manage Orders',
         'staffLimitExceeded' => 'Staff Limit Reached',
         'staffLimitExceededMessage' => 'You have reached your staff limit. Current staff: :current / :limit. Please upgrade your plan to add more staff members.',
+        'addExecutive'=>'Add executive',
 
     ],
 

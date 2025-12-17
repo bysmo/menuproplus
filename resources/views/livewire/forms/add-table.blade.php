@@ -14,19 +14,19 @@
             </div>
 
             <div>
-                <x-label for="tableCode" value="{{ __('modules.table.tableCode') }}" />
+                <x-label for="tableCode" :value="__('modules.table.tableCode')" />
                 <x-input id="tableCode" class="block mt-1 w-full" type="text" placeholder="{{ __('placeholders.tableCodePlaceholder') }}" wire:model='tableCode' />
                 <x-input-error for="tableCode" class="mt-2" />
             </div>
 
             <div>
-                <x-label for="seatingCapacity" value="{{ __('modules.table.seatingCapacity') }}" />
+                <x-label for="seatingCapacity" :value="__('modules.table.seatingCapacity')" />
                 <x-input id="seatingCapacity" class="block mt-1 w-full" type="number" step='1' min='0' placeholder="{{ __('placeholders.tableSeatPlaceholder') }}" wire:model='seatingCapacity' />
                 <x-input-error for="seatingCapacity" class="mt-2" />
             </div>
 
             <div>
-                <x-label for="status" value="{{ __('app.status') }}" />
+                <x-label for="status" :value="__('app.status')" />
                 <ul class="flex w-full gap-4 mt-1">
                     <li>
                         <input type="radio" id="typeActive"  value="active" class="hidden peer"

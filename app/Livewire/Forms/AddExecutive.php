@@ -31,7 +31,7 @@ class AddExecutive extends Component
         // Reset the value
         $this->memberName = '';
         $this->memberPhone = '';
-        $this->status = 'available';
+        $this->status = __('modules.delivery.available');
 
         $this->dispatch('hideAddStaff');
 

@@ -315,4 +315,5 @@ return array(
     'logoRemoved' => 'Image Removed Successfully',
     'menuItemBasePriceDescription' => 'This will be used as the default price if order type specific prices are not set.',
     'noDeliveryAppFound' => 'No delivery platform or application is available at this time.',
+    'atLeastOneCancellationType' => 'Please select at least one cancellation type.',
 );

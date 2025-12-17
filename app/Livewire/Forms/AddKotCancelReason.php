@@ -23,7 +23,7 @@ class AddKotCancelReason extends Component
 
         // Ensure at least one type is selected
         if (!$this->cancel_order && !$this->cancel_kot) {
-            $this->addError('cancel_order', 'Please select at least one cancellation type.');
+            $this->addError('cancel_order', __('messages.atLeastOneCancellationType'));
             return;
         }
 

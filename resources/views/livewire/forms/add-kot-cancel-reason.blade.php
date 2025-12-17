@@ -4,14 +4,14 @@
         <div class="space-y-4">
 
             <div>
-                <x-label for="reason" value="{{ __('modules.settings.reason') }}" />
+                <x-label for="reason" :value="__('modules.settings.reason')" />
                 <x-input id="reason" class="block w-full mt-1" type="text"  wire:model='reason' />
                 <x-input-error for="reason" class="mt-2" />
             </div>
 
             <!-- Cancellation Types -->
             <div>
-                <x-label value="{{ __('modules.settings.cancellationTypes') }}" class="mb-2" />
+                <x-label :value="__('modules.settings.cancellationTypes')" class="mb-2" />
                 <div class="space-y-3">
                     <label class="flex items-center">
                         <input type="checkbox" wire:model="cancel_order" class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-skin-base focus:ring-skin-base dark:focus:ring-skin-base dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
