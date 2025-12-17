@@ -75,7 +75,7 @@ class RestaurantObserver
     public function created(Restaurant $restaurant)
     {
         // Set default language for new restaurant
-        $restaurant->update(['customer_site_language' => 'en']);
+        $restaurant->update(['customer_site_language' => 'fr']);
 
         // Add Payment Gateway Settings
         PaymentGatewayCredential::create(['restaurant_id' => $restaurant->id]);
@@ -163,13 +163,18 @@ class RestaurantObserver
             $currency->currency_symbol = $globalCurrency->currency_symbol;
             $currency->currency_code = $globalCurrency->currency_code;
             $currency->restaurant_id = $restaurant->id;
+            $currency->currency_position = $globalCurrency->currency_position;
+            $currency->no_of_decimal = $globalCurrency->no_of_decimal;
+            $currency->thousand_separator = $globalCurrency->thousand_separator;
+            $currency->decimal_separator = $globalCurrency->decimal_separator;
             $currency->saveQuietly();
         }
 
         $defaultCurrency = Currency::where('currency_code', global_setting()->defaultCurrency->currency_code)->where('restaurant_id', $restaurant->id)->first();
 
         $restaurant->currency_id = $defaultCurrency->id;
-        $restaurant->customer_site_language = 'en';
+        $restaurant->customer_site_language = 'fr';
+       
 
         $restaurant->save();
     }

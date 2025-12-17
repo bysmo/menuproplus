@@ -65,10 +65,11 @@ class RestaurantSignup extends Component
 
         // Get country from IP and set default phone code
         $user = new User();
-        $ipCountry = $user->getCountryFromIp();
-        $defaultPhoneCode = $user->getPhoneCodeFromIp();
+        $ipCountry = 'BF'; // $user->getCountryFromIp();
+        $defaultPhoneCode = '226'; // $user->getPhoneCodeFromIp();
 
         // Use collection methods to find default country instead of another query
+        // set the default country to Burkina Faso
         $defaultCountry = $allCountries->where('countries_code', $ipCountry)->first();
 
         if ($defaultCountry && $defaultPhoneCode) {
@@ -289,7 +290,7 @@ class RestaurantSignup extends Component
             $restaurant->is_active = true;
             $restaurant->country_id = $this->country;
             $restaurant->about_us = Restaurant::ABOUT_US_DEFAULT_TEXT;
-            $restaurant->customer_site_language = global_setting()->locale;
+            $restaurant->customer_site_language = global_setting()->locale ?? 'fr';
             $restaurant->save();
 
             $branch = Branch::create([

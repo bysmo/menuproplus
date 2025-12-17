@@ -130,53 +130,53 @@ class BranchObserver
          */
         $defaultCategories = [
             [
-                'name' => 'Rent',
-                'description' => 'Monthly rent for restaurant space',
+                'name' => 'Loyer',
+                'description' => 'Loyer mensuel pour l’espace du restaurant',
                 'is_active' => true,
             ],
             [
-                'name' => 'Utilities',
-                'description' => 'Electricity, water, gas, and other utilities',
+                'name' => 'Services publics',
+                'description' => 'Électricité, eau, gaz et autres services publics',
                 'is_active' => true,
             ],
             [
-                'name' => 'Salaries',
-                'description' => 'Employee salaries and wages',
+                'name' => 'Salaires',
+                'description' => 'Salaires et traitements des employés',
                 'is_active' => true,
             ],
             [
-                'name' => 'Ingredients',
-                'description' => 'Food ingredients and raw materials',
+                'name' => 'Ingrédients',
+                'description' => 'Ingrédients alimentaires et matières premières',
                 'is_active' => true,
             ],
             [
-                'name' => 'Equipment',
-                'description' => 'Kitchen equipment and appliances',
+                'name' => 'Équipement',
+                'description' => 'Équipement de cuisine et appareils',
                 'is_active' => true,
             ],
             [
                 'name' => 'Marketing',
-                'description' => 'Advertising and promotional expenses',
+                'description' => 'Dépenses de publicité et de promotion',
                 'is_active' => true,
             ],
             [
-                'name' => 'Insurance',
-                'description' => 'Business insurance and liability coverage',
+                'name' => 'Assurance',
+                'description' => 'Assurance entreprise et couverture de responsabilité',
                 'is_active' => true,
             ],
             [
                 'name' => 'Maintenance',
-                'description' => 'Repairs and maintenance costs',
+                'description' => 'Réparations et coûts de maintenance',
                 'is_active' => true,
             ],
             [
-                'name' => 'Licenses',
-                'description' => 'Business licenses and permits',
+                'name' => 'Licences',
+                'description' => 'Licences et permis d’exploitation',
                 'is_active' => true,
             ],
             [
-                'name' => 'Miscellaneous',
-                'description' => 'Other miscellaneous expenses',
+                'name' => 'Divers',
+                'description' => 'Autres dépenses diverses',
                 'is_active' => true,
             ],
         ];
