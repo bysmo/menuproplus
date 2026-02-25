@@ -64,6 +64,7 @@ use App\Http\Controllers\SuperAdmin\PaystackWebhookController;
 use App\Http\Controllers\SuperAdmin\RazorpayWebhookController;
 use App\Http\Controllers\SuperAdmin\FlutterwaveWebhookController;
 use App\Http\Middleware\CheckRestaurantPackage;
+use App\Http\Controllers\Backend\CashierController;
 use Illuminate\Http\Request;
 
 
@@ -302,4 +303,55 @@ Route::get('/kot/{id}/preview/{kotPlaceid?}', [ViewPngController::class, 'previe
 Route::post('/kot/png', [ViewPngController::class, 'storeKot'])->name('kot.png.store'); // saves KOT PNG
 Route::post('/order/png', [ViewPngController::class, 'storeOrder'])->name('order.png.store'); // saves Order PNG
 Route::post('/report/png', [ViewPngController::class, 'storeReport'])->name('report.png.store'); // saves Report PNG
-Route::get('/test-419', function () { abort(419); });
+
+Route::middleware(['auth', 'verified'])->prefix('backend')->name('backend.')->group(function () {
+    
+    // ====== GROUPE : GESTION DE CAISSE ======
+    Route::prefix('cashier')->name('cashier.')->group(function () {
+        
+        // Page principale
+        Route::get('/', [CashierController::class, 'index'])
+            ->name('index');
+        
+        // Ouverture de session
+        Route::post('/session/open', [CashierController::class, 'openSession'])
+            ->name('session.open');
+        
+        // Détails d'une session
+        Route::get('/session/{id}', [CashierController::class, 'showSession'])
+            ->name('session');
+        
+        // Fermeture de session
+        Route::post('/session/{id}/close', [CashierController::class, 'closeSession'])
+            ->name('session.close');
+        
+        // Encaissement de paiement
+        Route::post('/payment/process', [CashierController::class, 'processPayment'])
+            ->name('payment.process');
+        
+        // Bordereaux
+        Route::get('/session/{id}/print/opening', [CashierController::class, 'printOpening'])
+            ->name('print-opening');
+        
+        Route::get('/session/{id}/print/closing', [CashierController::class, 'printClosing'])
+            ->name('print-closing');
+        
+        Route::get('/session/{id}/download/{type}', [CashierController::class, 'downloadPdf'])
+            ->name('download-pdf');
+        
+        // Commandes en attente
+        Route::get('/pending-orders', [CashierController::class, 'pendingOrders'])
+            ->name('pending-orders');
+        
+        // Validation des sessions
+        Route::get('/validation', [CashierController::class, 'validation'])
+            ->name('validation');
+        Route::post('/session/{id}/validate', [CashierController::class, 'validateSession'])
+            ->name('session.validate');
+
+        // Historique des sessions
+        Route::get('/history', [CashierController::class, 'history'])
+            ->name('history');
+    });
+});
+

@@ -29,6 +29,24 @@
 
                         @livewire('sidebar-menu-item', ['name' => __('menu.dashboard'), 'icon' => 'dashboard', 'link' => route('dashboard'), 'active' => request()->routeIs('dashboard')])
 
+
+                         {{-- Cashier Module --}}
+                        @if (user_can('manage_cashier') || user_can('validate_cash_session'))
+                            <x-sidebar-dropdown-menu :name='__("menu.cash")' icon='cashier' :active='request()->routeIs("backend.cashier.*")'>
+                                @if (user_can('manage_cashier'))
+                                    @livewire('sidebar-dropdown-menu', ['name' => __('menu.cash_sessions'), 'link' => route('backend.cashier.index'), 'active' => request()->routeIs('backend.cashier.index')])
+                                @endif
+                                
+                                @if (user_can('validate_cash_session'))
+                                    @livewire('sidebar-dropdown-menu', ['name' => __('menu.cash_sessions_validation'), 'link' => route('backend.cashier.validation'), 'active' => request()->routeIs('backend.cashier.validation')])
+                                @endif
+                                
+                                @if (user_can('manage_cashier'))
+                                    @livewire('sidebar-dropdown-menu', ['name' => __('menu.cash_sessions_history'), 'link' => route('backend.cashier.history'), 'active' => request()->routeIs('backend.cashier.history')])
+                                @endif
+                            </x-sidebar-dropdown-menu>
+                        @endif
+
                         @if ($this->hasModule('Menu') || $this->hasModule('Menu Item') || $this->hasModule('Item Category'))
                             @if (user_can('Show Menu') || user_can('Show Menu Item') || user_can('Show Item Category'))
                                 <x-sidebar-dropdown-menu :name='__("menu.menu")' icon='menu' :active='request()->routeIs(["menus.*", "menu-items.*", "item-categories.*", "item-modifiers.*", "modifier-groups.*"])'>
@@ -150,6 +168,9 @@
                                 </x-sidebar-dropdown-menu>
                             @endif
                         @endif
+
+                       
+
                         @if ($this->hasModule('Report'))
                             @if (user_can('Show Reports'))
                                 <x-sidebar-dropdown-menu :name='__("menu.reports")' icon='reports' :active='request()->routeIs(["reports.*"])'>

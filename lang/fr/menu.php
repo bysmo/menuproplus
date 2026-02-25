@@ -57,4 +57,8 @@ return [
   'superadminPaymentSetting' => 'Paramètres de paiement',
   'adminPaymentSetting' => 'Paramètres de paiement du restaurant',
   'customerDisplay' => 'Affichage du client',
+  'cash' => 'Gestion de caisse',
+  'cash_sessions' => 'Session de caisse',
+  'cash_sessions_validation' => 'Validation de sessions',
+  'cash_sessions_history' => 'Historique de sessions',
 ];

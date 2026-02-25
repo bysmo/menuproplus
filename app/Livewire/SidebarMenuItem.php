@@ -53,6 +53,14 @@ class SidebarMenuItem extends Component
             $this->icon = '<svg width="16" height="16" viewBox="0 0 64 64" class="w-6 h-6 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"  xmlns="http://www.w3.org/2000/svg" stroke-width="3" stroke="currentColor" fill="none"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M53.36,41.21V52.14a2,2,0,0,1-2,2h-43a2,2,0,0,1-2-2v-31a2,2,0,0,1,2-2h43a2,2,0,0,1,2,2v8.93" stroke-linecap="round"></path><rect x="39.64" y="30.07" width="18" height="11.14" rx=".99" stroke-linecap="round"></rect><path d="M8.14,19.14l33.15-9.2h0a1.7,1.7,0,0,1,2.15,1.6l.27,7" stroke-linecap="round"></path><line x1="45.73" y1="35.64" x2="46.26" y2="35.64" stroke-linecap="round"></line></g></svg>';
                 break;
 
+        case 'cashier':
+            $this->icon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="w-6 h-6 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" viewBox="0 0 16 16">
+  <path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v2h6a.5.5 0 0 1 .5.5c0 .253.08.644.306.958.207.288.557.542 1.194.542s.987-.254 1.194-.542C9.42 6.644 9.5 6.253 9.5 6a.5.5 0 0 1 .5-.5h6v-2A1.5 1.5 0 0 0 14.5 2z"/>
+  <path d="M16 6.5h-5.551a2.7 2.7 0 0 1-.443 1.042C9.613 8.088 8.963 8.5 8 8.5s-1.613-.412-2.006-.958A2.7 2.7 0 0 1 5.551 6.5H0v6A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5z"/>
+  <path d="M8 10a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-3 1a1 1 0 1 0 2 0 1 1 0 0 0-2 0m7-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-3 1a1 1 0 1 0 2 0 1 1 0 0 0-2 0"/>
+</svg>';
+                break;
+
         case 'settings':
             $this->icon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="w-6 h-6 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white bi bi-gear" viewBox="0 0 16 16">
   <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/>

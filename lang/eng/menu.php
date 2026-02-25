@@ -58,4 +58,8 @@ return array(
     'adminPaymentSetting' => 'Restaurant Payment Settings',
     'customerDisplay' => 'Customer Display',
     'deliveryAppReport' => 'Delivery App Report',
+    'cash' => 'Cash Management',
+    'cash_sessions' => 'Cash Session',
+    'cash_sessions_validation' => 'Session Validation',
+    'cash_sessions_history' => 'Session History',
 );

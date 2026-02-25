@@ -15,8 +15,28 @@ class Payment extends BaseModel
 
     protected $guarded = ['id'];
 
+    protected $fillable = [
+        'order_id',
+        'branch_id',
+        'amount',
+        'payment_method',
+        'status',
+        'transaction_id',
+        'validated_by',
+        'validated_at',
+    ];
+
+    protected $casts = [
+        'validated_at' => 'datetime',
+    ];
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function validatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'validated_by');
     }
 }

@@ -2,6 +2,319 @@
 
 return [
 
+    //module cashier
+    'cashier' => [
+        // Général
+        'title' => 'Gestion des caisses',
+        'cashier' => 'Caissier',
+        'session' => 'Sessions de caisse',
+        'actions' => 'Actions',
+        'status' => 'Statut',
+        'search' => 'Rechercher : commandes, clients, articles...',
+        'print' => 'Imprimer',
+        
+        // Statuts et filtres
+        'all' => 'Tout',
+        'pending' => 'En attente',
+        'completed' => 'Validées',
+        'running' => 'En cours',
+        
+        // Session
+        'sessionNumber' => 'Numéro de session',
+        'sessionNumberHelp' => 'Entrez le numéro de la session ci-dessous pour créer une nouvelle session.',
+        'openNewSession' => 'Ouvrir une nouvelle session',
+        'openNewSessionHelp' => 'Ouvrez une nouvelle session pour commencer à enregistrer les paiements',
+        'closeSession' => 'Fermer la session',
+        'noActiveSession' => 'Aucune session active',
+        'noPreviousSession' => 'Aucune session précédente',
+        'noSessionFound' => 'Aucune session de caisse trouvée',
+        
+        // Dates
+        'openedAt' => 'Ouvert le',
+        'openedBy' => 'Ouvert par',
+        'closedAt' => 'Fermé le',
+        'closedBy' => 'Fermé par',
+        
+        // Montants
+        'cashOpeningAmount' => 'Montant d\'ouverture de caisse',
+        'cashClosingAmount' => 'Montant de fermeture de caisse',
+        'initialCash' => 'Montant initial de caisse',
+        'totalAmount' => 'Montant total',
+        'totalSales' => 'Total des ventes',
+        'salesReceived' => 'Ventes reçues',
+        'totalExpenses' => 'Total des dépenses',
+        'expensesToday' => 'Dépenses du jour',
+        'expectedCash' => 'Espèces attendues',
+        'countedCash' => 'Espèces comptées',
+        
+        // Ventes
+        'sales' => 'Ventes',
+        
+        // Historique
+        'history' => 'Historique',
+        'historySessions' => 'Historique des sessions',
+        
+        // Paiements
+        'paymentMethod' => 'Moyen de paiement',
+        'cash' => 'Espèces',
+        'mobile_money' => 'Mobile Money',
+        'card' => 'Carte bancaire',
+        'bank_transfer' => 'Virement bancaire',
+        'check' => 'Chèque',
+        'other' => 'Autre',
+        
+        // Commandes et clients
+        'order' => 'Commande',
+        'orderNumber' => 'N° Commande',
+        'customer' => 'Client',
+        'anonymousCustomer' => 'Client anonyme',
+        'amount' => 'Montant',
+        'date' => 'Date',
+        
+        // Actions sur paiements
+        'collectPayment' => 'Encaisser',
+        'alreadyCollected' => 'Déjà encaissé',
+        'validatePayment' => 'Valider',
+        'amountToCollect' => 'Montant à encaisser',
+        
+        // Modal ouverture
+        'openingSessionModal' => 'Ouverture de session de caisse',
+        'enterOpeningAmounts' => 'Saisissez les montants de départ pour chaque moyen de paiement',
+        'openingCashFund' => 'Fond de caisse (Espèces)',
+        'enterCashAmount' => 'Saisissez le montant des espèces présentes dans la caisse à l\'ouverture.',
+        'openingNotes' => 'Notes (optionnel)',
+        'addRemarksIfNeeded' => 'Ajoutez des remarques si nécessaire...',
+        'openSession' => 'Ouvrir la session',
+        
+        // Modal fermeture
+        'closingSessionModal' => 'Clôture de session',
+        'closingSummary' => 'Résumé de fermeture',
+        'countCash' => 'Comptez l\'argent physique dans votre caisse.',
+        'closingCashAmount' => 'Montant Espèces en Caisse',
+        'enterCountedAmount' => 'Entrez le montant compté...',
+        'closingNotes' => 'Notes de fermeture (optionnel)',
+        'closingRemarks' => 'Remarques éventuelles...',
+        'verifyAndClose' => 'Vérifier et Clôturer',
+        'confirmWithDiscrepancy' => 'Confirmer avec écart',
+        
+        // Écarts
+        'discrepancy' => 'Écart',
+        'discrepancyDetected' => 'Écart détecté',
+        'discrepancyAmount' => 'Montant de l\'écart',
+        'discrepancyJustification' => 'Justification de l\'écart',
+        'discrepancyJustificationRequired' => 'Justification de l\'écart *',
+        'explainDiscrepancy' => 'Expliquez la raison de cet écart...',
+        'discrepancyAlert' => 'Le montant saisi ne correspond pas au montant attendu. Veuillez recompter ou justifier cet écart pour continuer.',
+        'clickVerify' => 'Cliquez sur "Vérifier" pour comparer avec le montant attendu.',
+        
+        // Messages
+        'noPendingPayments' => 'Aucun paiement en attente',
+        'sessionOpenedSuccess' => 'Session ouverte avec succès',
+        'sessionClosedSuccess' => 'Session fermée avec succès',
+        'paymentCollectedSuccess' => 'Paiement encaissé avec succès',
+        
+        // Boutons
+        'cancel' => 'Annuler',
+        'close' => 'Fermer',
+        'validate' => 'Valider',
+        'verify' => 'Vérifier',
+        'confirm' => 'Confirmer',
+        'print' => 'Imprimer',
+        
+        // Loading
+        'loading' => 'Chargement...',
+
+        // === GÉNÉRAL ===
+            'title' => 'Gestion de la caisse',
+            'cashier' => 'Caissier',
+            'dashboard' => 'Tableau de bord',
+            'search' => 'Rechercher : commandes, clients, articles...',
+            'all' => 'Tout',
+            'print' => 'Imprimer',
+            'actions' => 'Actions',
+            'status' => 'Statut',
+            'details' => 'Détails',
+            'validate' => 'Valider',
+            'cancel' => 'Annuler',
+            'close' => 'Fermer',
+            'confirm' => 'Confirmer',
+            'verify' => 'Vérifier',
+            'save' => 'Enregistrer',
+            'edit' => 'Modifier',
+            'delete' => 'Supprimer',
+
+            // === STATUTS ===
+            'pending' => 'En attente',
+            'completed' => 'Validées',
+            'running' => 'En cours',
+            'opened' => 'Ouverte',
+            'closed' => 'Fermée',
+            'validated' => 'Validée',
+
+            // === SESSION DE CAISSE ===
+            'session' => 'Session de caisse',
+            'sessions' => 'Sessions de caisse',
+            'sessionNumber' => 'Numéro de session',
+            'sessionDetails' => 'Détails de la session',
+            'sessionValidation' => 'Validation des sessions',
+            'sessionHistory' => 'Historique des sessions',
+            'sessionRunning' => 'Session en cours',
+            'sessionDuration' => 'Durée de la session',
+            'historySessions' => 'Historique des sessions',
+            'history' => 'Historique',
+            'noActiveSession' => 'Aucune session active',
+            'noPreviousSession' => 'Aucune session précédente',
+            'noSessionFound' => 'Aucune session de caisse trouvée',
+            'noSessionsToValidate' => 'Aucune session en attente de validation',
+
+            // === ACTIONS DE SESSION ===
+            'openNewSession' => 'Ouvrir une nouvelle session',
+            'openNewSessionHelp' => 'Ouvrez une nouvelle session pour commencer à enregistrer les paiements',
+            'closeSession' => 'Fermer la session',
+            'validateSession' => 'Valider la session',
+            'sessionNumberHelp' => 'Entrez le numéro de la session ci-dessous pour créer une nouvelle session',
+
+            // === DATES ===
+            'openedAt' => 'Ouvert le',
+            'openedBy' => 'Ouvert par',
+            'closedAt' => 'Fermé le',
+            'closedBy' => 'Fermé par',
+            'validated_by' => 'Validé par',
+            'validated_at' => 'Validé le',
+            'openingDate' => 'Date d\'ouverture',
+            'openingTime' => 'Heure d\'ouverture',
+            'closingDate' => 'Date de fermeture',
+
+            // === MONTANTS ET FINANCES ===
+            'cashOpeningAmount' => 'Montant d\'ouverture de caisse',
+            'cashClosingAmount' => 'Montant de fermeture de caisse',
+            'initialCash' => 'Montant initial de caisse',
+            'initialFund' => 'Fond initial',
+            'totalAmount' => 'Montant total',
+            'totalSales' => 'Total des ventes',
+            'salesReceived' => 'Ventes reçues',
+            'totalExpenses' => 'Total des dépenses',
+            'expensesToday' => 'Dépenses du jour',
+            'sales' => 'Ventes',
+            'amount' => 'Montant',
+            'totalCollected' => 'Total encaissé',
+            'pendingAmount' => 'Montant en attente',
+
+            // === BILANS FINANCIERS ===
+            'financialSummary' => 'Résumé financier',
+            'openingBalance' => 'Solde d\'ouverture',
+            'closingBalance' => 'Solde de fermeture',
+            'expectedBalance' => 'Solde attendu',
+            'realBalance' => 'Solde réel',
+            'discrepancy' => 'Écart',
+            'discrepancyJustification' => 'Justification de l\'écart',
+            'discrepancyDetected' => 'Écart détecté',
+            'surplus' => 'Excédent',
+            'shortage' => 'Manque',
+            'justificationProvided' => 'Justification fournie',
+            'detailsByMethod' => 'Détails par méthode',
+            'balancedCashRegister' => 'Caisse équilibrée - Aucun écart détecté',
+            'noDiscrepancyMessage' => 'Les montants attendus et réels correspondent parfaitement. Aucune différence constatée.',
+
+            // === MOYENS DE PAIEMENT ===
+            'paymentMethod' => 'Moyen de paiement',
+            'paymentMethods' => 'Moyens de paiement',
+            'cash' => 'Espèces',
+            'mobile_money' => 'Mobile Money',
+            'card' => 'Carte bancaire',
+            'bank_transfer' => 'Virement bancaire',
+            'check' => 'Chèque',
+            'qr_code' => 'QR Code',
+            'other' => 'Autre',
+
+            // === PAIEMENTS ===
+            'collectPayment' => 'Encaisser',
+            'validatePayment' => 'Valider le paiement',
+            'amountToCollect' => 'Montant à encaisser',
+            'alreadyCollected' => 'Déjà encaissé',
+            'noPendingPayments' => 'Aucun paiement en attente',
+            'pendingPayments' => 'Paiements en attente',
+
+            // === TRANSACTIONS ===
+            'transactions' => 'Transactions',
+            'time' => 'Heure',
+            'order' => 'Commande',
+            'type' => 'Type',
+            'method' => 'Méthode',
+            'sale' => 'Vente',
+            'expense' => 'Dépense',
+            'noTransactions' => 'Aucune transaction',
+
+            // === MODALS - OUVERTURE DE SESSION ===
+            'openingSessionModal' => 'Ouverture de session',
+            'enterOpeningAmounts' => 'Saisissez les montants d\'ouverture',
+            'openingCashFund' => 'Fond de caisse d\'ouverture',
+            'openingDetails' => 'Détails de l\'ouverture',
+            'totalOpeningFund' => 'Total fond d\'ouverture',
+            'opening' => 'Ouverture',
+
+            // === MODALS - FERMETURE DE SESSION ===
+            'closingSessionModal' => 'Fermeture de session',
+            'countCash' => 'Comptage de caisse',
+            'verifyAndClose' => 'Vérifier et fermer',
+            'explainDiscrepancy' => 'Expliquez l\'écart constaté',
+            'closingDetails' => 'Détails de la fermeture',
+            'closing' => 'Fermeture',
+            'closingNotes' => 'Notes de fermeture',
+
+            // === DÉTAILS PAR MÉTHODE ===
+            'detailsByPaymentMethod' => 'Détails par moyen de paiement',
+            'expected' => 'Attendu',
+            'difference' => 'Différence',
+            'totals' => 'TOTAUX',
+
+            // === MESSAGES ===
+            'sessionOpenedSuccess' => 'Session ouverte avec succès',
+            'sessionClosedSuccess' => 'Session fermée avec succès',
+            'paymentCollectedSuccess' => 'Paiement encaissé avec succès',
+            'sessionValidatedSuccess' => 'Session validée avec succès',
+            'confirmValidation' => 'Êtes-vous sûr de vouloir valider cette session ?',
+            'confirmClosing' => 'Êtes-vous sûr de vouloir fermer cette session ?',
+
+            // === BORDEREAUX D'IMPRESSION ===
+            'openingSlip' => 'Bordereau d\'Ouverture de Caisse',
+            'openingSlipSubtitle' => 'Document officiel d\'ouverture',
+            'closingSlip' => 'Bordereau de Fermeture de Caisse',
+            'closingSlipSubtitle' => 'Document officiel de fermeture',
+            'printOpening' => 'Imprimer ouverture',
+            'printClosing' => 'Imprimer fermeture',
+
+            // === SIGNATURES ET NOTES ===
+            'notesAndRemarks' => 'Notes et remarques',
+            'manager' => 'Responsable',
+            'accountant' => 'Comptable',
+            'signatureAndDate' => 'Signature et date',
+            'documentGeneratedAutomatically' => 'Document généré automatiquement par',
+
+            // === FILTRES ===
+            'filterByStatus' => 'Filtrer par statut',
+            'filterByDate' => 'Filtrer par date',
+            'dateFrom' => 'Du',
+            'dateTo' => 'Au',
+            'resetFilters' => 'Réinitialiser',
+            'applyFilters' => 'Appliquer',
+
+            // === AUTRES ===
+            'anonymousCustomer' => 'Client anonyme',
+            'loading' => 'Chargement...',
+            'noData' => 'Aucune donnée disponible',
+            'refresh' => 'Actualiser',
+            'export' => 'Exporter',
+            'download' => 'Télécharger',
+
+            'sessionOpenedBy' => 'Session ouverte par',
+            'onlySessionOwnerCanClose' => 'Seul le caissier qui a ouvert la session peut la fermer',
+            'atSessionEnd' => 'À la fin de la session',
+            'customer' => 'Client',
+            'date' => 'Date',
+            'order' => 'Commande',
+    ],
+
     //module slate
     'slate' => [
         'title' => 'Mon Ardoise',

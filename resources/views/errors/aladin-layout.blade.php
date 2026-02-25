@@ -76,10 +76,10 @@
             @endif
             
             <!-- Footer -->
-            <div class="mt-12 text-sm text-gray-500">
-                <p>© {{ date('Y') }} Aladin Technologies Solutions</p>
-                <p class="mt-1">Powered by MenuPro+</p>
-            </div>
+            <div class="mt-8 text-center text-sm text-gray-500">
+                    <p>© {{ date('Y') }} MenuPro+</p>
+                    <p class="mt-1">Powered by Aladin Technologies Solutions (ALTES)</p>
+                </div>
         </div>
     </div>
 </body>

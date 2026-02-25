@@ -2,6 +2,318 @@
 
 return [
 
+    //Cash Management
+    'cashier' => [
+        // General
+        'title' => 'Cash Register Management',
+        'cashier' => 'Cashier',
+        'session' => 'Cash Register Sessions',
+        'actions' => 'Actions',
+        'status' => 'Status',
+        'search' => 'Search: orders, customers, items...',
+        'print' => 'Print',
+        
+        // Status and filters
+        'all' => 'All',
+        'pending' => 'Pending',
+        'completed' => 'Completed',
+        'running' => 'Running',
+        
+        // Session
+        'sessionNumber' => 'Session Number',
+        'sessionNumberHelp' => 'Enter the session number below to create a new session.',
+        'openNewSession' => 'Open New Session',
+        'openNewSessionHelp' => 'Open a new session to start recording payments',
+        'closeSession' => 'Close Session',
+        'noActiveSession' => 'No Active Session',
+        'noPreviousSession' => 'No Previous Session',
+        'noSessionFound' => 'No cash register session found',
+        
+        // Dates
+        'openedAt' => 'Opened At',
+        'openedBy' => 'Opened By',
+        'closedAt' => 'Closed At',
+        'closedBy' => 'Closed By',
+        
+        // Amounts
+        'cashOpeningAmount' => 'Cash Opening Amount',
+        'cashClosingAmount' => 'Cash Closing Amount',
+        'initialCash' => 'Initial Cash Amount',
+        'totalAmount' => 'Total Amount',
+        'totalSales' => 'Total Sales',
+        'salesReceived' => 'Sales Received',
+        'totalExpenses' => 'Total Expenses',
+        'expensesToday' => 'Expenses Today',
+        'expectedCash' => 'Expected Cash',
+        'countedCash' => 'Counted Cash',
+        
+        // Sales
+        'sales' => 'Sales',
+        
+        // History
+        'history' => 'History',
+        'historySessions' => 'Session History',
+        
+        // Payments
+        'paymentMethod' => 'Payment Method',
+        'cash' => 'Cash',
+        'mobile_money' => 'Mobile Money',
+        'card' => 'Credit Card',
+        'bank_transfer' => 'Bank Transfer',
+        'check' => 'Check',
+        'other' => 'Other',
+        
+        // Orders and customers
+        'order' => 'Order',
+        'orderNumber' => 'Order No.',
+        'customer' => 'Customer',
+        'anonymousCustomer' => 'Anonymous Customer',
+        'amount' => 'Amount',
+        'date' => 'Date',
+        
+        // Payment actions
+        'collectPayment' => 'Collect',
+        'alreadyCollected' => 'Already Collected',
+        'validatePayment' => 'Validate',
+        'amountToCollect' => 'Amount to Collect',
+        
+        // Opening modal
+        'openingSessionModal' => 'Cash Register Opening',
+        'enterOpeningAmounts' => 'Enter the starting amounts for each payment method',
+        'openingCashFund' => 'Cash Fund (Cash)',
+        'enterCashAmount' => 'Enter the amount of cash present in the register at opening.',
+        'openingNotes' => 'Notes (optional)',
+        'addRemarksIfNeeded' => 'Add remarks if necessary...',
+        'openSession' => 'Open Session',
+        
+        // Closing modal
+        'closingSessionModal' => 'Session Closure',
+        'closingSummary' => 'Closing Summary',
+        'countCash' => 'Count the physical cash in your register.',
+        'closingCashAmount' => 'Cash Amount in Register',
+        'enterCountedAmount' => 'Enter the counted amount...',
+        'closingNotes' => 'Closing Notes (optional)',
+        'closingRemarks' => 'Any remarks...',
+        'verifyAndClose' => 'Verify and Close',
+        'confirmWithDiscrepancy' => 'Confirm with Discrepancy',
+        
+        // Discrepancies
+        'discrepancy' => 'Discrepancy',
+        'discrepancyDetected' => 'Discrepancy Detected',
+        'discrepancyAmount' => 'Discrepancy Amount',
+        'discrepancyJustification' => 'Discrepancy Justification',
+        'discrepancyJustificationRequired' => 'Discrepancy Justification *',
+        'explainDiscrepancy' => 'Explain the reason for this discrepancy...',
+        'discrepancyAlert' => 'The entered amount does not match the expected amount. Please recount or justify this discrepancy to continue.',
+        'clickVerify' => 'Click "Verify" to compare with the expected amount.',
+        
+        // Messages
+        'noPendingPayments' => 'No pending payments',
+        'sessionOpenedSuccess' => 'Session opened successfully',
+        'sessionClosedSuccess' => 'Session closed successfully',
+        'paymentCollectedSuccess' => 'Payment collected successfully',
+        
+        // Buttons
+        'cancel' => 'Cancel',
+        'close' => 'Close',
+        'validate' => 'Validate',
+        'verify' => 'Verify',
+        'confirm' => 'Confirm',
+        'print' => 'Print',
+        
+        // Loading
+        'loading' => 'Loading...',
+
+        // === GENERAL ===
+            'title' => 'Cash Register Management',
+            'cashier' => 'Cashier',
+            'dashboard' => 'Dashboard',
+            'search' => 'Search: orders, customers, items...',
+            'all' => 'All',
+            'print' => 'Print',
+            'actions' => 'Actions',
+            'status' => 'Status',
+            'details' => 'Details',
+            'validate' => 'Validate',
+            'cancel' => 'Cancel',
+            'close' => 'Close',
+            'confirm' => 'Confirm',
+            'verify' => 'Verify',
+            'save' => 'Save',
+            'edit' => 'Edit',
+            'delete' => 'Delete',
+
+            // === STATUSES ===
+            'pending' => 'Pending',
+            'completed' => 'Completed',
+            'running' => 'Running',
+            'opened' => 'Opened',
+            'closed' => 'Closed',
+            'validated' => 'Validated',
+
+            // === CASH SESSION ===
+            'session' => 'Cash session',
+            'sessions' => 'Cash sessions',
+            'sessionNumber' => 'Session number',
+            'sessionDetails' => 'Session details',
+            'sessionValidation' => 'Session validation',
+            'sessionHistory' => 'Session history',
+            'sessionRunning' => 'Session in progress',
+            'sessionDuration' => 'Session duration',
+            'historySessions' => 'Session history',
+            'history' => 'History',
+            'noActiveSession' => 'No active session',
+            'noPreviousSession' => 'No previous session',
+            'noSessionFound' => 'No cash session found',
+            'noSessionsToValidate' => 'No sessions pending validation',
+
+            // === SESSION ACTIONS ===
+            'openNewSession' => 'Open new session',
+            'openNewSessionHelp' => 'Open a new session to start recording payments',
+            'closeSession' => 'Close session',
+            'validateSession' => 'Validate session',
+            'sessionNumberHelp' => 'Enter the session number below to create a new session',
+
+            // === DATES ===
+            'openedAt' => 'Opened on',
+            'openedBy' => 'Opened by',
+            'closedAt' => 'Closed on',
+            'closedBy' => 'Closed by',
+            'validated_by' => 'Validated by',
+            'validated_at' => 'Validated on',
+            'openingDate' => 'Opening date',
+            'openingTime' => 'Opening time',
+            'closingDate' => 'Closing date',
+
+            // === AMOUNTS AND FINANCES ===
+            'cashOpeningAmount' => 'Cash opening amount',
+            'cashClosingAmount' => 'Cash closing amount',
+            'initialCash' => 'Initial cash amount',
+            'initialFund' => 'Initial fund',
+            'totalAmount' => 'Total amount',
+            'totalSales' => 'Total sales',
+            'salesReceived' => 'Sales received',
+            'totalExpenses' => 'Total expenses',
+            'expensesToday' => 'Today\'s expenses',
+            'sales' => 'Sales',
+            'amount' => 'Amount',
+            'totalCollected' => 'Total collected',
+            'pendingAmount' => 'Pending amount',
+
+            // === FINANCIAL STATEMENTS ===
+            'financialSummary' => 'Financial summary',
+            'openingBalance' => 'Opening balance',
+            'closingBalance' => 'Closing balance',
+            'expectedBalance' => 'Expected balance',
+            'realBalance' => 'Real balance',
+            'discrepancy' => 'Discrepancy',
+            'discrepancyJustification' => 'Discrepancy justification',
+            'discrepancyDetected' => 'Discrepancy detected',
+            'surplus' => 'Surplus',
+            'shortage' => 'Shortage',
+            'justificationProvided' => 'Justification provided',
+            'detailsByMethod' => 'Details by method',
+            'balancedCashRegister' => 'Balanced cash register - No discrepancy detected',
+            'noDiscrepancyMessage' => 'Expected and actual amounts match perfectly. No difference found.',
+
+            // === PAYMENT METHODS ===
+            'paymentMethod' => 'Payment method',
+            'paymentMethods' => 'Payment methods',
+            'cash' => 'Cash',
+            'mobile_money' => 'Mobile Money',
+            'card' => 'Credit Card',
+            'bank_transfer' => 'Bank Transfer',
+            'check' => 'Check',
+            'qr_code' => 'QR Code',
+            'other' => 'Other',
+
+            // === PAYMENTS ===
+            'collectPayment' => 'Collect',
+            'validatePayment' => 'Validate payment',
+            'amountToCollect' => 'Amount to collect',
+            'alreadyCollected' => 'Already collected',
+            'noPendingPayments' => 'No pending payments',
+            'pendingPayments' => 'Pending payments',
+
+            // === TRANSACTIONS ===
+            'transactions' => 'Transactions',
+            'time' => 'Time',
+            'order' => 'Order',
+            'type' => 'Type',
+            'method' => 'Method',
+            'sale' => 'Sale',
+            'expense' => 'Expense',
+            'noTransactions' => 'No transactions',
+
+            // === MODALS - SESSION OPENING ===
+            'openingSessionModal' => 'Session opening',
+            'enterOpeningAmounts' => 'Enter opening amounts',
+            'openingCashFund' => 'Opening cash fund',
+            'openingDetails' => 'Opening details',
+            'totalOpeningFund' => 'Total opening fund',
+            'opening' => 'Opening',
+
+            // === MODALS - SESSION CLOSING ===
+            'closingSessionModal' => 'Session closing',
+            'countCash' => 'Cash counting',
+            'verifyAndClose' => 'Verify and close',
+            'explainDiscrepancy' => 'Explain the discrepancy found',
+            'closingDetails' => 'Closing details',
+            'closing' => 'Closing',
+            'closingNotes' => 'Closing notes',
+
+            // === DETAILS BY METHOD ===
+            'detailsByPaymentMethod' => 'Details by payment method',
+            'expected' => 'Expected',
+            'difference' => 'Difference',
+            'totals' => 'TOTALS',
+
+            // === MESSAGES ===
+            'sessionOpenedSuccess' => 'Session opened successfully',
+            'sessionClosedSuccess' => 'Session closed successfully',
+            'paymentCollectedSuccess' => 'Payment collected successfully',
+            'sessionValidatedSuccess' => 'Session validated successfully',
+            'confirmValidation' => 'Are you sure you want to validate this session?',
+            'confirmClosing' => 'Are you sure you want to close this session?',
+
+            // === PRINT SLIPS ===
+            'openingSlip' => 'Cash Opening Slip',
+            'openingSlipSubtitle' => 'Official opening document',
+            'closingSlip' => 'Cash Closing Slip',
+            'closingSlipSubtitle' => 'Official closing document',
+            'printOpening' => 'Print opening',
+            'printClosing' => 'Print closing',
+
+            // === SIGNATURES AND NOTES ===
+            'notesAndRemarks' => 'Notes and remarks',
+            'manager' => 'Manager',
+            'accountant' => 'Accountant',
+            'signatureAndDate' => 'Signature and date',
+            'documentGeneratedAutomatically' => 'Document automatically generated by',
+
+            // === FILTERS ===
+            'filterByStatus' => 'Filter by status',
+            'filterByDate' => 'Filter by date',
+            'dateFrom' => 'From',
+            'dateTo' => 'To',
+            'resetFilters' => 'Reset',
+            'applyFilters' => 'Apply',
+
+            // === OTHERS ===
+            'anonymousCustomer' => 'Anonymous customer',
+            'loading' => 'Loading...',
+            'noData' => 'No data available',
+            'refresh' => 'Refresh',
+            'export' => 'Export',
+            'download' => 'Download',
+            'sessionOpenedBy' => 'Session opened by',
+            'onlySessionOwnerCanClose' => 'Only the cashier who opened the session can close it',
+            'atSessionEnd' => 'At session end',
+            'customer' => 'Customer',
+            'date' => 'Date',
+    'order' => 'Order',
+    ],
+
     //module slate
     'slate' => [
         'title' => 'My Slate',
