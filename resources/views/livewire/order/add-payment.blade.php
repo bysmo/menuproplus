@@ -87,6 +87,19 @@
                                 </svg>
                                 <span class="text-sm">@lang('modules.order.due')</span>
                             </button>
+
+                            @php $pgc = \App\Models\PaymentGatewayCredential::first(); @endphp
+                            @if($pgc?->paydunya_status)
+                            <button wire:click="setPaymentMethod('paydunya')"
+                                class="p-3 text-center border rounded-lg {{ $paymentMethod === 'paydunya' ? 'bg-skin-base/5 border-skin-base' : 'hover:bg-gray-50' }}">
+                                <svg class="w-6 h-6 mx-auto mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <rect x="5" y="2" width="14" height="20" rx="2" stroke-width="1.8"/>
+                                    <circle cx="12" cy="17" r="1" fill="currentColor"/>
+                                    <path d="M9 6h6M9 9h4" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <span class="text-sm">PayDunya</span>
+                            </button>
+                            @endif
                             @if($canAddTip)
                             <button wire:click="addTipModal"
                                 class="p-3 text-center border rounded-lg transition-all duration-200 {{ $order && $order->tip_amount > 0

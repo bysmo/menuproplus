@@ -257,6 +257,19 @@
                                             </x-secondary-button>
                                         @endif
 
+                                        @if ($paymentGateway->paydunya_status)
+                                            <x-secondary-button wire:click="togglePaydunya">
+                                                <span class="inline-flex items-center">
+                                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                        <rect x="5" y="2" width="14" height="20" rx="2" stroke-width="1.8"/>
+                                                        <circle cx="12" cy="17" r="1" fill="currentColor"/>
+                                                        <path d="M9 6h6M9 9h4" stroke-width="1.5" stroke-linecap="round"/>
+                                                    </svg>
+                                                    <span class="ml-2">PayDunya</span>
+                                                </span>
+                                            </x-secondary-button>
+                                        @endif
+
                                         @if ($paymentGateway->is_cash_payment_enabled)
                                             <x-secondary-button wire:click="paySlate" wire:loading.attr="disabled"
                                                 class="w-full px-6 py-3 text-lg font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
@@ -295,6 +308,31 @@
                                     <x-button class="ml-3"
                                         wire:click="paySlate"
                                         wire:loading.attr="disabled">@lang('modules.billing.paymentDone')</x-button>
+
+                                @elseif ($showPaydunya)
+                                    <div class="mt-4 p-4 border border-orange-200 bg-orange-50 rounded-lg">
+                                        <div class="flex items-center gap-3 mb-3">
+                                            <svg class="w-8 h-8 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <rect x="5" y="2" width="14" height="20" rx="2" stroke-width="1.8"/>
+                                                <circle cx="12" cy="17" r="1" fill="currentColor"/>
+                                                <path d="M9 6h6M9 9h4" stroke-width="1.5" stroke-linecap="round"/>
+                                            </svg>
+                                            <div>
+                                                <p class="font-semibold text-gray-800">Payer via PayDunya</p>
+                                                <p class="text-xs text-gray-500">Orange Money · MTN Mobile Money · Moov Money</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mb-3">
+                                            Le paiement sera soumis pour vérification par le restaurant.
+                                        </p>
+                                        <x-button
+                                            wire:click="paySlate('paydunya')"
+                                            wire:loading.attr="disabled"
+                                            class="w-full bg-orange-500 hover:bg-orange-600 justify-center">
+                                            <span wire:loading.remove wire:target="paySlate">📲 Confirmer le paiement PayDunya</span>
+                                            <span wire:loading wire:target="paySlate">Traitement...</span>
+                                        </x-button>
+                                    </div>
                                 @endif
 
                             </div>

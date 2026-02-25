@@ -33,7 +33,7 @@ class TimezoneSettings extends Component
         $this->hideTodayOrders = (bool)$this->settings->hide_new_orders;
         $this->hideNewReservation = (bool)$this->settings->hide_new_reservations;
         $this->hideNewWaiterRequest = (bool)$this->settings->hide_new_waiter_request;
-        $this->customerLanguage = $this->settings->customer_site_language ?? 'en';
+        $this->customerLanguage = $this->settings->customer_site_language ?? 'fr';
         $this->countries = Country::all();
         $this->currencies = Currency::all();
         $this->timezones = DateTimeZone::listIdentifiers();
@@ -53,7 +53,7 @@ class TimezoneSettings extends Component
         $this->settings->hide_new_orders = $this->hideTodayOrders;
         $this->settings->hide_new_reservations = $this->hideNewReservation;
         $this->settings->hide_new_waiter_request = $this->hideNewWaiterRequest;
-        $this->settings->customer_site_language = $this->customerLanguage ?? 'en';
+        $this->settings->customer_site_language = $this->customerLanguage ?? 'fr';
         $this->settings->save();
 
         session()->forget('restaurant');

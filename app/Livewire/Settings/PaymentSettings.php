@@ -96,6 +96,17 @@ class PaymentSettings extends Component
     public $isXenditEnabled;
     public bool $isGlobalXenditEnabled = false;
 
+    // PayDunya properties
+    public $paydunya_master_key;
+    public $paydunya_private_key;
+    public $paydunya_public_key;
+    public $paydunya_token;
+    public $paydunya_mode = 'test';
+    public $paydunya_status = false;
+    public $isPaydunyaEnabled;
+    public bool $isGlobalPaydunyaEnabled = false;
+    public $paydunya_ipn_url;
+
 
     public function mount()
     {
@@ -109,6 +120,7 @@ class PaymentSettings extends Component
         $this->isGlobalPaystackEnabled = (bool) $settings->enable_paystack;
         $this->isGlobalXenditEnabled = (bool) $settings->enable_xendit;
         $this->isGlobalPaddleEnabled = (bool) $settings->enable_paddle;
+        $this->isGlobalPaydunyaEnabled = (bool) ($settings->enable_paydunya ?? true);
         $this->paymentGateway = PaymentGatewayCredential::first();
 
         $this->setDefaultActivePaymentSetting();
@@ -124,15 +136,17 @@ class PaymentSettings extends Component
         }
 
         $paymentGateways = [
-            'razorpay' => $this->isGlobalRazorpayEnabled,
+            /*'razorpay' => $this->isGlobalRazorpayEnabled,
             'stripe' => $this->isGlobalStripeEnabled,
             'flutterwave' => $this->isGlobalFlutterwaveEnabled,
             'paypal' => $this->isGlobalPaypalEnabled,
             'payfast' => $this->isGlobalPayfastEnabled,
             'paystack' => $this->isGlobalPaystackEnabled,
-            'xendit' => $this->isGlobalXenditEnabled,
-            'paddle' => $this->isGlobalPaddleEnabled,
-            'offline' => true,
+            'xendit'          => $this->isGlobalXenditEnabled,
+            'paddle'          => $this->isGlobalPaddleEnabled,
+            */
+            'paydunya'        => $this->isGlobalPaydunyaEnabled,
+            'offline'         => true,
             'qr_code' => true,
             'serviceSpecific' => true,
         ];
@@ -159,9 +173,10 @@ class PaymentSettings extends Component
             'paypal' => $this->isGlobalPaypalEnabled,
             'payfast' => $this->isGlobalPayfastEnabled,
             'paystack' => $this->isGlobalPaystackEnabled,
-            'xendit' => $this->isGlobalXenditEnabled,
-            'paddle' => $this->isGlobalPaddleEnabled,
-            'offline' => true,
+            'xendit'          => $this->isGlobalXenditEnabled,
+            'paddle'          => $this->isGlobalPaddleEnabled,
+            'paydunya'        => $this->isGlobalPaydunyaEnabled,
+            'offline'         => true,
             'qr_code' => true,
             'serviceSpecific' => true,
         ];
@@ -248,6 +263,16 @@ class PaymentSettings extends Component
         $this->testXenditWebhookToken = $this->paymentGateway->test_xendit_webhook_token;
         $this->liveXenditWebhookToken = $this->paymentGateway->live_xendit_webhook_token;
         $this->isXenditEnabled = $this->paymentGateway->xendit_status;
+
+        // PayDunya credentials
+        $this->paydunya_master_key  = $this->paymentGateway->paydunya_master_key;
+        $this->paydunya_private_key = $this->paymentGateway->paydunya_private_key;
+        $this->paydunya_public_key  = $this->paymentGateway->paydunya_public_key;
+        $this->paydunya_token       = $this->paymentGateway->paydunya_token;
+        $this->paydunya_mode        = $this->paymentGateway->paydunya_mode ?? 'test';
+        $this->paydunya_status      = (bool) $this->paymentGateway->paydunya_status;
+        $this->isPaydunyaEnabled    = $this->paymentGateway->paydunya_status;
+        $this->paydunya_ipn_url     = $this->paymentGateway->paydunya_ipn_url;
 
         $hash = restaurant()->hash;
         $this->testFlutterwaveWebhookKey = $this->paymentGateway->flutterwave_webhook_secret_hash ? $this->paymentGateway->flutterwave_webhook_secret_hash : substr(md5($hash), 0, 10);
@@ -719,6 +744,37 @@ class PaymentSettings extends Component
         }
 
         return 1;
+    }
+
+    public function submitFormPaydunya()
+    {
+        $this->validate([
+            'paydunya_mode' => 'required|in:test,live',
+        ]);
+
+        if ($this->savePaydunyaSettings() === 0) {
+            $this->updatePaymentStatus();
+            $this->alertSuccess();
+        }
+    }
+
+    private function savePaydunyaSettings()
+    {
+        try {
+            $this->paymentGateway->update([
+                'paydunya_master_key'  => $this->paydunya_master_key,
+                'paydunya_private_key' => $this->paydunya_private_key,
+                'paydunya_public_key'  => $this->paydunya_public_key,
+                'paydunya_token'       => $this->paydunya_token,
+                'paydunya_mode'        => $this->paydunya_mode,
+                'paydunya_status'      => $this->paydunya_status,
+                'paydunya_ipn_url'     => $this->paydunya_ipn_url,
+            ]);
+            return 0;
+        } catch (\Exception $e) {
+            $this->addError('paydunya_master_key', 'Erreur : ' . $e->getMessage());
+            return 1;
+        }
     }
 
 

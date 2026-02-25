@@ -159,6 +159,29 @@
                     </li>
                 @endif
 
+                @if ($isGlobalPaydunyaEnabled)
+                    <li wire:click="activeSetting('paydunya')" class="me-2">
+                        <span @class([
+                            'inline-flex items-center gap-x-1 cursor-pointer select-none p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300',
+                            'border-transparent' => $activePaymentSetting != 'paydunya',
+                            'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' =>
+                                $activePaymentSetting == 'paydunya',
+                        ])>
+                            {{-- PayDunya: mobile-money waves icon --}}
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                                <circle cx="12" cy="17" r="1" fill="currentColor"/>
+                                <path d="M9 6h6M9 9h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            PayDunya
+                            <span @class([
+                                'flex w-3 h-3 me-3 rounded-full',
+                                'bg-green-500' => $isPaydunyaEnabled,
+                                'bg-red-500' => !$isPaydunyaEnabled,
+                            ])></span>
+                        </span>
+                    </li>
+                @endif
 
                     <li class="me-2">
                         <span wire:click="activeSetting('offline')" @class([
@@ -731,6 +754,122 @@
         </form>
     @endif
 
+
+        {{-- PayDunya Form --}}
+        @if ($activePaymentSetting == 'paydunya')
+            <form wire:submit="submitFormPaydunya" class="mt-6">
+
+                {{-- Section header matching screenshot --}}
+                <div class="flex items-center gap-2 mb-1 text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="12" cy="17" r="1" fill="currentColor"/>
+                        <path d="M9 6h6M9 9h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    Configuration PayDunya
+                </div>
+
+                <div class="mb-6 border rounded-lg overflow-hidden border-gray-200 dark:border-gray-700 shadow-sm">
+                    {{-- Dark section header --}}
+                    <div class="bg-[#0d2a4e] dark:bg-gray-700 px-4 py-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span class="text-white font-medium text-sm">Paramètres de Configuration</span>
+                    </div>
+
+                    <div class="p-5 space-y-5 bg-white dark:bg-gray-800">
+                        {{-- Enable toggle --}}
+                        <div class="flex items-center gap-3">
+                            <x-checkbox name="paydunya_status" id="paydunya_status" wire:model.live="paydunya_status" />
+                            <label for="paydunya_status" class="font-medium text-gray-800 dark:text-gray-200 cursor-pointer select-none">Activer PayDunya</label>
+                        </div>
+
+                        {{-- Mode --}}
+                        <div>
+                            <x-label for="paydunya_mode" value="Mode" required />
+                            <x-select id="paydunya_mode" class="block w-full mt-1 max-w-xs" wire:model.live="paydunya_mode">
+                                <option value="test">Test</option>
+                                <option value="live">Live</option>
+                            </x-select>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Utilisez le mode Test pour les tests, et Live pour la production</p>
+                            <x-input-error for="paydunya_mode" class="mt-1" />
+                        </div>
+
+                        {{-- Master Key (full width) --}}
+                        <div>
+                            <x-label for="paydunya_master_key" value="Master Key" />
+                            <x-input id="paydunya_master_key" class="block w-full mt-1" type="text"
+                                wire:model="paydunya_master_key"
+                                placeholder="Votre Master Key PayDunya" />
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Clé maître fournie par PayDunya</p>
+                            <x-input-error for="paydunya_master_key" class="mt-1" />
+                        </div>
+
+                        {{-- Private Key + Public Key side by side --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <x-label for="paydunya_private_key" value="Private Key" />
+                                <x-input id="paydunya_private_key" class="block w-full mt-1" type="text"
+                                    wire:model="paydunya_private_key"
+                                    placeholder="Votre Private Key PayDunya" />
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Clé privée fournie par PayDunya</p>
+                                <x-input-error for="paydunya_private_key" class="mt-1" />
+                            </div>
+                            <div>
+                                <x-label for="paydunya_public_key" value="Public Key" />
+                                <x-input id="paydunya_public_key" class="block w-full mt-1" type="text"
+                                    wire:model="paydunya_public_key"
+                                    placeholder="Votre Public Key PayDunya" />
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Clé publique fournie par PayDunya</p>
+                                <x-input-error for="paydunya_public_key" class="mt-1" />
+                            </div>
+                        </div>
+
+                        {{-- Token (full width) --}}
+                        <div>
+                            <x-label for="paydunya_token" value="Token" />
+                            <x-input id="paydunya_token" class="block w-full mt-1" type="text"
+                                wire:model="paydunya_token"
+                                placeholder="Votre Token PayDunya" />
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Token d'authentification PayDunya</p>
+                            <x-input-error for="paydunya_token" class="mt-1" />
+                        </div>
+
+                        {{-- IPN URL (full width, optional) --}}
+                        <div>
+                            <x-label for="paydunya_ipn_url" value="URL IPN (Optionnel)" />
+                            <x-input id="paydunya_ipn_url" class="block w-full mt-1" type="url"
+                                wire:model="paydunya_ipn_url"
+                                placeholder="{{ url('/paydunya/ipn') }}" />
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                URL de notification instantanée de paiement (IPN). PayDunya enverra les notifications de paiement à cette URL.
+                            </p>
+                            <x-input-error for="paydunya_ipn_url" class="mt-1" />
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Action buttons matching screenshot --}}
+                <div class="flex items-center gap-3">
+                    <x-button class="flex items-center gap-2 bg-[#0d2a4e] hover:bg-[#163a65]">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                        </svg>
+                        Enregistrer la configuration
+                    </x-button>
+                    <button type="button" wire:click="activeSetting('offline')"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"/>
+                        </svg>
+                        ← Retour à la liste des paiements
+                    </button>
+                </div>
+
+            </form>
+        @endif
 
             <!-- Offline Form -->
             @if ($activePaymentSetting == 'offline')

@@ -1,230 +1,275 @@
 <div class="grid lg:grid-cols-3">
-    <style>
-        .onboarding-steps .button-cancel {
-            display: none
-        }
-    </style>
-
-
+    <!-- Sidebar -->
     <div class="bg-gray-100 lg:h-screen p-4 sm:flex items-center dark:bg-gray-800 dark:border-gray-700">
-
-        <section class="py-8  md:py-16 px-6">
+        <section class="py-8 md:py-16 px-6">
             <div class="mx-auto max-w-screen-xl px-4 2xl:px-0">
                 <div class="mx-auto max-w-3xl space-y-6 sm:space-y-8">
-
                     <div class="mb-4">
-                        <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">@lang('app.hello')
-                            {{ user()->name }}!</h1>
+                        <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">@lang('app.hello') {{ user()->name }}!</h1>
                     </div>
-
-                    <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-                        @lang('modules.onboarding.completeSteps')</h2>
-
+                    <h2 class="text-base font-semibold text-gray-900 dark:text-white">Configuration Rapide</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Sélectionnez les éléments à générer pour lancer votre activité en quelques secondes.</p>
 
                     <ol class="relative border-s border-gray-200 dark:border-gray-700 space-y-8">
-
-
+                        @foreach([
+                            1 => ['title' => 'Zones et Tables', 'desc' => 'Créez vos espaces de consommation'],
+                            2 => ['title' => 'Menus', 'desc' => 'Sélectionnez vos cartes principales'],
+                            3 => ['title' => 'Catégories', 'desc' => 'Structurez votre offre'],
+                            4 => ['title' => 'Articles de Menu', 'desc' => 'Ajoutez vos plats et boissons'],
+                            5 => ['title' => 'Moyens de Paiement', 'desc' => 'Configurez vos encaissements']
+                        ] as $stepNb => $stepInfo)
                         <li class="ms-6">
-                            <span
-                                class="absolute -start-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-green-700 ring-8 ring-white dark:bg-green-800 dark:ring-gray-900">
-                                <svg class="h-3 w-3 text-green-50 dark:text-green-400" aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                                    viewBox="0 0 24 24">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5" />
-                                </svg>
+                            <span class="absolute -start-2.5 flex h-5 w-5 items-center justify-center rounded-full ring-8 ring-white dark:ring-gray-900 {{ $currentStep >= $stepNb ? 'bg-blue-600 dark:bg-blue-500' : 'bg-gray-200 dark:bg-gray-700' }}">
+                                <span class="text-xs font-bold {{ $currentStep >= $stepNb ? 'text-white' : 'text-gray-500' }}">{{ $stepNb }}</span>
                             </span>
-                            <h3 class="mb-1.5 text-base font-semibold leading-none text-gray-900 dark:text-white">
-                                @lang('modules.onboarding.addBranchHeading')</h3>
-                            <p class="text-sm font-normal text-gray-500 dark:text-gray-400 tracking-wide">
-                                @lang('modules.onboarding.addBranchInfo')</p>
+                            <h3 class="mb-1.5 text-base font-semibold leading-none {{ $currentStep == $stepNb ? 'text-blue-600 dark:text-blue-500' : 'text-gray-900 dark:text-white' }}">{{ $stepInfo['title'] }}</h3>
+                            <p class="text-sm font-normal text-gray-500 dark:text-gray-400 tracking-wide">{{ $stepInfo['desc'] }}</p>
                         </li>
-
-                        <li class="ms-6">
-                            <span @class(['absolute -start-2.5 flex h-5 w-5 items-center justify-center rounded-full
-                                ring-8 ring-white dark:ring-gray-900', 'bg-gray-100 dark:bg-gray-800'=>
-                                !$onboardingSteps->add_area_completed, 'bg-green-700 dark:bg-green-800' =>
-                                $onboardingSteps->add_area_completed])>
-                                <svg aria-hidden="true" @class(['h-3 w-3', 'text-gray-500 dark:text-gray-400'=>
-                                    !$onboardingSteps->add_area_completed, 'text-green-50 dark:text-green-400' =>
-                                    $onboardingSteps->add_area_completed])
-                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                                    viewBox="0 0 24 24">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5" />
-                                </svg>
-                            </span>
-                            <h3 @class(["mb-1.5 text-base font-semibold leading-none text-gray-900 dark:text-white flex
-                                justify-between"])>@lang('modules.onboarding.addAreaHeading')
-
-                                @if ($onboardingSteps->add_area_completed)
-                                <a href="javascript:;" wire:click="showAddAreaForm"
-                                    class="text-gray-900 bg-gray-300 hover:bg-gray-800 hover:text-white focus:ring-4 focus:ring-gray-300 font-medium rounded-md text-xs px-2.5 py-1 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800 dark:text-gray-100">@lang('app.addMore')</a>
-                                @endif
-                            </h3>
-                            <p class="text-sm font-normal text-gray-500 dark:text-gray-400 tracking-wide">
-                                @lang('modules.onboarding.addAreaInfo')</p>
-                        </li>
-
-                        <li class="ms-6">
-                            <span @class(['absolute -start-2.5 flex h-5 w-5 items-center justify-center rounded-full
-                                ring-8 ring-white dark:ring-gray-900', 'bg-gray-100 dark:bg-gray-800'=>
-                                !$onboardingSteps->add_table_completed, 'bg-green-700 dark:bg-green-800' =>
-                                $onboardingSteps->add_table_completed])>
-                                <svg aria-hidden="true" @class(['h-3 w-3', 'text-gray-500 dark:text-gray-400'=>
-                                    !$onboardingSteps->add_table_completed, 'text-green-50 dark:text-green-400' =>
-                                    $onboardingSteps->add_table_completed])
-                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                                    viewBox="0 0 24 24">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5" />
-                                </svg>
-                            </span>
-                            <h3 @class(["mb-1.5 text-base font-semibold leading-none text-gray-900 dark:text-white flex
-                                justify-between"])>@lang('modules.onboarding.addTableHeading')
-                                @if ($onboardingSteps->add_table_completed)
-                                <a href="javascript:;" wire:click="showAddTableForm"
-                                    class="text-gray-900 bg-gray-300 hover:bg-gray-800 hover:text-white focus:ring-4 focus:ring-gray-300 font-medium rounded-md text-xs px-2.5 py-1 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800 dark:text-gray-100">@lang('app.addMore')</a>
-                                @endif
-                            </h3>
-                            <p class="text-sm font-normal text-gray-500 dark:text-gray-400 tracking-wide">
-                                @lang('modules.onboarding.addTableInfo')</p>
-                        </li>
-
-                        <li class="ms-6">
-                            <span @class(['absolute -start-2.5 flex h-5 w-5 items-center justify-center rounded-full
-                                ring-8 ring-white dark:ring-gray-900', 'bg-gray-100 dark:bg-gray-800'=>
-                                !$onboardingSteps->add_menu_completed, 'bg-green-700 dark:bg-green-800' =>
-                                $onboardingSteps->add_menu_completed])>
-                                <svg aria-hidden="true" @class(['h-3 w-3', 'text-gray-500 dark:text-gray-400'=>
-                                    !$onboardingSteps->add_menu_completed, 'text-green-50 dark:text-green-400' =>
-                                    $onboardingSteps->add_menu_completed])
-                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                                    viewBox="0 0 24 24">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5" />
-                                </svg>
-                            </span>
-                            <h3 @class(["mb-1.5 text-base font-semibold leading-none text-gray-900 dark:text-white flex
-                                justify-between"])>@lang('modules.onboarding.addMenuHeading')
-                                @if ($onboardingSteps->add_menu_completed)
-                                <a href="javascript:;" wire:click="showAddMenuForm"
-                                    class="text-gray-900 bg-gray-300 hover:bg-gray-800 hover:text-white focus:ring-4 focus:ring-gray-300 font-medium rounded-md text-xs px-2.5 py-1 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800 dark:text-gray-100">@lang('app.addMore')</a>
-                                @endif
-                            </h3>
-                            <p class="text-sm font-normal text-gray-500 dark:text-gray-400 tracking-wide">
-                                @lang('modules.onboarding.addMenuInfo')</p>
-                        </li>
-
-                        <li class="ms-6">
-                            <span @class(['absolute -start-2.5 flex h-5 w-5 items-center justify-center rounded-full
-                                ring-8 ring-white dark:ring-gray-900', 'bg-gray-100 dark:bg-gray-800'=>
-                                !$onboardingSteps->add_menu_items_completed, 'bg-green-700 dark:bg-green-800' =>
-                                $onboardingSteps->add_menu_items_completed])>
-                                <svg aria-hidden="true" @class(['h-3 w-3', 'text-gray-500 dark:text-gray-400'=>
-                                    !$onboardingSteps->add_menu_items_completed, 'text-green-50 dark:text-green-400' =>
-                                    $onboardingSteps->add_menu_items_completed])
-                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                                    viewBox="0 0 24 24">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5" />
-                                </svg>
-                            </span>
-                            <h3 @class(["mb-1.5 text-base font-semibold leading-none text-gray-900 dark:text-white flex
-                                justify-between"])>@lang('modules.onboarding.addMenuItemHeading')
-                                @if ($onboardingSteps->add_menu_items_completed)
-                                <a href="javascript:;" wire:click="showAddMenuItemForm"
-                                    class="text-gray-900 bg-gray-300 hover:bg-gray-800 hover:text-white focus:ring-4 focus:ring-gray-300 font-medium rounded-md text-xs px-2.5 py-1 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800 dark:text-gray-100">@lang('app.addMore')</a>
-                                @endif
-                            </h3>
-                            <p class="text-sm font-normal text-gray-500 dark:text-gray-400 tracking-wide">
-                                @lang('modules.onboarding.addMenuItemInfo')</p>
-                        </li>
-
-
+                        @endforeach
                     </ol>
-
                 </div>
             </div>
         </section>
-
     </div>
 
-    <div class="col-span-2 px-8 lg:px-16 flex items-center w-full onboarding-steps">
+    <!-- Content Area -->
+    <div class="col-span-2 flex flex-col w-full onboarding-steps bg-white dark:bg-gray-900 h-screen">
+        <form wire:submit.prevent="generateSelectedData" class="flex flex-col h-full overflow-hidden">
+            <!-- Scrollable content -->
+            <div class="flex-1 overflow-y-auto px-8 lg:px-16 py-10 space-y-6">
+                @if($currentStep === 1)
+                    <h2 class="text-2xl font-bold dark:text-white mb-2">Quelles zones souhaitez-vous générer ?</h2>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6">Chaque zone sélectionnée sera créée avec un ensemble de tables prêtes à l'emploi.</p>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        @foreach($catalogZones as $zone)
+                        <label class="flex p-4 border rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 {{ in_array($zone['id'], $selectedZones) ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50/50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700' }}">
+                            <input type="checkbox" wire:model.live="selectedZones" value="{{ $zone['id'] }}" class="hidden">
+                            <div class="ml-2 flex-grow">
+                                <span class="block font-semibold text-gray-900 dark:text-white">{{ $zone['name'] }}</span>
+                                <span class="block text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $zone['desc'] }}</span>
+                                @if(in_array($zone['id'], $selectedZones))
+                                <div class="mt-3 flex items-center" onclick="event.stopPropagation()">
+                                    <label class="text-xs text-gray-600 dark:text-gray-400 mr-2">Nombre de tables :</label>
+                                    <input type="number" wire:model="zoneTablesCount.{{ $zone['id'] }}" class="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900 dark:border-gray-600 dark:text-white" min="1" max="50">
+                                </div>
+                                @endif
+                            </div>
+                            <div class="ml-4 h-6 w-6 rounded-full border-2 flex items-center justify-center {{ in_array($zone['id'], $selectedZones) ? 'border-blue-500 bg-blue-500' : 'border-gray-300' }}">
+                                @if(in_array($zone['id'], $selectedZones))
+                                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                @endif
+                            </div>
+                        </label>
+                        @endforeach
+                    </div>
+                @elseif($currentStep === 2)
+                    <h2 class="text-2xl font-bold dark:text-white mb-1">Quels menus allez-vous proposer ?</h2>
+                    <p class="text-gray-500 dark:text-gray-400 mb-5">Choisissez votre profil — les menus seront pré-sélectionnés automatiquement.</p>
 
-        @if (!$onboardingSteps->add_area_completed || $showAddArea)
-        <div class="space-y-4 w-full">
-            <div class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                {{ __("modules.table.addArea") }}
+                    {{-- TYPE SELECTOR --}}
+                    <div class="mb-7">
+                        <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Type d'établissement</span>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            @foreach($restaurantTypes as $typeKey => $typeInfo)
+                            <label class="group relative flex flex-col items-center justify-center gap-1 p-4 border-2 rounded-2xl cursor-pointer text-center transition-all duration-200 hover:scale-[1.02] hover:shadow-md
+                                {{ $restaurantType === $typeKey
+                                    ? 'border-blue-500 bg-gradient-to-b from-blue-50 to-white dark:from-blue-900/40 dark:to-gray-900 shadow-md shadow-blue-100'
+                                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300' }}">
+                                <input type="radio" wire:model.live="restaurantType" value="{{ $typeKey }}" class="hidden">
+                                <span class="text-3xl leading-none">{{ $typeInfo['icon'] }}</span>
+                                <span class="text-[11px] font-semibold text-gray-800 dark:text-white leading-tight mt-1">{{ $typeInfo['label'] }}</span>
+                                @if($restaurantType === $typeKey)
+                                <span class="absolute top-2 right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                </span>
+                                @endif
+                            </label>
+                            @endforeach
+                        </div>
+                        @if($restaurantType)
+                        <div class="mt-3 flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400">
+                            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-100 dark:bg-green-900/40">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </span>
+                            Profil <strong class="ml-1">{{ $restaurantTypes[$restaurantType]['label'] }}</strong> — vous pouvez encore ajuster ci-dessous.
+                        </div>
+                        @endif
+                    </div>
+
+                    {{-- MENUS LIST --}}
+                    <span class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Cartes de menu à générer</span>
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        @foreach($catalogMenus as $menu)
+                        @php $isChecked = in_array($menu['id'], $selectedMenus); @endphp
+                        <label class="relative flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-150 hover:shadow-sm
+                            {{ $isChecked ? 'border-blue-400 bg-blue-50/60 dark:bg-blue-900/20' : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:border-gray-300' }}">
+                            <input type="checkbox" wire:model.live="selectedMenus" value="{{ $menu['id'] }}" class="hidden">
+                            {{-- Icon bubble --}}
+                            <span class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl
+                                {{ $isChecked ? 'bg-blue-100 dark:bg-blue-800/50' : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600' }}">
+                                {{ $menu['icon'] ?? '🍽️' }}
+                            </span>
+                            <div class="flex-1 min-w-0">
+                                <span class="block text-sm font-bold text-gray-900 dark:text-white truncate">{{ $menu['name'] }}</span>
+                                <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{{ $menu['desc'] }}</span>
+                            </div>
+                            {{-- Checkmark --}}
+                            <span class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors
+                                {{ $isChecked ? 'bg-blue-500 border-blue-500' : 'border-gray-300 dark:border-gray-600' }}">
+                                @if($isChecked)
+                                <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                @endif
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+                @elseif($currentStep === 3)
+                    <h2 class="text-2xl font-bold dark:text-white mb-1">Sélectionnez vos catégories</h2>
+                    <p class="text-gray-500 dark:text-gray-400 mb-5">Organisez votre offre en activant les catégories correspondantes.</p>
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        @foreach($catalogCategories as $cat)
+                        @php $isCatChecked = in_array($cat['id'], $selectedCategories); @endphp
+                        <label class="relative flex flex-col items-start gap-2 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-150 hover:shadow-sm
+                            {{ $isCatChecked ? 'border-blue-400 bg-blue-50/60 dark:bg-blue-900/20' : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:border-gray-300' }}">
+                            <input type="checkbox" wire:model.live="selectedCategories" value="{{ $cat['id'] }}" class="hidden">
+                            <div class="flex items-center justify-between w-full">
+                                <span class="text-2xl leading-none">{{ $cat['icon'] ?? '🗂️' }}</span>
+                                <span class="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
+                                    {{ $isCatChecked ? 'bg-blue-500 border-blue-500' : 'border-gray-300 dark:border-gray-600' }}">
+                                    @if($isCatChecked)
+                                    <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    @endif
+                                </span>
+                            </div>
+                            <div>
+                                <span class="block text-sm font-bold text-gray-900 dark:text-white leading-tight">{{ $cat['name'] }}</span>
+                                <span class="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $cat['desc'] }}</span>
+                            </div>
+                            {{-- Parent menu badge --}}
+                            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-200/80 dark:bg-gray-700 text-gray-600 dark:text-gray-300 truncate max-w-full">
+                                {{ $cat['menu_ref'] ?? '' }}
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+                @elseif($currentStep === 4)
+                    <h2 class="text-2xl font-bold dark:text-white mb-1">Articles populaires à générer</h2>
+                    <p class="text-gray-500 dark:text-gray-400 mb-5">Ces plats seront pré-créés dans vos catégories. Décochez ceux que vous ne souhaitez pas.</p>
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        @foreach($catalogItems as $item)
+                        @if(in_array($item['cat_id'], $selectedCategories))
+                        @php
+                            $isItemChecked = in_array($item['id'], $selectedItems);
+                            $itemImage = $itemImages[$item['id']] ?? $categoryImages[$item['cat_id']] ?? null;
+                        @endphp
+                        <label class="group relative flex flex-col rounded-2xl border-2 cursor-pointer overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5
+                            {{ $isItemChecked ? 'border-blue-400' : 'border-gray-200 dark:border-gray-700' }}">
+                            <input type="checkbox" wire:model.live="selectedItems" value="{{ $item['id'] }}" class="hidden">
+
+                            {{-- Photo hero --}}
+                            <div class="relative h-32 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                                @if($itemImage)
+                                <img src="{{ $itemImage }}"
+                                     alt="{{ $item['name'] }}"
+                                     class="w-full h-full object-cover transition-all duration-300 {{ $isItemChecked ? 'opacity-100 scale-100' : 'opacity-75 scale-105 group-hover:opacity-90 group-hover:scale-100' }}"
+                                     loading="lazy">
+                                @else
+                                <div class="w-full h-full flex items-center justify-center text-3xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
+                                    {{ $catalogCategories[$item['cat_id']]['icon'] ?? '🍽️' }}
+                                </div>
+                                @endif
+
+                                {{-- Category badge top-left --}}
+                                <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full
+                                    bg-black/50 text-white backdrop-blur-sm truncate max-w-[70%]">
+                                    {{ $item['cat_id'] }}
+                                </span>
+
+                                {{-- Checkmark badge top-right --}}
+                                <span class="absolute top-2 right-2 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-150 shadow-sm
+                                    {{ $isItemChecked
+                                        ? 'bg-blue-500 border-blue-500 shadow-blue-300/50'
+                                        : 'bg-white/80 border-white dark:bg-gray-900/70 dark:border-gray-700' }}">
+                                    @if($isItemChecked)
+                                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    @endif
+                                </span>
+
+                                {{-- Bottom gradient overlay --}}
+                                <div class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            </div>
+
+                            {{-- Info block --}}
+                            <div class="p-3 bg-white dark:bg-gray-900 flex items-center justify-between gap-2">
+                                <span class="text-sm font-bold text-gray-900 dark:text-white leading-snug line-clamp-2 flex-1">
+                                    {{ $item['name'] }}
+                                </span>
+                                <span class="flex-shrink-0 text-xs font-extrabold px-2 py-1 rounded-lg
+                                    {{ $isItemChecked ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-blue-600 dark:text-blue-400' }}">
+                                    {{ $item['price'] > 0 ? currency_format($item['price'], restaurant()->currency_id) : 'Offert' }}
+                                </span>
+                            </div>
+                        </label>
+                        @endif
+                        @endforeach
+                    </div>
+                @elseif($currentStep === 5)
+                    <h2 class="text-2xl font-bold dark:text-white mb-1">Moyens de paiement</h2>
+                    <p class="text-gray-500 dark:text-gray-400 mb-5">Comment vos clients vont-ils régler leurs commandes ?</p>
+                    <div class="grid sm:grid-cols-3 gap-4">
+                        @foreach($catalogPayments as $payment)
+                        @php $isPayChecked = in_array($payment['id'], $selectedPayments); @endphp
+                        <label class="relative flex flex-col items-center gap-3 p-6 rounded-2xl border-2 cursor-pointer text-center transition-all duration-150 hover:scale-[1.02] hover:shadow-md
+                            {{ $isPayChecked
+                                ? 'border-green-500 bg-gradient-to-b from-green-50 to-white dark:from-green-900/30 dark:to-gray-900 shadow-md shadow-green-100'
+                                : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:border-gray-300' }}">
+                            <input type="checkbox" wire:model.live="selectedPayments" value="{{ $payment['id'] }}" class="hidden">
+                            <span class="text-4xl leading-none">{{ $payment['icon'] ?? '💳' }}</span>
+                            <div>
+                                <span class="block text-base font-bold text-gray-900 dark:text-white">{{ $payment['name'] }}</span>
+                                <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $payment['desc'] }}</span>
+                            </div>
+                            {{-- Checkmark badge --}}
+                            <span class="absolute top-3 right-3 w-5 h-5 rounded-full border-2 flex items-center justify-center
+                                {{ $isPayChecked ? 'bg-green-500 border-green-500' : 'border-gray-300 dark:border-gray-600' }}">
+                                @if($isPayChecked)
+                                <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                @endif
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
-            @livewire('forms.addArea')
-        </div>
-        @elseif (!$onboardingSteps->add_table_completed || $showAddTable)
-        <div class="space-y-4 w-full">
-            <div class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                {{ __("modules.table.addTable") }}
+            <!-- Footer Navigation — toujours visible, jamais scrollé -->
+            <div class="flex-shrink-0 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 px-8 lg:px-16 py-4 shadow-[0_-6px_12px_-3px_rgba(0,0,0,0.06)] dark:shadow-[0_-6px_12px_-3px_rgba(0,0,0,0.4)]">
+                @if($currentStep > 1)
+                    <button type="button" wire:click="previousStep" class="px-5 py-2.5 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                        Précédent
+                    </button>
+                @else
+                    <div></div>
+                @endif
+
+                @if($currentStep < 5)
+                    <button type="button" wire:click="nextStep" class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800">
+                        Étape suivante
+                    </button>
+                @else
+                    <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800 flex items-center" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="generateSelectedData">
+                            Générer et Terminer
+                        </span>
+                        <span wire:loading wire:target="generateSelectedData" class="flex items-center">
+                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Génération...
+                        </span>
+                    </button>
+                @endif
             </div>
-
-            @livewire('forms.addTable')
-        </div>
-        @elseif (!$onboardingSteps->add_menu_completed || $showAddMenu)
-        <div class="space-y-4 w-full">
-            <div class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                {{ __("modules.menu.addMenu") }}
-            </div>
-
-            @livewire('forms.addMenu')
-        </div>
-        @elseif (!$onboardingSteps->add_menu_items_completed || $showAddMenuItem)
-        <div class="space-y-4 w-full mt-4">
-            <div class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                {{ __("modules.menu.addMenuItem") }}
-            </div>
-
-            @livewire('forms.addMenuItem')
-        </div>
-        @else
-        <div class="space-y-4 w-full">
-            <div
-                class="group flex flex-col h-full bg-white border border-gray-200 shadow-sm rounded-xl dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70 max-w-md mx-auto">
-                <div class="h-52 flex flex-col justify-center items-center bg-skin-base rounded-t-xl">
-                    <svg class="size-28 transition duration-75 text-gray-50 dark:text-gray-900 dark:group-hover:text-white"
-                        fill="currentColor" viewBox="0 -0.5 25 25" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                        <g id="SVGRepo_iconCarrier">
-                            <path fill-rule="evenodd"
-                                d="M16,6 L20,6 C21.1045695,6 22,6.8954305 22,8 L22,16 C22,17.1045695 21.1045695,18 20,18 L16,18 L16,19.9411765 C16,21.0658573 15.1177541,22 14,22 L4,22 C2.88224586,22 2,21.0658573 2,19.9411765 L2,4.05882353 C2,2.93414267 2.88224586,2 4,2 L14,2 C15.1177541,2 16,2.93414267 16,4.05882353 L16,6 Z M20,11 L16,11 L16,16 L20,16 L20,11 Z M14,19.9411765 L14,4.05882353 C14,4.01396021 13.9868154,4 14,4 L4,4 C4.01318464,4 4,4.01396021 4,4.05882353 L4,19.9411765 C4,19.9860398 4.01318464,20 4,20 L14,20 C13.9868154,20 14,19.9860398 14,19.9411765 Z M5,19 L5,17 L7,17 L7,19 L5,19 Z M8,19 L8,17 L10,17 L10,19 L8,19 Z M11,19 L11,17 L13,17 L13,19 L11,19 Z M5,16 L5,14 L7,14 L7,16 L5,16 Z M8,16 L8,14 L10,14 L10,16 L8,16 Z M11,16 L11,14 L13,14 L13,16 L11,16 Z M13,5 L13,13 L5,13 L5,5 L13,5 Z M7,7 L7,11 L11,11 L11,7 L7,7 Z M20,9 L20,8 L16,8 L16,9 L20,9 Z">
-                            </path>
-                        </g>
-                    </svg>
-                </div>
-                <div class="p-4 md:p-6">
-
-                    <h3 class="text-xl font-semibold text-gray-800 dark:text-neutral-300 dark:hover:text-white">
-                        @lang('modules.onboarding.addOrderHeading')
-                    </h3>
-                    <p class="mt-3 text-gray-500 dark:text-neutral-500">
-                        @lang('modules.onboarding.addOrderInfo')
-                    </p>
-                </div>
-                <div
-                    class="mt-auto flex border-t border-gray-200 divide-x divide-gray-200 dark:border-neutral-700 dark:divide-neutral-700">
-                    <a class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-base font-semibold rounded-es-xl bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
-                        href="{{ route('pos.index') }}" wire:navigate>
-                        @lang('modules.order.placeOrder')
-                    </a>
-
-                </div>
-            </div>
-            <!-- End Card -->
-        </div>
-        @endif
-
+        </form>
     </div>
-
-
-
 </div>

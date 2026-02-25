@@ -28,6 +28,7 @@ class SlateManager extends Component
     public $paymentGateway;
     public $offline_payment_status;
     public $paymentOrder;
+    public $showPaydunya = false;
 
 
 
@@ -60,6 +61,11 @@ class SlateManager extends Component
     public function togglePaymenntDetail()
     {
         $this->showPaymentDetail = !$this->showPaymentDetail;
+    }
+
+    public function togglePaydunya()
+    {
+        $this->showPaydunya = !$this->showPaydunya;
     }
 
     #[On('deviceUuidUpdated')]
@@ -234,7 +240,7 @@ class SlateManager extends Component
     /**
      * Payer/solder toutes les commandes non payées de l'ardoise
      */
-    public function paySlate()
+    public function paySlate(string $paymentMethod = 'offline')
     {
         try {
             if (!$this->slate) {
@@ -311,7 +317,7 @@ class SlateManager extends Component
                     \App\Models\Payment::create([
                         'order_id' => $order->id,
                         'branch_id' => $this->shopBranch->id,
-                        'payment_method' => 'offline', // Paiement hors ligne par défaut
+                        'payment_method' => $paymentMethod,
                         'amount' => $remainingAmount,
                         'status' => 'pending', // En attente de vérification
                         'payment_date' => now(),
