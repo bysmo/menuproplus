@@ -17,7 +17,7 @@ class RestaurantSettingSeeder extends Seeder
      */
     public function run(): void
     {
-        $country = Country::where('countries_code', 'US')->first();
+        $country = Country::where('countries_code', 'BF')->first();
 
         $count = 1;
 

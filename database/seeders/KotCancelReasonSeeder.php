@@ -15,59 +15,59 @@ class KotCancelReasonSeeder extends Seeder
         $cancelReasons = [
             // Order cancellation reasons
             [
-                'reason' => 'Customer changed their mind',
+                'reason' => 'Le client a changé d\'avis',
                 'cancel_order' => true,
                 'cancel_kot' => false,
             ],
             [
-                'reason' => 'Customer requested to cancel',
+                'reason' => 'Le client a demandé d\'annuler',
                 'cancel_order' => true,
                 'cancel_kot' => false,
             ],
             [
-                'reason' => 'Payment issues',
-                'cancel_order' => true,
-                'cancel_kot' => false,
-            ],
-
-
-            [
-                'reason' => 'Customer no longer wants the order',
+                'reason' => 'Problèmes de paiement',
                 'cancel_order' => true,
                 'cancel_kot' => false,
             ],
 
+
             [
-                'reason' => 'Ingredient not available',
+                'reason' => 'Le client ne veut plus de la commande',
+                'cancel_order' => true,
+                'cancel_kot' => false,
+            ],
+
+            [
+                'reason' => 'Ingrédient non disponible',
                 'cancel_order' => false,
                 'cancel_kot' => true,
             ],
 
             [
-                'reason' => 'Preparation time too long',
+                'reason' => 'Temps de préparation trop long',
                 'cancel_order' => false,
                 'cancel_kot' => true,
             ],
             [
-                'reason' => 'Quality issue with ingredients',
+                'reason' => 'Problème de qualité des ingrédients',
                 'cancel_order' => false,
                 'cancel_kot' => true,
             ],
 
             // Both order and KOT cancellation reasons
             [
-                'reason' => 'System error/Technical issue',
+                'reason' => 'Erreur système/Problème technique',
                 'cancel_order' => true,
                 'cancel_kot' => true,
             ],
 
             [
-                'reason' => 'Restaurant closing early',
+                'reason' => 'Restaurant ferme plus tôt',
                 'cancel_order' => true,
                 'cancel_kot' => true,
             ],
               [
-                'reason' => 'Other',
+                'reason' => 'Autre',
                 'cancel_order' => true,
                 'cancel_kot' => true,
             ],

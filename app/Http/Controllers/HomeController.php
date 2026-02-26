@@ -27,16 +27,16 @@ class HomeController extends Controller
     {
         parent::__construct();
 
-        $locale = session('customer_locale') ?? (global_setting()->locale ?? 'en');
+        $locale = session('customer_locale') ?? (global_setting()->locale ?? 'fr');
         $languageSetting = LanguageSetting::where('language_code', $locale)->first();
 
         if (!$languageSetting) {
-            $locale = 'en';
-            $languageSetting = LanguageSetting::where('language_code', 'en')->first();
+            $locale = 'fr';
+            $languageSetting = LanguageSetting::where('language_code', 'fr')->first();
         }
 
         if (!session()->has('customer_is_rtl')) {
-            session(['customer_is_rtl' => $languageSetting->is_rtl == 1]);
+            session(['customer_is_rtl' => $languageSetting ? ($languageSetting->is_rtl == 1) : false]);
         }
 
         app()->setLocale($locale);
@@ -50,10 +50,10 @@ class HomeController extends Controller
 
         // Set the customer locale in session
         session(['customer_locale' => $locale]);
-        session(['customer_is_rtl' => $languageSetting->is_rtl == 1]);
+        session(['customer_is_rtl' => $languageSetting ? ($languageSetting->is_rtl == 1) : false]);
         app()->setLocale($locale);
         $this->language = $locale;
-        return redirect()->back()->with('success', 'Language changed successfully');
+        return redirect()->back()->with('success', 'Langue changée avec succès');
     }
 
     public function landing()
@@ -63,11 +63,11 @@ class HomeController extends Controller
 
         $global = global_setting();
 
-        if ($global->disable_landing_site && !request()->ajax()) {
+        if ($global && $global->disable_landing_site && !request()->ajax()) {
             return redirect(route('login'));
         }
 
-        if ($global->landing_site_type == 'custom') {
+        if ($global && $global->landing_site_type == 'custom') {
             return response(file_get_contents($global->landing_site_url));
         }
 
@@ -111,7 +111,8 @@ class HomeController extends Controller
 
     public function signup()
     {
-        if (global_setting()->disable_landing_site) {
+        $global = global_setting();
+        if ($global && $global->disable_landing_site) {
             return view('auth.restaurant_register');
         }
 

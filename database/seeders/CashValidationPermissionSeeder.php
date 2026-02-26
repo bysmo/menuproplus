@@ -13,11 +13,11 @@ class CashValidationPermissionSeeder extends Seeder
     {
         if (class_exists(\Spatie\Permission\Models\Permission::class)) {
             // Get the module ID for 'Menu' (or typically 'Cashier' if it existed separate, but sticking to existing pattern)
-            $module = \DB::table('modules')->where('name', 'Menu')->first();
+            $module = \DB::table('modules')->where('name', 'Cash')->first();
             
             if (!$module) {
                 // Fallback or just null if not strictly using modules table for relation
-                echo "⚠️  Menu module not found.\n";
+                echo "⚠️  Cash module not found.\n";
             }
 
             // Create permission

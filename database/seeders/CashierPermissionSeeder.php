@@ -14,11 +14,11 @@ class CashierPermissionSeeder extends Seeder
     {
         // Check if using Spatie Permission package
         if (class_exists(\Spatie\Permission\Models\Permission::class)) {
-            // Get the Menu module (or create a Cashier module if needed)
-            $module = \DB::table('modules')->where('name', 'Menu')->first();
+            // Get the Cash module (or create a Cashier module if needed)
+            $module = \DB::table('modules')->where('name', 'Cash')->first();
             
             if (!$module) {
-                echo "⚠️  Menu module not found. Creating permission without module...\n";
+                echo "⚠️  Cash module not found. Creating permission without module...\n";
                 return;
             }
 

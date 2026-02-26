@@ -23,6 +23,12 @@ class PaymentGatewayCredential extends BaseModel
         'razorpay_key' => 'encrypted',
         'stripe_secret' => 'encrypted',
         'razorpay_secret' => 'encrypted',
+        'paydunya_master_key' => 'encrypted',
+        'paydunya_private_key' => 'encrypted',
+        'paydunya_public_key' => 'encrypted',
+        'paydunya_token' => 'encrypted',
+        'paydunya_mode' => 'encrypted',
+        'paydunya_ipn_url' => 'encrypted',
     ];
 
 

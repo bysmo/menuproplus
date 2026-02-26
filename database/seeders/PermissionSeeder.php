@@ -34,6 +34,7 @@ class PermissionSeeder extends Seeder
         $expenseModule = Module::where('name', 'Expense')->first();
         $vendorModule = Module::where('name', 'Vendor')->first();
         $expenseCategoryModule = Module::where('name', 'Expense Category')->first();
+        $cashModule = Module::where('name', 'Cash')->first();
         // Define permissions to insert
         $permissions = [
             ['guard_name' => 'web', 'name' => 'Create Menu', 'module_id' => $menuModule->id],
@@ -106,6 +107,10 @@ class PermissionSeeder extends Seeder
             ['guard_name' => 'web', 'name' => 'Show Expense Category', 'module_id' => $expenseModule->id],
             ['guard_name' => 'web', 'name' => 'Update Expense Category', 'module_id' => $expenseModule->id],
             ['guard_name' => 'web', 'name' => 'Delete Expense Category', 'module_id' => $expenseModule->id],
+
+            ['guard_name' => 'web', 'name' => 'Manage Cash', 'module_id' => $cashModule->id],
+            ['guard_name' => 'web', 'name' => 'Validate Cash', 'module_id' => $cashModule->id],
+            
 
         ];
 

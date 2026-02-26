@@ -16,15 +16,15 @@ class AreaSeeder extends Seeder
     {
         $areas = [
             [
-                'area_name' => 'Lounge',
+                'area_name' => 'Salle',
                 'branch_id' => $branch->id,
             ],
             [
-                'area_name' => 'Roof Top',
+                'area_name' => 'Terrasse',
                 'branch_id' => $branch->id,
             ],
             [
-                'area_name' => 'Garden',
+                'area_name' => 'Jardin',
                 'branch_id' => $branch->id,
             ]
         ];

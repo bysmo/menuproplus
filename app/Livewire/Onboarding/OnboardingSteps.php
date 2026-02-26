@@ -663,9 +663,11 @@ class OnboardingSteps extends Component
                 };
             }
 
-            // Apply all flag changes at once
+            // Apply all flag changes at once — SCOPED to the current restaurant
             if (!empty($gatewayUpdates)) {
-                $gateway = PaymentGatewayCredential::first();
+                $gateway = PaymentGatewayCredential::withoutGlobalScopes()
+                    ->where('restaurant_id', $restaurantId)
+                    ->first();
                 if ($gateway) {
                     $gateway->update($gatewayUpdates);
                 }

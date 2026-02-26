@@ -594,6 +594,20 @@
                                             @case('upi')
                                                 <svg class="w-5 h-5 text-gray-700 dark:text-gray-300" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linejoin="round" stroke-width="2" d="M4 4h6v6H4zm10 10h6v6h-6zm0-10h6v6h-6zm-4 10h.01v.01H10zm0 4h.01v.01H10zm-3 2h.01v.01H7zm0-4h.01v.01H7zm-3 2h.01v.01H4zm0-4h.01v.01H4z"/><path stroke="currentColor" stroke-linejoin="round" stroke-width="2" d="M7 7h.01v.01H7zm10 10h.01v.01H17z"/></svg>
                                             @break
+                                            {{-- ═══════════════════════════ PAYDUNYA ═══════════════════════════ --}}
+                                            @case('paydunya')
+                                                <span class="inline-flex items-center justify-center
+                                                            w-10 h-10 rounded-full bg-orange-100 border border-orange-300"
+                                                    title="PayDunya">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"
+                                                        class="w-6 h-6" aria-label="PayDunya">
+                                                        <circle cx="20" cy="20" r="18" fill="#FF6600"/>
+                                                        <text x="12" y="26" font-family="Arial,sans-serif"
+                                                            font-weight="bold" font-size="18" fill="#ffffff">P</text>
+                                                    </svg>
+                                                </span>
+                                            @break
+                                            {{-- ═══════════════════════════════════════════════════════════════ --}}
                                             @default
                                             <svg class="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2m2 4h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2m7-5a2 2 0 1 1-4 0 2 2 0 0 1 4 0"/></svg>
                                         @endswitch

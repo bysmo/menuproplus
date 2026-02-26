@@ -1529,6 +1529,54 @@
                             </x-secondary-button>
                         @endif
 
+
+                        {{-- ═════════════════════PAYDUNYA — Ajout du bouton de paiement══════════════════════════════ --}}
+                        @if ($paymentGateway && $paymentGateway->paydunya_status)
+                            <x-secondary-button
+                                wire:click="initiatePaydunyaPayment({{ $paymentOrder->id }})"
+                                wire:loading.attr="disabled"
+                                wire:target="initiatePaydunyaPayment"
+                                class="relative w-full flex items-center justify-center gap-x-2 py-3 px-4
+                                    border border-gray-200 rounded-xl hover:border-orange-400
+                                    hover:bg-orange-50 transition-all duration-200 group"
+                            >
+                                {{-- Spinner de chargement --}}
+                                <span wire:loading wire:target="initiatePaydunyaPayment"
+                                    class="absolute inset-0 flex items-center justify-center bg-white/70 rounded-xl">
+                                    <svg class="animate-spin h-5 w-5 text-orange-500"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                    </svg>
+                                </span>
+
+                                {{-- Logo PayDunya SVG inline --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40"
+                                    class="h-7 w-auto" aria-label="PayDunya">
+                                    <!-- Cercle orange -->
+                                    <circle cx="20" cy="20" r="18" fill="#FF6600"/>
+                                    <!-- Lettre P stylisée -->
+                                    <text x="12" y="26" font-family="Arial,sans-serif" font-weight="bold"
+                                        font-size="20" fill="#ffffff">P</text>
+                                    <!-- Texte "ayDunya" -->
+                                    <text x="42" y="26" font-family="Arial,sans-serif" font-weight="bold"
+                                        font-size="16" fill="#FF6600">ayDunya</text>
+                                </svg>
+
+                                {{-- Icônes des opérateurs supportés --}}
+                                <span class="hidden sm:flex items-center gap-1 text-xs text-gray-400
+                                            group-hover:text-orange-500 ml-auto">
+                                    <span title="Orange Money">🟠</span>
+                                    <span title="Wave">🌊</span>
+                                    <span title="MTN Mobile Money">🟡</span>
+                                    <span title="Moov Money">🔵</span>
+                                </span>
+                            </x-secondary-button>
+                        @endif
+                        {{-- ═══════════════════════════════════════════ --}}
+
                         @if ($paymentGateway->is_qr_payment_enabled && $paymentGateway->qr_code_image_url)
                             <!-- Button -->
                             <x-secondary-button wire:click="toggleQrCode">

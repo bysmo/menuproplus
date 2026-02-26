@@ -16,7 +16,7 @@ class GlobalSettingSeeder extends Seeder
     public function run(): void
     {
         $setting = new GlobalSetting();
-        $setting->name = 'TableTrack';
+        $setting->name = 'Aladin Menuproplus';
         $setting->theme_hex = '#A78BFA';
         $setting->theme_rgb = '167, 139, 250';
         $setting->hash = md5(microtime());
@@ -25,7 +25,7 @@ class GlobalSettingSeeder extends Seeder
         $setting->instagram_link = 'https://www.instagram.com/';
         $setting->twitter_link = 'https://www.twitter.com/';
         $setting->default_currency_id = GlobalCurrency::first()->id;
-        $setting->timezone = 'Asia/Kolkata';
+        $setting->timezone = 'Africa/Ouagadougou';
         $setting->save();
 
         StorageSetting::firstOrCreate([

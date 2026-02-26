@@ -16,18 +16,20 @@ class CurrencySeeder extends Seeder
     public function run($restaurant): void
     {
         $currencies = [
+
             [
-                'currency_name' => 'Rupee',
-                'currency_symbol' => '₹',
-                'currency_code' => 'INR',
+                'currency_name' => 'FCFA',
+                'currency_symbol' => 'FCFA',
+                'currency_code' => 'XOF',
                 'restaurant_id' => $restaurant->id,
-                'currency_position' => 'left',
-                'no_of_decimal' => 2,
-                'thousand_separator' => ',',
-                'decimal_separator' => '.',
+                'currency_position' => 'right_without_space',
+                'no_of_decimal' => 0,
+                'thousand_separator' => ' ',
+                'decimal_separator' => ',',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            
             [
                 'currency_name' => 'Dollars',
                 'currency_symbol' => '$',
@@ -40,18 +42,7 @@ class CurrencySeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
-            [
-                'currency_name' => 'Pounds',
-                'currency_symbol' => '£',
-                'currency_code' => 'GBP',
-                'restaurant_id' => $restaurant->id,
-                'currency_position' => 'left',
-                'no_of_decimal' => 2,
-                'thousand_separator' => ',',
-                'decimal_separator' => '.',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+            
             [
                 'currency_name' => 'Euros',
                 'currency_symbol' => '€',
@@ -70,7 +61,7 @@ class CurrencySeeder extends Seeder
 
         // Set the restaurant's currency_id to the USD currency
         $usdCurrency = Currency::where('restaurant_id', $restaurant->id)
-            ->where('currency_code', 'USD')
+            ->where('currency_code', 'XOF')
             ->first();
 
         if ($usdCurrency) {

@@ -49,6 +49,7 @@ use App\Http\Controllers\DatabaseBackupController;
 use App\Http\Controllers\OnboardingStepController;
 use App\Http\Controllers\PayfastPaymentController;
 use App\Http\Controllers\PaystackPaymentController;
+use App\Http\Controllers\PaydunyaPaymentController;
 use App\Http\Controllers\DeliveryExecutiveController;
 use App\Http\Controllers\RestaurantPaymentController;
 use App\Http\Controllers\RestaurantSettingController;
@@ -146,9 +147,15 @@ Route::get('billing/payfast-cancel', [PayFastController::class, 'payFastPaymentC
 Route::post('/paystack/initiate-payment', [PaystackController::class, 'initiatePaystackPayment'])->name('paystack.initiate-payment');
 Route::post('/xendit/initiate-payment', [XenditController::class, 'initiatePaystackPayment'])->name('xendit.initiate-payment');
 
+// Routes PayDunya (Mobile Money: Orange, MTN, Moov)
+Route::post('/paydunya/initiate-payment', [PaydunyaPaymentController::class, 'initiatePayment'])->name('paydunya.initiate-payment');
+Route::get('/paydunya/callback', [PaydunyaPaymentController::class, 'handleCallback'])->name('paydunya.callback');
+Route::post('/paydunya/ipn', [PaydunyaPaymentController::class, 'handleIpn'])->name('paydunya.ipn');
+Route::match(['get', 'post'], '/paydunya/success', [PaydunyaPaymentController::class, 'paymentMainSuccess'])->name('paydunya.success');
+Route::match(['get', 'post'], '/paydunya/failed',  [PaydunyaPaymentController::class, 'paymentFailed'])->name('paydunya.failed');
+
+
 Route::get('/paystack/callback', [PaystackController::class, 'handleGatewayCallback'])->name('paystack.callback');
-
-
 
 Route::middleware(['auth', config('jetstream.auth_session'), 'verified', VerifyRestaurantAccess::class, CheckRestaurantPackage::class])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

@@ -15,14 +15,14 @@ class TaxSeeder extends Seeder
     public function run($restaurant): void
     {
         Tax::create([
-            'tax_name' => 'SGST',
-            'tax_percent' => '2.5',
+            'tax_name' => 'TVA',
+            'tax_percent' => '18',
             'restaurant_id' => $restaurant->id
         ]);
 
         Tax::create([
-            'tax_name' => 'CGST',
-            'tax_percent' => '2.5',
+            'tax_name' => 'BIC',
+            'tax_percent' => '20',
             'restaurant_id' => $restaurant->id
         ]);
     }

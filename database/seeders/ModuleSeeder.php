@@ -31,6 +31,7 @@ class ModuleSeeder extends Seeder
             ['name' => 'Delivery Executive'],
             ['name' => 'Waiter Request'],
             ['name' => 'Expense'],
+            ['name' => 'Cash'],
             
         ];
 
