@@ -14,6 +14,7 @@ class AdminPaydunyaPayment extends Model
 
     protected $fillable = [
         'order_id',
+        'slate_id',
         'paydunya_token',
         'invoice_url',
         'amount',
@@ -41,6 +42,14 @@ class AdminPaydunyaPayment extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * Relation : ardoise associée
+     */
+    public function slate(): BelongsTo
+    {
+        return $this->belongsTo(Slate::class);
     }
 
     /**

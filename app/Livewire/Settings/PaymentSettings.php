@@ -167,7 +167,7 @@ class PaymentSettings extends Component
     public function activeSetting($tab)
     {
         $paymentGateways = [
-            'razorpay' => $this->isGlobalRazorpayEnabled,
+            /*'razorpay' => $this->isGlobalRazorpayEnabled,
             'stripe' => $this->isGlobalStripeEnabled,
             'flutterwave' => $this->isGlobalFlutterwaveEnabled,
             'paypal' => $this->isGlobalPaypalEnabled,
@@ -175,6 +175,7 @@ class PaymentSettings extends Component
             'paystack' => $this->isGlobalPaystackEnabled,
             'xendit'          => $this->isGlobalXenditEnabled,
             'paddle'          => $this->isGlobalPaddleEnabled,
+            */
             'paydunya'        => $this->isGlobalPaydunyaEnabled,
             'offline'         => true,
             'qr_code' => true,
@@ -288,6 +289,9 @@ class PaymentSettings extends Component
         }
         if ($this->activePaymentSetting === 'xendit') {
             $this->webhookUrl = route('xendit.webhook', ['hash' => $hash]);
+        }
+        if ($this->activePaymentSetting === 'paydunya') {
+            $this->webhookUrl = route('paydunya.ipn', ['hash' => $hash]);
         }
     }
 

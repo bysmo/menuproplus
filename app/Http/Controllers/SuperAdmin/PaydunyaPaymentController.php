@@ -8,11 +8,13 @@ use App\Models\AdminPaydunyaPayment;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Restaurant;
+use App\Models\Slate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 
 class PaydunyaPaymentController extends Controller
 {
@@ -182,6 +184,107 @@ class PaydunyaPaymentController extends Controller
         }
     }
 
+    /**
+     * Crée une facture PayDunya pour une Ardoise et redirige le client.
+     * GET/POST /paydunya/slate-payment/{slate}
+     */
+    public function initiateSlatePayment(Slate $slate)
+    {
+        try {
+            $restaurant = $slate->restaurant;
+
+            if ($slate->remaining_amount <= 0) {
+                return $this->flashAndRedirect('Cette ardoise est déjà payée.', 'warning');
+            }
+
+            // Initialisation des clés SDK
+            $this->setupPaydunya($restaurant->hash);
+
+            // ── Configuration du Store ─────────
+            \Paydunya\Checkout\Store::setName($restaurant->name);
+
+            if (!empty($restaurant->phone)) {
+                \Paydunya\Checkout\Store::setPhoneNumber($restaurant->phone);
+            }
+            if (!empty($restaurant->website)) {
+                \Paydunya\Checkout\Store::setWebsiteUrl($restaurant->website);
+            }
+            if (!empty($restaurant->logo_url)) {
+                \Paydunya\Checkout\Store::setLogoUrl($restaurant->logo_url);
+            }
+
+            // ── URLs de redirection ────────────────────────────────────────
+            \Paydunya\Checkout\Store::setReturnUrl(route('paydunya.success'));
+            \Paydunya\Checkout\Store::setCancelUrl(route('paydunya.failed'));
+            \Paydunya\Checkout\Store::setCallbackUrl(route('paydunya.ipn'));
+
+            // ── Création de la facture ──────────────────────────────────────
+            $invoice = new \Paydunya\Checkout\CheckoutInvoice();
+
+            // Ajout du résumé de l'ardoise
+            $invoice->addItem(
+                'Paiement Ardoise #' . $slate->code,
+                1,
+                (float) $slate->remaining_amount,
+                (float) $slate->remaining_amount,
+                'Règlement complet de l\'ardoise - ' . $restaurant->name
+            );
+
+            // Montant total (obligatoire)
+            $invoice->setTotalAmount((float) $slate->remaining_amount);
+
+            $invoice->setDescription(
+                'Paiement de l\'ardoise #' . $slate->code . ' - ' . $restaurant->name
+            );
+
+            // Données personnalisées pour l'IPN (Slate)
+            $invoice->addCustomData('is_slate', true);
+            $invoice->addCustomData('slate_id', $slate->id);
+            $invoice->addCustomData('restaurant_hash', $restaurant->hash);
+            $invoice->addCustomData('branch_id', $slate->branch_id);
+
+            // ── Envoi à PayDunya ────────────────────────────────────────────
+            if ($invoice->create()) {
+                $token      = $invoice->getToken();
+                $invoiceUrl = $invoice->getInvoiceUrl();
+
+                // Sauvegarde en base de données pour la trace de l'ardoise
+                AdminPaydunyaPayment::create([
+                    'slate_id'       => $slate->id,
+                    'paydunya_token' => $token,
+                    'invoice_url'    => $invoiceUrl,
+                    'amount'         => $slate->remaining_amount,
+                    'currency'       => $restaurant->currency->currency_code ?? 'XOF',
+                    'payment_status' => 'pending',
+                ]);
+
+                Log::info('PayDunya: Facture Ardoise créée', [
+                    'slate_id'   => $slate->id,
+                    'token'      => $token,
+                    'invoice_url'=> $invoiceUrl,
+                ]);
+
+                return redirect()->away($invoiceUrl);
+
+            } else {
+                Log::error('PayDunya: Échec de création de la facture Ardoise', [
+                    'slate_id'      => $slate->id,
+                    'response_text' => $invoice->response_text,
+                ]);
+
+                return $this->flashAndRedirect($invoice->response_text ?? 'Impossible de créer la facture PayDunya pour l\'ardoise.', 'danger');
+            }
+
+        } catch (\Exception $e) {
+            Log::error('PayDunya: Exception lors de l\'initiation Ardoise', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
+            return $this->flashAndRedirect('Erreur: ' . $e->getMessage(), 'danger');
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // 2. Retour après paiement réussi (return_url)
     //    PayDunya ajoute automatiquement ?token=XXXX à l'URL
@@ -219,9 +322,15 @@ class PaydunyaPaymentController extends Controller
             return $this->flashAndRedirect('Enregistrement de paiement introuvable.', 'danger');
         }
 
-        $order      = $paydunya->order;
-        $restaurant = $order->branch->restaurant;
-        $orderUuid  = $order->uuid ?? null;
+        if ($paydunya->slate_id) {
+            $slate      = $paydunya->slate;
+            $restaurant = $slate->restaurant;
+            $orderUuid  = null;
+        } else {
+            $order      = $paydunya->order;
+            $restaurant = $order->branch->restaurant;
+            $orderUuid  = $order->uuid ?? null;
+        }
 
         // Si déjà complété (ex: IPN traité avant la redirection)
         if ($paydunya->isCompleted()) {
@@ -256,7 +365,11 @@ class PaydunyaPaymentController extends Controller
                         ],
                     ]);
 
-                    $this->markOrderAsPaid($paydunya, $order);
+                    if ($paydunya->slate_id) {
+                        $this->markSlateAsPaid($paydunya, $paydunya->slate);
+                    } else {
+                        $this->markOrderAsPaid($paydunya, $order);
+                    }
 
                     return $this->flashAndRedirect(
                         __('messages.paymentDoneSuccessfully'),
@@ -433,11 +546,16 @@ class PaydunyaPaymentController extends Controller
                     'payment_response'=> $data,
                 ]);
 
-                $this->markOrderAsPaid($paydunya, $paydunya->order);
+                if ($paydunya->slate_id) {
+                    $this->markSlateAsPaid($paydunya, $paydunya->slate);
+                } else {
+                    $this->markOrderAsPaid($paydunya, $paydunya->order);
+                }
 
                 Log::info('PayDunya IPN: Paiement complété', [
                     'token'    => $token,
                     'order_id' => $paydunya->order_id,
+                    'slate_id' => $paydunya->slate_id,
                     'amount'   => $totalAmount,
                 ]);
 
@@ -503,6 +621,37 @@ class PaydunyaPaymentController extends Controller
         if ($order->customer_id) {
             SendOrderBillEvent::dispatch($order);
         }
+    }
+
+    /**
+     * Marque toutes les commandes d'une ardoise comme payées et crée les enregistrements Payment.
+     */
+    private function markSlateAsPaid(AdminPaydunyaPayment $paydunya, Slate $slate): void
+    {
+        $unpaidOrders = $slate->unpaidOrders()->get();
+        
+        foreach ($unpaidOrders as $order) {
+            $remainingAmount = $order->total - ($order->amount_paid ?? 0);
+            
+            if ($remainingAmount <= 0) continue;
+
+            Payment::create([
+                'order_id'              => $order->id,
+                'branch_id'             => $slate->branch_id,
+                'payment_method'        => 'paydunya',
+                'amount'                => $remainingAmount,
+                'status'                => 'completed',
+                'payment_date'          => now(),
+                'transaction_reference' => $paydunya->paydunya_token,
+                'notes'                 => 'Paiement en ligne via ardoise ' . $slate->code,
+            ]);
+
+            $order->amount_paid = ($order->amount_paid ?? 0) + $remainingAmount;
+            $order->status = 'paid';
+            $order->save();
+        }
+
+        $slate->recalculateAmounts();
     }
 
     /**

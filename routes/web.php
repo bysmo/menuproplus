@@ -49,7 +49,7 @@ use App\Http\Controllers\DatabaseBackupController;
 use App\Http\Controllers\OnboardingStepController;
 use App\Http\Controllers\PayfastPaymentController;
 use App\Http\Controllers\PaystackPaymentController;
-use App\Http\Controllers\PaydunyaPaymentController;
+use App\Http\Controllers\SuperAdmin\PaydunyaPaymentController;
 use App\Http\Controllers\DeliveryExecutiveController;
 use App\Http\Controllers\RestaurantPaymentController;
 use App\Http\Controllers\RestaurantSettingController;
@@ -149,6 +149,7 @@ Route::post('/xendit/initiate-payment', [XenditController::class, 'initiatePayst
 
 // Routes PayDunya (Mobile Money: Orange, MTN, Moov)
 Route::post('/paydunya/initiate-payment', [PaydunyaPaymentController::class, 'initiatePayment'])->name('paydunya.initiate-payment');
+Route::get('/paydunya/slate-payment/{slate}', [PaydunyaPaymentController::class, 'initiateSlatePayment'])->name('paydunya.slate-payment');
 Route::get('/paydunya/callback', [PaydunyaPaymentController::class, 'handleCallback'])->name('paydunya.callback');
 Route::post('/paydunya/ipn', [PaydunyaPaymentController::class, 'handleIpn'])->name('paydunya.ipn');
 Route::match(['get', 'post'], '/paydunya/success', [PaydunyaPaymentController::class, 'paymentMainSuccess'])->name('paydunya.success');

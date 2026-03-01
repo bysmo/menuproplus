@@ -12,26 +12,6 @@
                 class="text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700">
                 <ul class="flex flex-wrap items-center -mb-px">
                 
-                @if ($isGlobalPaydunyaEnabled)
-
-                    <li class="me-2">
-                        <span wire:click="activeSetting('paydunya')" @class([
-                            'inline-flex items-center gap-x-1 cursor-pointer select-none p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300',
-                            'border-transparent' => $activePaymentSetting != 'paydunya',
-                            'active border-skin-base dark:text-skin-base dark:border-skin-base text-skin-base' =>
-                                $activePaymentSetting == 'paydunya',
-                        ])>
-                            <svg class="w-4 h-4" width="24" height="24" viewBox="0 0 24 24"><defs><linearGradient id="a" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d3e8e"/><stop offset="100%" stop-color="#00c3f3"/></linearGradient></defs><path fill="url(#a)" d="m22.436 0-11.91 7.773-1.174 4.276 6.625-4.297L11.65 24h4.391z"/><path fill="#0D3E8E" d="M14.26 10.098 3.389 17.166 1.564 24h9.008z"/></svg>
-                            @lang('modules.billing.paydunya')
-                            <span @class([
-                                'flex w-3 h-3 me-3 rounded-full',
-                                'bg-green-500' => $isPaydunyaEnabled,
-                                'bg-red-500' => !$isPaydunyaEnabled,
-                            ])></span>
-                        </span>
-                    </li>
-                @endif
-
                 @if ($isGlobalRazorpayEnabled)
 
                     <li class="me-2">
@@ -194,7 +174,7 @@
                                 <circle cx="12" cy="17" r="1" fill="currentColor"/>
                                 <path d="M9 6h6M9 9h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                             </svg>
-                            PayDunya
+                            Payer avec PayDunya
                             <span @class([
                                 'flex w-3 h-3 me-3 rounded-full',
                                 'bg-green-500' => $isPaydunyaEnabled,
@@ -242,7 +222,7 @@
 
 
 
-                    <li wire:click="activeSetting('serviceSpecific')" class="me-2">
+                    <!--li wire:click="activeSetting('serviceSpecific')" class="me-2">
                         <span @class([
                             'inline-flex items-center gap-x-1 cursor-pointer select-none p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300',
                             'border-transparent' => $activePaymentSetting != 'serviceSpecific',
@@ -256,7 +236,7 @@
                             </svg>
                             @lang('modules.billing.generalSettings')
                         </span>
-                    </li>
+                    </li>-->
 
                 </ul>
             </div>

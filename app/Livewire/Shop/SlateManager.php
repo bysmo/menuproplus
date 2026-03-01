@@ -248,7 +248,12 @@ class SlateManager extends Component
                 return;
             }
 
-            // Début de la transaction
+            // Si le paiement est via PayDunya, rediriger vers le contrôleur spécifique
+            if ($paymentMethod === 'paydunya') {
+                return redirect()->route('paydunya.slate-payment', ['slate' => $this->slate->id]);
+            }
+
+            // Début de la transaction (seulement pour le offline)
             \DB::beginTransaction();
 
             try {

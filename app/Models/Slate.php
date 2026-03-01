@@ -271,11 +271,8 @@ class Slate extends Model
         if ($this->remaining_amount <= 0 && $this->pending_payment <= 0 && $this->total_amount > 0) {
             // Tout est payé et confirmé
             $this->status = 'paid';
-        } elseif ($this->pending_payment > 0 && $this->remaining_amount <= 0) {
-            // Tout est payé mais en attente de vérification
-            $this->status = 'pending_verification';
         } else {
-            // Partiellement payé ou non payé
+            // Partiellement payé, non payé, ou en attente de vérification
             $this->status = 'active';
         }
 
