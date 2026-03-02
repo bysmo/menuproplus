@@ -41,15 +41,15 @@
 
                         @if($orderType->type === 'dine_in')
                             <span class="mt-2 text-sm text-center text-gray-600 dark:text-gray-400">
-                                Enjoy your meal at our restaurant
+                                @lang('modules.order.enjoyYourMeal')
                             </span>
                         @elseif($orderType->type === 'delivery')
                             <span class="mt-2 text-sm text-center text-gray-600 dark:text-gray-400">
-                                Get it delivered to your doorstep
+                                @lang('modules.order.getItDelivered')
                             </span>
                         @elseif($orderType->type === 'pickup')
                             <span class="mt-2 text-sm text-center text-gray-600 dark:text-gray-400">
-                                Order ahead and pick up later
+                                @lang('modules.order.orderAhead')
                             </span>
                         @endif
                     </button>

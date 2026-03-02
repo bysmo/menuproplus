@@ -53,11 +53,11 @@ class PaydunyaPaymentController extends Controller
         }
 
         // Initialisation du SDK PayDunya (installation via Composer)
-        \Paydunya\Setup::setMasterKey($credential->paydunya_master_key);
-        \Paydunya\Setup::setPublicKey($credential->paydunya_public_key);
-        \Paydunya\Setup::setPrivateKey($credential->paydunya_private_key);
-        \Paydunya\Setup::setToken($credential->paydunya_token);
-        \Paydunya\Setup::setMode($credential->paydunya_mode ?? 'test');
+        \Paydunya_Setup::setMasterKey($credential->paydunya_master_key);
+        \Paydunya_Setup::setPublicKey($credential->paydunya_public_key);
+        \Paydunya_Setup::setPrivateKey($credential->paydunya_private_key);
+        \Paydunya_Setup::setToken($credential->paydunya_token);
+        \Paydunya_Setup::setMode($credential->paydunya_mode ?? 'test');
 
         return $restaurant;
     }
@@ -87,25 +87,25 @@ class PaydunyaPaymentController extends Controller
             $this->setupPaydunya($restaurant->hash);
 
             // ── Configuration du Store (informations du restaurant) ─────────
-            \Paydunya\Checkout\Store::setName($restaurant->name);
+            \Paydunya_Checkout_Store::setName($restaurant->name);
 
             if (!empty($restaurant->phone)) {
-                \Paydunya\Checkout\Store::setPhoneNumber($restaurant->phone);
+                \Paydunya_Checkout_Store::setPhoneNumber($restaurant->phone);
             }
             if (!empty($restaurant->website)) {
-                \Paydunya\Checkout\Store::setWebsiteUrl($restaurant->website);
+                \Paydunya_Checkout_Store::setWebsiteUrl($restaurant->website);
             }
             if (!empty($restaurant->logo_url)) {
-                \Paydunya\Checkout\Store::setLogoUrl($restaurant->logo_url);
+                \Paydunya_Checkout_Store::setLogoUrl($restaurant->logo_url);
             }
 
             // ── URLs de redirection ────────────────────────────────────────
-            \Paydunya\Checkout\Store::setReturnUrl(route('paydunya.success'));
-            \Paydunya\Checkout\Store::setCancelUrl(route('paydunya.failed'));
-            \Paydunya\Checkout\Store::setCallbackUrl(route('paydunya.ipn'));
+            Paydunya_Checkout_Store::setReturnUrl(route('paydunya.success'));
+            Paydunya_Checkout_Store::setCancelUrl(route('paydunya.failed'));
+            Paydunya_Checkout_Store::setCallbackUrl(route('paydunya.ipn'));
 
             // ── Création de la facture ──────────────────────────────────────
-            $invoice = new \Paydunya\Checkout\CheckoutInvoice();
+            $invoice = new \Paydunya_Checkout_Invoice();
 
             // Ajout du/des article(s) de la commande
             $invoice->addItem(
@@ -132,7 +132,7 @@ class PaydunyaPaymentController extends Controller
 
             // ── Envoi à PayDunya ────────────────────────────────────────────
             if ($invoice->create()) {
-                $token      = $invoice->getToken();
+                $token      = $invoice->token;
                 $invoiceUrl = $invoice->getInvoiceUrl();
 
                 // Sauvegarde en base de données
@@ -201,25 +201,25 @@ class PaydunyaPaymentController extends Controller
             $this->setupPaydunya($restaurant->hash);
 
             // ── Configuration du Store ─────────
-            \Paydunya\Checkout\Store::setName($restaurant->name);
+            \Paydunya_Checkout_Store::setName($restaurant->name);
 
             if (!empty($restaurant->phone)) {
-                \Paydunya\Checkout\Store::setPhoneNumber($restaurant->phone);
+                \Paydunya_Checkout_Store::setPhoneNumber($restaurant->phone);
             }
             if (!empty($restaurant->website)) {
-                \Paydunya\Checkout\Store::setWebsiteUrl($restaurant->website);
+                \Paydunya_Checkout_Store::setWebsiteUrl($restaurant->website);
             }
             if (!empty($restaurant->logo_url)) {
-                \Paydunya\Checkout\Store::setLogoUrl($restaurant->logo_url);
+                \Paydunya_Checkout_Store::setLogoUrl($restaurant->logo_url);
             }
 
             // ── URLs de redirection ────────────────────────────────────────
-            \Paydunya\Checkout\Store::setReturnUrl(route('paydunya.success'));
-            \Paydunya\Checkout\Store::setCancelUrl(route('paydunya.failed'));
-            \Paydunya\Checkout\Store::setCallbackUrl(route('paydunya.ipn'));
+            \Paydunya_Checkout_Store::setReturnUrl(route('paydunya.success'));
+            \Paydunya_Checkout_Store::setCancelUrl(route('paydunya.failed'));
+            \Paydunya_Checkout_Store::setCallbackUrl(route('paydunya.ipn'));
 
             // ── Création de la facture ──────────────────────────────────────
-            $invoice = new \Paydunya\Checkout\CheckoutInvoice();
+            $invoice = new \Paydunya_Checkout_Invoice();
 
             // Ajout du résumé de l'ardoise
             $invoice->addItem(
@@ -245,7 +245,7 @@ class PaydunyaPaymentController extends Controller
 
             // ── Envoi à PayDunya ────────────────────────────────────────────
             if ($invoice->create()) {
-                $token      = $invoice->getToken();
+                $token      = $invoice->token;
                 $invoiceUrl = $invoice->getInvoiceUrl();
 
                 // Sauvegarde en base de données pour la trace de l'ardoise
@@ -312,14 +312,14 @@ class PaydunyaPaymentController extends Controller
         $token = $request->query('token');
 
         if (!$token) {
-            return $this->flashAndRedirect('Aucun token de paiement fourni.', 'danger');
+            return $this->flashAndRedirect('Aucun token de paiement fourni.', 'danger', null, null);
         }
 
         // Rechercher le paiement en base
         $paydunya = AdminPaydunyaPayment::where('paydunya_token', $token)->first();
 
         if (!$paydunya) {
-            return $this->flashAndRedirect('Enregistrement de paiement introuvable.', 'danger');
+            return $this->flashAndRedirect('Enregistrement de paiement introuvable.', 'danger', null, null);
         }
 
         if ($paydunya->slate_id) {
@@ -337,7 +337,8 @@ class PaydunyaPaymentController extends Controller
             return $this->flashAndRedirect(
                 __('messages.paymentDoneSuccessfully'),
                 'success',
-                $orderUuid
+                $orderUuid,
+                $restaurant->hash
             );
         }
 
@@ -345,7 +346,7 @@ class PaydunyaPaymentController extends Controller
         try {
             $this->setupPaydunya($restaurant->hash);
 
-            $invoice = new \Paydunya\Checkout\CheckoutInvoice();
+            $invoice = new \Paydunya_Checkout_Invoice();
 
             if ($invoice->confirm($token)) {
                 $status = $invoice->getStatus();
@@ -374,14 +375,16 @@ class PaydunyaPaymentController extends Controller
                     return $this->flashAndRedirect(
                         __('messages.paymentDoneSuccessfully'),
                         'success',
-                        $orderUuid
+                        $orderUuid,
+                        $restaurant->hash
                     );
 
                 } elseif ($status === 'pending') {
                     return $this->flashAndRedirect(
                         'Votre paiement est en cours de traitement. Veuillez patienter.',
                         'info',
-                        $orderUuid
+                        $orderUuid,
+                        $restaurant->hash
                     );
 
                 } else {
@@ -390,7 +393,8 @@ class PaydunyaPaymentController extends Controller
                     return $this->flashAndRedirect(
                         'Le paiement a été annulé.',
                         'warning',
-                        $orderUuid
+                        $orderUuid,
+                        $restaurant->hash
                     );
                 }
             } else {
@@ -403,7 +407,8 @@ class PaydunyaPaymentController extends Controller
                 return $this->flashAndRedirect(
                     'Impossible de vérifier le statut du paiement.',
                     'danger',
-                    $orderUuid
+                    $orderUuid,
+                    $restaurant->hash
                 );
             }
 
@@ -416,7 +421,8 @@ class PaydunyaPaymentController extends Controller
             return $this->flashAndRedirect(
                 'Une erreur est survenue lors de la vérification du paiement.',
                 'danger',
-                $orderUuid
+                $orderUuid ?? null,
+                $restaurant->hash ?? null
             );
         }
     }
@@ -441,17 +447,26 @@ class PaydunyaPaymentController extends Controller
                     'payment_error_response' => ['message' => 'Paiement annulé par l\'utilisateur.'],
                 ]);
 
-                $orderUuid = $paydunya->order->uuid ?? null;
+                $orderUuid = null;
+                $restaurantHash = null;
+
+                if ($paydunya->slate_id) {
+                    $restaurantHash = $paydunya->slate->restaurant->hash ?? null;
+                } else {
+                    $orderUuid = $paydunya->order->uuid ?? null;
+                    $restaurantHash = $paydunya->order->branch->restaurant->hash ?? null;
+                }
 
                 return $this->flashAndRedirect(
                     'Votre paiement PayDunya a été annulé.',
                     'warning',
-                    $orderUuid
+                    $orderUuid,
+                    $restaurantHash
                 );
             }
         }
 
-        return $this->flashAndRedirect('Le paiement a été annulé.', 'warning');
+        return $this->flashAndRedirect('Le paiement a été annulé.', 'warning', null, null);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -660,7 +675,8 @@ class PaydunyaPaymentController extends Controller
     private function flashAndRedirect(
         string  $message,
         string  $style,
-        ?string $orderUuid = null
+        ?string $orderUuid = null,
+        ?string $restaurantHash = null
     ): RedirectResponse {
         session()->flash('flash.banner', $message);
         session()->flash('flash.bannerStyle', $style);
@@ -669,6 +685,10 @@ class PaydunyaPaymentController extends Controller
             return redirect()->route('order_success', $orderUuid);
         }
 
-        return redirect()->back();
+        if ($restaurantHash) {
+            return redirect()->route('shop_restaurant', ['hash' => $restaurantHash]);
+        }
+
+        return redirect('/');
     }
 }

@@ -361,22 +361,22 @@
         <div class="stats-cards">
             <div class="stat-card blue">
                 <div class="stat-label">{{ __('modules.cashier.initialFund') }}</div>
-                <div class="stat-value">{{ number_format($session->opening_balance, 0, ',', ' ') }}</div>
+                <div class="stat-value">{{ currency_format($session->opening_balance, restaurant()->currency_id) }}</div>
                 <div class="stat-detail">F CFA</div>
             </div>
             <div class="stat-card green">
                 <div class="stat-label">{{ __('modules.cashier.totalSales') }}</div>
-                <div class="stat-value">{{ number_format($session->total_sales, 0, ',', ' ') }}</div>
+                <div class="stat-value">{{ currency_format($session->total_sales, restaurant()->currency_id) }}</div>
                 <div class="stat-detail">{{ $session->total_transactions }} {{ __('modules.cashier.transactions') }}</div>
             </div>
             <div class="stat-card yellow">
                 <div class="stat-label">{{ __('modules.cashier.expectedBalance') }}</div>
-                <div class="stat-value">{{ number_format($session->expected_balance, 0, ',', ' ') }}</div>
+                <div class="stat-value">{{ currency_format($session->expected_balance, restaurant()->currency_id) }}</div>
                 <div class="stat-detail">F CFA</div>
             </div>
             <div class="stat-card {{ $session->discrepancy == 0 ? 'green' : 'red' }}">
                 <div class="stat-label">{{ __('modules.cashier.discrepancy') }}</div>
-                <div class="stat-value">{{ number_format($session->discrepancy, 0, ',', ' ') }}</div>
+                <div class="stat-value">{{ currency_format($session->discrepancy, restaurant()->currency_id) }}</div>
                 <div class="stat-detail">F CFA</div>
             </div>
         </div>
@@ -426,23 +426,23 @@
                     @endphp
                     <tr>
                         <td><strong>{{ $paymentMethods[$method] ?? $method }}</strong></td>
-                        <td class="amount neutral">{{ number_format($opening, 0, ',', ' ') }}</td>
-                        <td class="amount positive">+{{ number_format($transactions, 0, ',', ' ') }}</td>
-                        <td class="amount neutral">{{ number_format($expected, 0, ',', ' ') }}</td>
-                        <td class="amount neutral">{{ number_format($closing, 0, ',', ' ') }}</td>
+                        <td class="amount neutral">{{ currency_format($opening, restaurant()->currency_id) }}</td>
+                        <td class="amount positive">+{{ currency_format($transactions, restaurant()->currency_id) }}</td>
+                        <td class="amount neutral">{{ currency_format($expected, restaurant()->currency_id) }}</td>
+                        <td class="amount neutral">{{ currency_format($closing, restaurant()->currency_id) }}</td>
                         <td class="amount {{ $difference == 0 ? 'neutral' : ($difference > 0 ? 'positive' : 'negative') }}">
-                            {{ $difference >= 0 ? '+' : '' }}{{ number_format($difference, 0, ',', ' ') }}
+                            {{ $difference >= 0 ? '+' : '' }}{{ currency_format($difference, restaurant()->currency_id) }}
                         </td>
                     </tr>
                 @endforeach
                 
                 <tr class="totals-row">
                     <td>{{ __('modules.cashier.totals') }}</td>
-                    <td class="amount">{{ number_format($totalOpening, 0, ',', ' ') }}</td>
-                    <td class="amount">+{{ number_format($totalTransactions, 0, ',', ' ') }}</td>
-                    <td class="amount">{{ number_format($totalExpected, 0, ',', ' ') }}</td>
-                    <td class="amount">{{ number_format($totalClosing, 0, ',', ' ') }}</td>
-                    <td class="amount">{{ $totalDifference >= 0 ? '+' : '' }}{{ number_format($totalDifference, 0, ',', ' ') }}</td>
+                    <td class="amount">{{ currency_format($totalOpening, restaurant()->currency_id) }}</td>
+                    <td class="amount">+{{ currency_format($totalTransactions, restaurant()->currency_id) }}</td>
+                    <td class="amount">{{ currency_format($totalExpected, restaurant()->currency_id) }}</td>
+                    <td class="amount">{{ currency_format($totalClosing, restaurant()->currency_id) }}</td>
+                    <td class="amount">{{ $totalDifference >= 0 ? '+' : '' }}{{ currency_format($totalDifference, restaurant()->currency_id) }}</td>
                 </tr>
             </tbody>
         </table>
@@ -458,12 +458,12 @@
                 @if($session->discrepancy > 0)
                     <div class="discrepancy-item">
                         <span style="color: #dc2626; font-weight: 600;">{{ __('modules.cashier.surplus') }}:</span>
-                        <span style="color: #dc2626; font-weight: 700;">+{{ number_format($session->discrepancy, 0, ',', ' ') }} F CFA</span>
+                        <span style="color: #dc2626; font-weight: 700;">+{{ currency_format($session->discrepancy, restaurant()->currency_id) }}</span>
                     </div>
                 @else
                     <div class="discrepancy-item">
                         <span style="color: #dc2626; font-weight: 600;">{{ __('modules.cashier.shortage') }}:</span>
-                        <span style="color: #dc2626; font-weight: 700;">{{ number_format($session->discrepancy, 0, ',', ' ') }} F CFA</span>
+                        <span style="color: #dc2626; font-weight: 700;">{{ currency_format($session->discrepancy, restaurant()->currency_id) }}</span>
                     </div>
                 @endif
             </div>
@@ -491,7 +491,7 @@
                     <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
                         <span style="font-size: 13px;">{{ $paymentMethods[$method] ?? $method }}</span>
                         <span style="font-size: 13px; font-weight: 600; color: {{ $difference > 0 ? '#16a34a' : '#dc2626' }};">
-                            {{ $difference >= 0 ? '+' : '' }}{{ number_format($difference, 0, ',', ' ') }} F CFA
+                            {{ $difference >= 0 ? '+' : '' }}{{ currency_format($difference, restaurant()->currency_id) }}
                         </span>
                     </div>
                     @endif

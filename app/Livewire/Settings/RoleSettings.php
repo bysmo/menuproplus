@@ -107,7 +107,7 @@ class RoleSettings extends Component
     public function startInlineEdit($roleId, $roleName)
     {
         // Check if role is protected
-        $protectedRoles = ['Admin', 'Super Admin', 'Branch Head', 'Waiter', 'Chef'];
+        $protectedRoles = ['Admin', 'Super Admin', 'Branch Head', 'Waiter', 'Chef', 'Cashier'];
         $role = Role::find($roleId);
         
         if (in_array($role->display_name, $protectedRoles)) {

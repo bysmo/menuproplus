@@ -22,9 +22,9 @@
                         <div>
                             <span class="font-medium">{{ __('modules.cashier.discrepancyDetected') }}</span>
                             <p class="mt-1">
-                                {{ __('modules.cashier.expected') }}: <strong>{{ number_format($expectedCashAmount, 0, ',', ' ') }} F</strong><br>
-                                {{ __('modules.cashier.counted') }}: <strong>{{ number_format($closingCashAmount, 0, ',', ' ') }} F</strong><br>
-                                {{ __('modules.cashier.difference') }}: <strong class="{{ $discrepancyAmount > 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($discrepancyAmount, 0, ',', ' ') }} F</strong>
+                                {{ __('modules.cashier.expected') }}: <strong>{{ currency_format($expectedCashAmount, restaurant()->currency_id) }}</strong><br>
+                                {{ __('modules.cashier.counted') }}: <strong>{{ currency_format($closingCashAmount, restaurant()->currency_id) }}</strong><br>
+                                {{ __('modules.cashier.difference') }}: <strong class="{{ $discrepancyAmount > 0 ? 'text-green-600' : 'text-red-600' }}">{{ currency_format($discrepancyAmount, restaurant()->currency_id) }}</strong>
                             </p>
                         </div>
                     </div>
@@ -52,19 +52,19 @@
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <div>
                         <span class="text-gray-600 dark:text-gray-400">{{ __('modules.cashier.openingBalance') }}:</span>
-                        <strong class="block text-gray-900 dark:text-white">{{ number_format($activeSession->opening_balance ?? 0, 0, ',', ' ') }} F</strong>
+                        <strong class="block text-gray-900 dark:text-white">{{ currency_format($activeSession->opening_balance ?? 0, restaurant()->currency_id) }}</strong>
                     </div>
                     <div>
                         <span class="text-gray-600 dark:text-gray-400">{{ __('modules.cashier.totalSales') }}:</span>
-                        <strong class="block text-gray-900 dark:text-white">{{ number_format($activeSession->total_sales ?? 0, 0, ',', ' ') }} F</strong>
+                        <strong class="block text-gray-900 dark:text-white">{{ currency_format($activeSession->total_sales ?? 0, restaurant()->currency_id) }}</strong>
                     </div>
                     <div>
                         <span class="text-gray-600 dark:text-gray-400">{{ __('modules.cashier.expenses') }}:</span>
-                        <strong class="block text-gray-900 dark:text-white">{{ number_format($expensesAmount, 0, ',', ' ') }} F</strong>
+                        <strong class="block text-gray-900 dark:text-white">{{ currency_format($expensesAmount, restaurant()->currency_id) }}</strong>
                     </div>
                     <div>
                         <span class="text-gray-600 dark:text-gray-400">{{ __('modules.cashier.expectedBalance') }}:</span>
-                        <strong class="block text-lg text-blue-600 dark:text-blue-400">{{ number_format($expectedCashAmount, 0, ',', ' ') }} F</strong>
+                        <strong class="block text-lg text-blue-600 dark:text-blue-400">{{ currency_format($expectedCashAmount, restaurant()->currency_id) }}</strong>
                     </div>
                 </div>
             </div>

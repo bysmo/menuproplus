@@ -257,12 +257,12 @@
                     @foreach($session->details->where('type', 'opening') as $detail)
                     <tr>
                         <td>{{ $detail->payment_method_label }}</td>
-                        <td class="amount">{{ number_format($detail->amount, 0, ',', ' ') }} F CFA</td>
+                        <td class="amount">{{ currency_format($detail->amount, restaurant()->currency_id) }}</td>
                     </tr>
                     @endforeach
                     <tr class="total-row">
                         <td>{{ __('modules.cashier.totalOpeningFund') }}</td>
-                        <td class="amount">{{ number_format($session->opening_balance, 0, ',', ' ') }} F CFA</td>
+                        <td class="amount">{{ currency_format($session->opening_balance, restaurant()->currency_id) }}</td>
                     </tr>
                 </tbody>
             </table>

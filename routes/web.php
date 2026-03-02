@@ -347,6 +347,10 @@ Route::middleware(['auth', 'verified'])->prefix('backend')->name('backend.')->gr
         Route::get('/session/{id}/download/{type}', [CashierController::class, 'downloadPdf'])
             ->name('download-pdf');
         
+        // Commandes encaissées
+        Route::get('/collected-orders', \App\Livewire\Backend\Cashier\CollectedOrders::class)
+            ->name('collected-orders');
+        
         // Commandes en attente
         Route::get('/pending-orders', [CashierController::class, 'pendingOrders'])
             ->name('pending-orders');

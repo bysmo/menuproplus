@@ -61,4 +61,5 @@ return [
   'cash_sessions' => 'Session de caisse',
   'cash_sessions_validation' => 'Validation de sessions',
   'cash_sessions_history' => 'Historique de sessions',
+  'collectedOrders' => 'Commandes traitées',
 ];

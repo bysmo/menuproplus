@@ -105,6 +105,34 @@
                             {{ __('app.via_' . $order->placed_via) }} {{ module_enabled('Kiosk') && class_exists(\Modules\Kiosk\Entities\Kiosk::class) && $order->kiosk ? ' : ' . $order->kiosk->code : '' }}
                         </span>
                     @endif
+
+                    @php
+                        $payment = $order->payments->last();
+                        $method = $payment ? $payment->payment_method : null;
+                        
+                        $paymentMethods = [
+                            'cash' => '💵 ' . __('modules.cashier.cash'),
+                            'mobile_money_orange' => '🟠 Orange Money',
+                            'mobile_money_wave' => '💙 Wave',
+                            'mobile_money_mtn' => '🟡 MTN Money',
+                            'mobile_money_moov' => '🔵 Moov Money',
+                            'qr_code' => '📱 ' . __('modules.cashier.qr_code'),
+                            'card' => '💳 ' . __('modules.cashier.card'),
+                            'paydunya' => '🟠 PayDunya',
+                            'offline_payment' => '💵 ' . __('modules.cashier.offline'),
+                            'stripe' => '💳 Stripe',
+                            'paypal' => '💳 PayPal',
+                            'razorpay' => '💳 Razorpay',
+                        ];
+                        
+                        $methodDisplay = $method ? ($paymentMethods[$method] ?? ucfirst(str_replace('_', ' ', $method))) : null;
+                    @endphp
+
+                    @if($methodDisplay)
+                    <span class="text-[10px] font-medium px-2 py-0.5 mt-1 rounded uppercase tracking-wide whitespace-nowrap bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 border border-teal-200 dark:border-teal-800 text-center">
+                        {{ $methodDisplay }}
+                    </span>
+                    @endif
                 </div>
 
 

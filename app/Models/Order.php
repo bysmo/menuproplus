@@ -149,6 +149,11 @@ class Order extends BaseModel
         return $this->belongsTo(KotCancelReason::class, 'cancel_reason_id');
     }
 
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by')->withoutGlobalScope(BranchScope::class);
+    }
+
     public function orderType(): BelongsTo
     {
         return $this->belongsTo(OrderType::class);

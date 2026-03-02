@@ -108,8 +108,8 @@ class PermissionSeeder extends Seeder
             ['guard_name' => 'web', 'name' => 'Update Expense Category', 'module_id' => $expenseModule->id],
             ['guard_name' => 'web', 'name' => 'Delete Expense Category', 'module_id' => $expenseModule->id],
 
-            ['guard_name' => 'web', 'name' => 'Manage Cash', 'module_id' => $cashModule->id],
-            ['guard_name' => 'web', 'name' => 'Validate Cash', 'module_id' => $cashModule->id],
+            ['guard_name' => 'web', 'name' => 'manage_cashier', 'module_id' => $cashModule->id],
+            ['guard_name' => 'web', 'name' => 'validate_cash_session', 'module_id' => $cashModule->id],
             
 
         ];

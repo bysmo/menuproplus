@@ -302,7 +302,7 @@ public function emptyCart()
     $this->total = 0;
     $this->cartQty = 0;
     $this->deliveryFee = 0;
-    $this->extraCharges = 0;
+    $this->extraCharges = [];
 
     // Vider la session
     $sessionKey = $this->getCartSessionKey();

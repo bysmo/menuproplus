@@ -93,7 +93,7 @@
                             <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach ($roles as $index => $role)
                                     @php
-                                        $protectedRoles = ['Admin', 'Super Admin', 'Branch Head', 'Waiter', 'Chef'];
+                                        $protectedRoles = ['Admin', 'Super Admin', 'Branch Head', 'Waiter', 'Chef', 'Cashier'];
                                         $isProtected = in_array($role->display_name, $protectedRoles);
                                     @endphp
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
@@ -180,7 +180,7 @@
                             <x-select class="mt-1 block w-full" wire:model="copyFromRole">
                                 <option value="">@lang('app.dontCopyPermissions')</option>
                                 @foreach ($roles as $role)
-                                    <option value="{{ $role->id }}">{{ __($role->display_name) }}</option>
+                                    <option value="{{ $role->id }}">{{ $role->display_name }}</option>
                                 @endforeach
                             </x-select>
                         </div>

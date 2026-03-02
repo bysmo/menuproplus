@@ -62,4 +62,5 @@ return array(
     'cash_sessions' => 'Cash Session',
     'cash_sessions_validation' => 'Session Validation',
     'cash_sessions_history' => 'Session History',
+    'collectedOrders' => 'Collected Orders',
 );

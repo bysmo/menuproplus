@@ -24,10 +24,15 @@ class Payment extends BaseModel
         'transaction_id',
         'validated_by',
         'validated_at',
+        'is_refunded',
+        'refunded_at',
+        'refund_reason',
     ];
 
     protected $casts = [
         'validated_at' => 'datetime',
+        'is_refunded' => 'boolean',
+        'refunded_at' => 'datetime',
     ];
 
     public function order(): BelongsTo

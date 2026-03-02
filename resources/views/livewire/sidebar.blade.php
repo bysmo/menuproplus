@@ -31,8 +31,8 @@
 
 
                          {{-- Cashier Module --}}
-                        @if (user_can('manage_cashier') || user_can('validate_cash_session'))
-                            <x-sidebar-dropdown-menu :name='__("menu.cash")' icon='cashier' :active='request()->routeIs("backend.cashier.*")'>
+                        @if (user_can('manage_cashier') || user_can('validate_cash_session') || user_can('Show Order'))
+                            <x-sidebar-dropdown-menu :name='__("menu.cash")' icon='cashier' :active='request()->routeIs(["backend.cashier.*", "orders.*", "slates.*"])'>
                                 @if (user_can('manage_cashier'))
                                     @livewire('sidebar-dropdown-menu', ['name' => __('menu.cash_sessions'), 'link' => route('backend.cashier.index'), 'active' => request()->routeIs('backend.cashier.index')])
                                 @endif
@@ -43,7 +43,16 @@
                                 
                                 @if (user_can('manage_cashier'))
                                     @livewire('sidebar-dropdown-menu', ['name' => __('menu.cash_sessions_history'), 'link' => route('backend.cashier.history'), 'active' => request()->routeIs('backend.cashier.history')])
+                                    @livewire('sidebar-dropdown-menu', ['name' => __('menu.collectedOrders'), 'link' => route('backend.cashier.collected-orders'), 'active' => request()->routeIs('backend.cashier.collected-orders')])
                                 @endif
+
+                                @if($this->hasModule('Order'))
+                                    @if (user_can('Show Order'))
+                                        @livewire('sidebar-dropdown-menu', ['name' => __('menu.orders'), 'link' => route('orders.index'), 'active' => request()->routeIs('orders.*')])
+                                        @livewire('sidebar-dropdown-menu', ['name' => __('menu.slates'), 'link' => route('slates.index'), 'active' => request()->routeIs('slates.*')])
+                                    @endif
+                                @endif
+                                
                             </x-sidebar-dropdown-menu>
                         @endif
 
@@ -111,26 +120,16 @@
 
                         @if ($this->hasModule('Kitchen') && in_array('kitchen', custom_module_plugins()))
                             @if ($this->hasModule('Order') && user_can('Show Order'))
-                                @livewire('sidebar-menu-item', ['name' => __('menu.orders'), 'icon' => 'orders', 'link' => route('orders.index'), 'active' => request()->routeIs('orders.*')])
+                                {{-- Orders are now under Caisse, but we could leave a quick link here if needed --}}
                             @endif
                         @else
                             @if ($this->hasModule('Order') || $this->hasModule('KOT'))
                                 @if (user_can('Show Order') || user_can('Manage KOT'))
-                                    <x-sidebar-dropdown-menu :name='__("menu.orders")' icon='orders' :active='request()->routeIs(["orders.*", "kots.*", "slates.*"])'>
-                                        @if($this->hasModule('KOT'))
-                                            @if (user_can('Manage KOT'))
-                                                @livewire('sidebar-dropdown-menu', ['name' => __('menu.kot'), 'link' => route('kots.index'), 'active' => request()->routeIs('kots.*')])
-                                            @endif
-                                        @endif
-
-                                        @if($this->hasModule('Order'))
-                                            @if (user_can('Show Order'))
-                                                @livewire('sidebar-dropdown-menu', ['name' => __('menu.orders'), 'link' => route('orders.index'), 'active' => request()->routeIs('orders.*')])
-                                                @livewire('sidebar-dropdown-menu', ['name' => __('menu.slates'), 'link' => route('slates.index'), 'active' => request()->routeIs('slates.*')])
-                                            @endif
-                                        @endif
-
-                                    </x-sidebar-dropdown-menu>
+                                    @if($this->hasModule('KOT') && user_can('Manage KOT'))
+                                        <x-sidebar-dropdown-menu :name='__("menu.kot")' icon='orders' :active='request()->routeIs(["kots.*"])'>
+                                            @livewire('sidebar-dropdown-menu', ['name' => __('menu.kot'), 'link' => route('kots.index'), 'active' => request()->routeIs('kots.*')])
+                                        </x-sidebar-dropdown-menu>
+                                    @endif
                                 @endif
                             @endif
                         @endif

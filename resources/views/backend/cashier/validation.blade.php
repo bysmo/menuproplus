@@ -74,18 +74,18 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">
                             <span class="text-sm font-medium text-gray-900 dark:text-white">
-                                {{ number_format($session->total_sales, 0, ',', ' ') }} F
+                                {{ currency_format($session->total_sales, restaurant()->currency_id) }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">
                             <span class="text-sm font-medium text-gray-900 dark:text-white">
-                                {{ number_format($session->closing_balance, 0, ',', ' ') }} F
+                                {{ currency_format($session->closing_balance, restaurant()->currency_id) }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">
                             @if($session->discrepancy != 0)
                                 <span class="text-sm font-bold text-red-600 dark:text-red-400">
-                                    {{ number_format($session->discrepancy, 0, ',', ' ') }} F
+                                    {{ currency_format($session->discrepancy, restaurant()->currency_id) }}
                                 </span>
                             @else
                                 <span class="text-sm font-medium text-green-600 dark:text-green-400">

@@ -84,14 +84,14 @@
                 <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
                     <p class="text-sm text-blue-600 dark:text-blue-400">{{ __('modules.cashier.openingBalance') }}</p>
                     <p class="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                        {{ number_format($session->opening_balance, 0, ',', ' ') }} F
+                        {{ currency_format($session->opening_balance, restaurant()->currency_id) }}
                     </p>
                 </div>
                 
                 <div class="p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800">
                     <p class="text-sm text-green-600 dark:text-green-400">{{ __('modules.cashier.totalSales') }}</p>
                     <p class="text-2xl font-bold text-green-700 dark:text-green-300">
-                        {{ number_format($session->total_sales, 0, ',', ' ') }} F
+                        {{ currency_format($session->total_sales, restaurant()->currency_id) }}
                     </p>
                     <p class="text-xs text-gray-500 mt-1">{{ $session->total_transactions }} {{ __('modules.cashier.transactions') }}</p>
                 </div>
@@ -99,23 +99,48 @@
                 <div class="p-4 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-900/20 dark:border-purple-800">
                     <p class="text-sm text-purple-600 dark:text-purple-400">{{ __('modules.cashier.expectedBalance') }}</p>
                     <p class="text-2xl font-bold text-purple-700 dark:text-purple-300">
-                        {{ number_format($session->expected_balance, 0, ',', ' ') }} F
+                        {{ currency_format($session->expected_balance, restaurant()->currency_id) }}
                     </p>
                 </div>
                 
                 <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800">
                     <p class="text-sm text-yellow-600 dark:text-yellow-400">{{ __('modules.cashier.realBalance') }}</p>
                     <p class="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
-                        {{ number_format($session->closing_balance, 0, ',', ' ') }} F
+                        @if($session->status == 'open')
+                            <span class="text-lg font-medium text-gray-500">-</span>
+                        @else
+                            {{ currency_format($session->closing_balance, restaurant()->currency_id) }}
+                        @endif
                     </p>
                 </div>
                 
-                <div class="p-4 {{ $session->discrepancy != 0 ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800' : 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' }} border rounded-lg">
-                    <p class="text-sm {{ $session->discrepancy != 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}">
+                @php
+                    $discrepClass = 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700';
+                    $discrepTextClass = 'text-gray-500 dark:text-gray-400';
+                    $discrepValueClass = 'text-gray-700 dark:text-gray-300';
+                    
+                    if ($session->status !== 'open') {
+                        if ($session->discrepancy != 0) {
+                            $discrepClass = 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800';
+                            $discrepTextClass = 'text-red-600 dark:text-red-400';
+                            $discrepValueClass = 'text-red-700 dark:text-red-300';
+                        } else {
+                            $discrepClass = 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800';
+                            $discrepTextClass = 'text-green-600 dark:text-green-400';
+                            $discrepValueClass = 'text-green-700 dark:text-green-300';
+                        }
+                    }
+                @endphp
+                <div class="p-4 border rounded-lg {{ $discrepClass }}">
+                    <p class="text-sm {{ $discrepTextClass }}">
                         {{ __('modules.cashier.discrepancy') }}
                     </p>
-                    <p class="text-2xl font-bold {{ $session->discrepancy != 0 ? 'text-red-700 dark:text-red-300' : 'text-green-700 dark:text-green-300' }}">
-                        {{ number_format($session->discrepancy, 0, ',', ' ') }} F
+                    <p class="text-2xl font-bold {{ $discrepValueClass }}">
+                        @if($session->status == 'open')
+                            <span class="text-lg font-medium">-</span>
+                        @else
+                            {{ currency_format($session->discrepancy, restaurant()->currency_id) }}
+                        @endif
                     </p>
                 </div>
             </div>
@@ -179,7 +204,7 @@
                                 {{ __('modules.cashier.' . $transaction->payment_method) }}
                             </td>
                             <td class="px-4 py-3 text-sm text-right font-medium text-gray-900 dark:text-white">
-                                {{ number_format($transaction->amount, 0, ',', ' ') }} F
+                                {{ currency_format($transaction->amount, restaurant()->currency_id) }}
                             </td>
                         </tr>
                         @empty

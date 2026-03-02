@@ -70,7 +70,7 @@
                                 {{ $session->closed_at ? $session->closed_at->format('d/m/Y H:i') : '-' }}
                             </td>
                              <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ number_format($session->total_sales, 0, ',', ' ') }} F
+                                {{ currency_format($session->total_sales, restaurant()->currency_id) }}
                             </td>
                             <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 @if($session->status === 'open')
@@ -94,7 +94,7 @@
                                 @endif
                             </td>
                             <td class="p-4 space-x-2 whitespace-nowrap">
-                                <a href="{{ route('backend.cashier.session', $session->id) }}" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+                                <a href="{{ route('backend.cashier.session', $session->id) }}" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                     <i class="bx bx-show me-2"></i> {{ __('modules.cashier.details') }}
                                 </a>
                             </td>
