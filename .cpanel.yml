@@ -1,0 +1,37 @@
+---
+# Fichier .cpanel.yml pour le déploiement Git sur cPanel (o2switch)
+# Ce fichier doit être placé à la racine de votre dépôt Git.
+
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/bemo1278/public_html/menuprotest.aladints.com
+    
+    # 1. Utilisation de rsync pour synchroniser sans écraser le stockage (images, documents) ni le fichier .env
+    # NOTE: L'exclusion de 'storage/app/public' garantit que vos images de production ne seront jamais supprimées.
+    - /usr/bin/rsync -aP --exclude '.git' --exclude 'storage/app/public' --exclude 'storage/framework/sessions' --exclude 'storage/logs' --exclude '.env' * $DEPLOYPATH/
+    
+    # 2. Mise en maintenance (pour éviter des erreurs pendant le déploiement)
+    - /usr/local/bin/php $DEPLOYPATH/artisan down || true
+    
+    # 3. Installation des dépendances Composer
+    - /usr/local/bin/composer install --no-dev --optimize-autoloader --prefer-dist -d $DEPLOYPATH
+    
+    # 4. Sauvegarde de la base de données (mot de passe collé à -p, et spécification du nom de la base de données)
+    # L'utilisation des guillemets autour du mot de passe prévient les erreurs liées aux caractères spéciaux.
+    - /usr/bin/mysqldump -u bemo1278_menuprotest -p"tkeW#}}]H8q^" bemo1278_menuprotest > $DEPLOYPATH/storage/app/db_backup_$(date +"%Y%m%d_%H%M%S").sql || true
+    
+    # 5. Exécution des migrations SEULES (pas de --seed pour ne pas écraser ni doubler les données !)
+    - /usr/local/bin/php $DEPLOYPATH/artisan migrate --force
+    
+    # 6. Création du lien symbolique de stockage
+    - /usr/local/bin/php $DEPLOYPATH/artisan storage:link || true
+    
+    # 7. Optimisation des caches de Laravel pour la production
+    - /usr/local/bin/php $DEPLOYPATH/artisan optimize:clear
+    - /usr/local/bin/php $DEPLOYPATH/artisan config:cache
+    - /usr/local/bin/php $DEPLOYPATH/artisan event:cache
+    - /usr/local/bin/php $DEPLOYPATH/artisan route:cache
+    - /usr/local/bin/php $DEPLOYPATH/artisan view:cache
+    
+    # 8. Sortie du mode maintenance
+    - /usr/local/bin/php $DEPLOYPATH/artisan up

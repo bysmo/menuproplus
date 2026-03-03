@@ -80,7 +80,7 @@
             "Modules\\": "Modules/"
         },
         "classmap": [
-            "vendor/paydunya"
+            "app/CustomPackages/paydunya"
         ],
         "files": [
             "app/Helper/start.php"
