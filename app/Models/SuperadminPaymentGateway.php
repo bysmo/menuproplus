@@ -104,7 +104,9 @@ class SuperadminPaymentGateway extends BaseModel
         return ($this->xendit_mode == 'sandbox' ? $this->test_xendit_secret_key : $this->live_xendit_secret_key);
     }
 
-
-
+    public function getXenditWebhookTokenAttribute()
+    {
+        return ($this->xendit_mode == 'sandbox' ? $this->test_xendit_webhook_token : $this->live_xendit_webhook_token);
+    }
 
 }

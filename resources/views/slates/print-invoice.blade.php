@@ -299,8 +299,8 @@
                                     @endif
                                 </td>
                                 <td class="text-center">{{ $item->quantity }}</td>
-                                <td class="text-right">{{ number_format($item->price, 2) }}€</td>
-                                <td class="text-right">{{ number_format($item->price * $item->quantity, 2) }}€</td>
+                                <td class="text-right">{{ currency_format($item->price, $restaurant->currency_id) }}</td>
+                                <td class="text-right">{{ currency_format($item->price * $item->quantity, $restaurant->currency_id) }}</td>
                             </tr>
                         @endforeach
                     @else
@@ -317,39 +317,39 @@
     <div class="totals-section">
         <div class="totals-row">
             <span>Sous-total:</span>
-            <span>{{ number_format($subtotal, 2) }}€</span>
+            <span>{{ currency_format($subtotal, $restaurant->currency_id) }}</span>
         </div>
 
         @if($totalDiscount > 0)
             <div class="totals-row">
                 <span>Remise:</span>
-                <span>-{{ number_format($totalDiscount, 2) }}€</span>
+                <span>-{{ currency_format($totalDiscount, $restaurant->currency_id) }}</span>
             </div>
         @endif
 
         @if($totalTaxAmount > 0)
             <div class="totals-row">
                 <span>Taxes:</span>
-                <span>{{ number_format($totalTaxAmount, 2) }}€</span>
+                <span>{{ currency_format($totalTaxAmount, $restaurant->currency_id) }}</span>
             </div>
         @endif
 
         <div class="totals-row grand-total">
             <span>TOTAL:</span>
-            <span>{{ number_format($grandTotal, 2) }}€</span>
+            <span>{{ currency_format($grandTotal, $restaurant->currency_id) }}</span>
         </div>
 
         @if($slate->paid_amount > 0)
             <div class="totals-row" style="background: #28a745; color: white;">
                 <span>Payé:</span>
-                <span>{{ number_format($slate->paid_amount, 2) }}€</span>
+                <span>{{ currency_format($slate->paid_amount, $restaurant->currency_id) }}</span>
             </div>
         @endif
 
         @if($slate->remaining_amount > 0)
             <div class="totals-row" style="background: #dc3545; color: white;">
                 <span>Reste à payer:</span>
-                <span>{{ number_format($slate->remaining_amount, 2) }}€</span>
+                <span>{{ currency_format($slate->remaining_amount, $restaurant->currency_id) }}</span>
             </div>
         @endif
     </div>

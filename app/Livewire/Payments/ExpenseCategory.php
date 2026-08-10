@@ -19,8 +19,15 @@ class ExpenseCategory extends Component
 
     public $selectedExpenseCategory;
 
+    public function mount()
+    {
+        abort_if(!user_can('Show Expense Category'), 403);
+    }
+
     public function showEditExpenseCategory($id)
     {
+        abort_if(!user_can('Update Expense Category'), 403);
+
         $this->showEditExpenseCategoryModal = true;
         $this->selectedExpenseCategory = ModelsExpenseCategory::find($id);
     }
@@ -44,6 +51,7 @@ class ExpenseCategory extends Component
 
     public function showDeleteExpenseCategory($id)
     {
+        abort_if(!user_can('Delete Expense Category'), 403);
 
          ModelsExpenseCategory::find($id)->delete();
          $this->confirmDeleteExpenseCategory = false;

@@ -60,6 +60,10 @@ class MenuItems extends Component
 
     public function deleteMenuItem($id)
     {
+        if (!user_can('Delete Menu Item')) {
+            return;
+        }
+
         $menuItem = MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->find($id);
         $restaurantId = $menuItem && $menuItem->branch ? $menuItem->branch->restaurant_id : null;
         
@@ -129,6 +133,10 @@ class MenuItems extends Component
 
     public function toggleAvailability($id)
     {
+        if (!user_can('Update Menu Item')) {
+            return;
+        }
+
         $menuItem = MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->findOrFail($id);
         $menuItem->update(['is_available' => !$menuItem->is_available]);
 
@@ -142,6 +150,10 @@ class MenuItems extends Component
 
     public function toggleShowOnCustomerSite($id)
     {
+        if (!user_can('Update Menu Item')) {
+            return;
+        }
+
         $menuItem = MenuItem::withoutGlobalScope(AvailableMenuItemScope::class)->findOrFail($id);
         $menuItem->update(['show_on_customer_site' => !$menuItem->show_on_customer_site]);
 

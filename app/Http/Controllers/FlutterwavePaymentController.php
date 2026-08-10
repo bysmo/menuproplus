@@ -13,6 +13,7 @@ use App\Events\SendOrderBillEvent;
 class FlutterwavePaymentController extends Controller
 {
     private $secretKey;
+    private $webhookKey;
 
     public function setKeys($restaurantHash)
     {
@@ -24,12 +25,19 @@ class FlutterwavePaymentController extends Controller
 
         $credential = $restaurant->paymentGateways;
         $this->secretKey = $credential->flutterwave_secret;
+        $this->webhookKey = $credential->flutterwave_webhook_key;
     }
 
     public function handleGatewayWebhook(Request $request, $restaurantHash)
     {
         try {
             $this->setKeys($restaurantHash);
+
+            $signature = $request->header('verif-hash');
+            if (!$this->webhookKey || !$signature || !hash_equals($this->webhookKey, $signature)) {
+                return response()->json(['message' => 'Invalid signature'], 403);
+            }
+
             $event = $request->event ?? null;
             $transactionId = $request->data['tx_ref'] ?? null;
 

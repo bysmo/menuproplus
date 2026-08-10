@@ -154,9 +154,9 @@ class PayFastWebhookController extends Controller
 
         // Remove duplicates
         $validIps = array_unique($validIps);
-        $referrerIp = gethostbyname(parse_url($_SERVER['HTTP_REFERER'])['host']);
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
 
-        if (in_array($referrerIp, $validIps, true)) {
+        if ($remoteAddr !== '' && in_array($remoteAddr, $validIps, true)) {
             return true;
         }
 

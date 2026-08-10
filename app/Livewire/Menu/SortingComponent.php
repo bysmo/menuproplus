@@ -91,6 +91,10 @@ class SortingComponent extends Component
     // Simplified sort handlers
     public function sortMenus($sortedIds)
     {
+        if (!user_can('Update Menu')) {
+            return;
+        }
+
         $this->batchUpdateSortOrder(Menu::class, $sortedIds);
         $this->loadMenus();
         $this->loadCategories();
@@ -98,12 +102,20 @@ class SortingComponent extends Component
 
     public function sortCategories($sortedIds)
     {
+        if (!user_can('Update Item Category')) {
+            return;
+        }
+
         $this->batchUpdateSortOrder(ItemCategory::class, $sortedIds);
         $this->loadCategories();
     }
 
     public function sortItems($sortedIds)
     {
+        if (!user_can('Update Menu Item')) {
+            return;
+        }
+
         foreach ($sortedIds as $sortedItem) {
             MenuItem::where('id', $sortedItem['value'])->update(['sort_order' => $sortedItem['order']]);
         }

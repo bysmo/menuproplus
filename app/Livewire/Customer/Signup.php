@@ -160,13 +160,15 @@ class Signup extends Component
             'verificationCode' => 'required'
         ]);
 
-        // Use phone or email lookup based on SMS setting
+        // Use phone or email lookup based on SMS setting, scoped to this restaurant
         if ($this->isSmsLoginEnabled()) {
-            $customer = Customer::where('phone_code', $this->phoneCode)
+            $customer = Customer::where('restaurant_id', $this->restaurant->id)
+                ->where('phone_code', $this->phoneCode)
                 ->where('phone', $this->phone)
                 ->first();
         } else {
-            $customer = Customer::where('email', $this->email)->first();
+            $customer = Customer::where('restaurant_id', $this->restaurant->id)
+                ->where('email', $this->email)->first();
         }
 
         if ($customer->email_otp != $this->verificationCode) {

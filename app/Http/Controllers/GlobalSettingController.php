@@ -14,6 +14,13 @@ use Zip;
 class GlobalSettingController extends Controller
 {
 
+    public function __construct()
+    {
+        // App-update / server-environment info and file deletion are
+        // Super-Admin-only, not merely for any global-scope account.
+        abort_if(!user()->hasRole('Super Admin'), 403);
+    }
+
     public function index()
     {
 
@@ -66,7 +73,16 @@ class GlobalSettingController extends Controller
 
     public function deleteFile(Request $request)
     {
-        $filePath = $request->filePath;
+        // Only allow deleting a plain filename inside the module-upload
+        // staging directory — never an absolute or traversal-based path.
+        $baseDir = storage_path('app/Modules');
+        $filename = basename((string) $request->filePath);
+        $filePath = $baseDir . DIRECTORY_SEPARATOR . $filename;
+
+        if ($filename === '' || !File::exists($filePath) || dirname(realpath($filePath)) !== realpath($baseDir)) {
+            return Reply::error('Invalid file path.');
+        }
+
         File::delete($filePath);
 
         return Reply::success(__('messages.deleteSuccess'));

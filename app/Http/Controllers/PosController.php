@@ -15,21 +15,21 @@ class PosController extends Controller
 
     public function show($id)
     {
-        abort_if((!in_array('Order', restaurant_modules())), 403);
+        abort_if((!in_array('Order', restaurant_modules()) || (!user_can('Show Order') && !user_can('Create Order'))), 403);
         $tableOrderID = $id;
         return view('pos.show', compact('tableOrderID'));
     }
 
     public function order($id)
     {
-        abort_if((!in_array('Order', restaurant_modules())), 403);
+        abort_if((!in_array('Order', restaurant_modules()) || (!user_can('Show Order') && !user_can('Create Order'))), 403);
         $tableOrderID = $id;
         return view('pos.order', compact('tableOrderID'));
     }
 
     public function kot($id)
     {
-        abort_if((!in_array('Order', restaurant_modules())), 403);
+        abort_if((!in_array('Order', restaurant_modules()) || (!user_can('Show Order') && !user_can('Create Order'))), 403);
         $orderID = $id;
         $order = Order::find($orderID);
 

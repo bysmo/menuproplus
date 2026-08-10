@@ -24,11 +24,14 @@ class OrderController extends Controller
 
     public function show($id)
     {
+        abort_if((!user_can('Show Order')), 403);
         return view('order.show', compact('id'));
     }
 
     public function printOrder($id, $width = 80, $thermal = false, $generateImage = false)
     {
+        abort_if((!user_can('Show Order')), 403);
+
         $id = Order::where('id', $id)->orWhere('uuid', $id)->value('id') ?: $id;
 
         $payment = Payment::where('order_id', $id)->first();
@@ -55,6 +58,8 @@ class OrderController extends Controller
      */
     public function generateOrderPdf($id)
     {
+        abort_if((!user_can('Show Order')), 403);
+
         $payment = Payment::where('order_id', $id)->first();
         $restaurant = restaurant();
         $taxDetails = RestaurantTax::where('restaurant_id', $restaurant->id)->get();

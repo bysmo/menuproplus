@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Notification;
 class XenditWebhookController extends Controller
 {
     private $secretKey;
+    private $webhookToken;
 
     /**
      * Set Xendit configuration based on environment
@@ -30,9 +31,25 @@ class XenditWebhookController extends Controller
 
         if ($paymentGateway->xendit_mode == 'sandbox') {
             $this->secretKey = $paymentGateway->test_xendit_secret_key;
+            $this->webhookToken = $paymentGateway->test_xendit_webhook_token;
         } else {
             $this->secretKey = $paymentGateway->live_xendit_secret_key;
+            $this->webhookToken = $paymentGateway->live_xendit_webhook_token;
         }
+    }
+
+    /**
+     * Verify the `x-callback-token` header against the configured Xendit webhook token.
+     */
+    private function verifyCallbackToken(Request $request): bool
+    {
+        $received = $request->header('x-callback-token');
+
+        if (!$this->webhookToken || !$received) {
+            return false;
+        }
+
+        return hash_equals($this->webhookToken, $received);
     }
 
     /**
@@ -41,6 +58,11 @@ class XenditWebhookController extends Controller
     public function handleSubscriptionWebhook(Request $request, $hash)
     {
         $this->setXenditConfigs();
+
+        if (!$this->verifyCallbackToken($request)) {
+            Log::warning('Xendit Subscription Webhook: Invalid or missing callback token');
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
 
         // Log the incoming webhook
         Log::info('Xendit Subscription Webhook Received:', [

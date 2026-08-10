@@ -214,6 +214,8 @@ class PaddleController extends Controller
      */
     public function initiatePaddlePayment(Request $request)
     {
+        abort_if(!user()->hasRole('Admin_' . user()->restaurant_id), 403);
+
         try {
             Log::info('Paddle Payment Initiation Started', [
                 'request' => $request->all()

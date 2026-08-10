@@ -19,6 +19,7 @@ class PaypalPaymentController extends Controller
     private $clientId;
     private $clientSecret;
     private $accessToken;
+    private $paypalApiBase;
 
     public function setKeys($restaurantHash)
     {
@@ -31,6 +32,9 @@ class PaypalPaymentController extends Controller
 
         $this->clientId = $credential->paypal_client_id;
         $this->clientSecret = $credential->paypal_secret;
+        $this->paypalApiBase = ($credential->paypal_mode ?? 'sandbox') === 'sandbox'
+            ? 'https://api-m.sandbox.paypal.com'
+            : 'https://api-m.paypal.com';
 
         if (is_null($this->clientId) || is_null($this->clientSecret)) {
             throw new \Exception('PayPal credentials are not set correctly.');
@@ -39,6 +43,28 @@ class PaypalPaymentController extends Controller
 
     }
 
+    /**
+     * Independently confirm the order's capture status with PayPal's own API
+     * rather than trusting the webhook payload, since no webhook signature
+     * verification (webhook ID) is configured for this integration.
+     */
+    private function isOrderCaptureCompleted(string $orderId): bool
+    {
+        try {
+            $response = Http::withBasicAuth($this->clientId, $this->clientSecret)
+                ->get("{$this->paypalApiBase}/v2/checkout/orders/{$orderId}");
+
+            if (!$response->successful()) {
+                return false;
+            }
+
+            $status = $response->json('status');
+            return $status === 'COMPLETED';
+        } catch (\Exception $e) {
+            Log::warning('PayPal webhook: order verification request failed', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
 
     public function handleGatewayWebhook(Request $request, $restaurantHash)
     {
@@ -80,6 +106,11 @@ class PaypalPaymentController extends Controller
 
                 if (!$paypalPayment) {
                     return response()->json(['message' => 'Payment not found'], 404);
+                }
+
+                if (!$this->isOrderCaptureCompleted($orderId)) {
+                    Log::warning('PayPal webhook: order capture could not be verified with PayPal, ignoring', ['order_id' => $orderId]);
+                    return response()->json(['message' => 'Unable to verify payment status'], 400);
                 }
 
                 $paypalPayment->payment_status = 'completed';

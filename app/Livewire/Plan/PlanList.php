@@ -67,6 +67,8 @@ class PlanList extends Component
 
     public function mount()
     {
+        abort_if(!user()->hasRole('Admin_' . user()->restaurant_id), 403);
+
         $this->restaurant = Restaurant::where('id', restaurant()->id)->first();
         $this->paymentGatewayActive = false;
         $this->stripeSettings = SuperadminPaymentGateway::first();

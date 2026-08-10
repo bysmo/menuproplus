@@ -6,6 +6,11 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
+    public function __construct()
+    {
+        abort_if((!user_can('Show Reports')), 403);
+    }
+
     public function itemReport()
     {
         return view('reports.items');

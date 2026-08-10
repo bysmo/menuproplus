@@ -52,7 +52,12 @@ class PayfastPaymentController extends Controller
         $reference = $request->input('reference') ?? $request->input('m_payment_id');
 
         if ($reference) {
-            $payment = AdminPayfastPayment::where('payfast_payment_id', $reference)->first();
+            // Only a payment still pending may be marked failed here — never
+            // overwrite one that has already been confirmed completed, which
+            // an attacker could otherwise do just by guessing its reference.
+            $payment = AdminPayfastPayment::where('payfast_payment_id', $reference)
+                ->where('payment_status', 'pending')
+                ->first();
             if ($payment) {
                 $payment->update([
                     'payment_status' => 'failed',
@@ -73,6 +78,25 @@ class PayfastPaymentController extends Controller
 
         if (!$restaurant) {
             return response('Invalid restaurant', 404);
+        }
+
+        $credential = $restaurant->paymentGateways;
+        $passphrase = $credential->payfast_passphrase_data ?? null;
+        $pfHost = ($credential->payfast_mode ?? 'sandbox') === 'sandbox' ? 'sandbox.payfast.co.za' : 'www.payfast.co.za';
+
+        $validSignature = $this->pfValidSignature($request->all(), $passphrase);
+        $validIp = $this->pfValidIP();
+        $validServer = $this->pfValidServerConfirmation($request->except('signature'), $pfHost);
+
+        if (!$validSignature || !$validIp || !$validServer) {
+            Log::warning('PayFast ITN: verification failed', [
+                'restaurant' => $company,
+                'reference' => $reference,
+                'signature_valid' => $validSignature,
+                'ip_valid' => $validIp,
+                'server_valid' => $validServer,
+            ]);
+            return response('Invalid notification', 400);
         }
 
         $status = $data['payment_status'] ?? 'failed';
@@ -108,6 +132,90 @@ class PayfastPaymentController extends Controller
         }
 
         return response('OK', 200);
+    }
+
+    /**
+     * Build the PayFast parameter string from posted data (excludes `signature`).
+     */
+    private function pfBuildParamString(array $pfData): string
+    {
+        $pfParamString = '';
+        foreach ($pfData as $key => $val) {
+            if ($key === 'signature') {
+                continue;
+            }
+            $pfParamString .= $key . '=' . urlencode(stripslashes((string) $val)) . '&';
+        }
+
+        return rtrim($pfParamString, '&');
+    }
+
+    /**
+     * Verify PayFast's md5 ITN signature.
+     */
+    private function pfValidSignature(array $pfData, ?string $passphrase): bool
+    {
+        if (empty($pfData['signature'])) {
+            return false;
+        }
+
+        $pfParamString = $this->pfBuildParamString($pfData);
+        $pfParamString .= $passphrase ? '&passphrase=' . urlencode($passphrase) : '';
+
+        return hash_equals(md5($pfParamString), $pfData['signature']);
+    }
+
+    /**
+     * Verify the notification actually originates from a PayFast IP address.
+     */
+    private function pfValidIP(): bool
+    {
+        $validHosts = [
+            'www.payfast.co.za',
+            'sandbox.payfast.co.za',
+            'w1w.payfast.co.za',
+            'w2w.payfast.co.za',
+        ];
+
+        $validIps = [];
+        foreach ($validHosts as $pfHostname) {
+            $ips = gethostbynamel($pfHostname);
+            if ($ips !== false) {
+                $validIps = array_merge($validIps, $ips);
+            }
+        }
+
+        $validIps = array_unique($validIps);
+        $remoteAddr = request()->server('REMOTE_ADDR', '');
+
+        return $remoteAddr !== '' && in_array($remoteAddr, $validIps, true);
+    }
+
+    /**
+     * Ask PayFast to confirm the posted data is genuine.
+     */
+    private function pfValidServerConfirmation(array $pfData, string $pfHost): bool
+    {
+        if (!in_array('curl', get_loaded_extensions(), true)) {
+            return false;
+        }
+
+        $pfParamString = $this->pfBuildParamString($pfData);
+        $url = 'https://' . $pfHost . '/eng/query/validate';
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $pfParamString);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        return $response === 'VALID';
     }
 
     /**

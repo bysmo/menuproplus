@@ -26,9 +26,10 @@ class FlutterwaveWebhookController extends Controller
         }
 
         $signature = $request->header('verif-hash');
+        $expectedSignature = $settings->flutterwave_webhook_key ?? null;
 
-        // Verify Flutterwave signature
-        if (!$signature) {
+        // Verify Flutterwave signature against the configured secret hash
+        if (!$expectedSignature || !$signature || !hash_equals($expectedSignature, $signature)) {
             return response()->json(['error' => true, 'message' => 'Invalid signature'], 403);
         }
 

@@ -37,6 +37,10 @@ class Menus extends Component
 
     public function showEditMenu($id)
     {
+        if (!user_can('Update Menu')) {
+            return;
+        }
+
         $this->showEditMenuModal = true;
         $this->activeMenu = Menu::findOrFail($id);
     }
@@ -49,6 +53,10 @@ class Menus extends Component
 
     public function deleteMenu($id)
     {
+        if (!user_can('Delete Menu')) {
+            return;
+        }
+
         Menu::destroy($id);
         $this->confirmDeleteMenuModal = false;
 

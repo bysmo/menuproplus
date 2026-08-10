@@ -243,6 +243,10 @@ class Orders extends Component
 
     public function confirmCancelOrder()
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         // Validate that a cancel reason is provided
         if (!$this->selectedCancelReason && !$this->cancelComment) {
             $this->dispatchBrowserEvent('orderCancelled', ['message' => __('modules.settings.cancelReasonRequired'), 'type' => 'error']);

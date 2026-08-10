@@ -26,9 +26,16 @@ class ItemModifiers extends Component
         $this->addItemModifierModal = true;
     }
 
+    private function findOwnItemModifier($id): ItemModifier
+    {
+        return ItemModifier::whereHas('menuItem', function ($query) {
+            $query->where('branch_id', branch()->id);
+        })->findOrFail($id);
+    }
+
     public function showEditItemModifierModal($id)
     {
-        $this->modifierGroupId = $id;
+        $this->modifierGroupId = $this->findOwnItemModifier($id)->id;
         $this->editItemModifierModal = true;
     }
 
@@ -47,13 +54,13 @@ class ItemModifiers extends Component
 
     public function showDeleteModifier($id)
     {
-        $this->modifierGroupId = $id;
+        $this->modifierGroupId = $this->findOwnItemModifier($id)->id;
         $this->confirmDeleteModifierModal = true;
     }
 
     public function deleteItemModifier($id)
     {
-        $itemModifier = ItemModifier::findOrFail($id);
+        $itemModifier = $this->findOwnItemModifier($id);
         $itemModifier->delete();
         $this->confirmDeleteModifierModal = false;
         $this->modifierGroupId = null;

@@ -20,6 +20,13 @@ class CustomModuleController extends Controller
 {
     use ModuleVerify;
 
+    public function __construct()
+    {
+        // Module install/activate/license operations are Super-Admin-only,
+        // not merely for any global-scope (restaurant_id = null) account.
+        abort_if(!user()->hasRole('Super Admin'), 403);
+    }
+
     public function index()
     {
         $this->type = 'custom';

@@ -23,11 +23,13 @@ class MenuItemController extends Controller
 
     public function create()
     {
+        abort_if((!user_can('Create Menu Item')), 403);
         return view('menu_items.create');
     }
 
     public function edit($menuItemId)
     {
+        abort_if((!user_can('Update Menu Item')), 403);
         return view('menu_items.edit', compact('menuItemId'));
     }
 }

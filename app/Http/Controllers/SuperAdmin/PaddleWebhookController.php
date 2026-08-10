@@ -516,9 +516,8 @@ class PaddleWebhookController extends Controller
         $webhookSecret = $paymentGateway->paddle_webhook_secret ?? null;
 
         if (!$webhookSecret) {
-            Log::warning('Paddle Webhook: Webhook secret not configured - skipping signature verification');
-            // Allow webhook but log warning for backward compatibility
-            return true;
+            Log::error('Paddle Webhook: Webhook secret not configured - rejecting webhook');
+            return false;
         }
 
         $expectedSignature = hash_hmac('sha256', $payload, $webhookSecret);

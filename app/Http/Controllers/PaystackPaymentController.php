@@ -101,7 +101,10 @@ class PaystackPaymentController extends Controller
             return $this->redirectWithMessage('Payment not found!', 'danger', $payment->order_id);
         }
 
-        $secretKey = auth()->user()->restaurant->paymentGateways->paystack_secret_data;
+        // Always verify against the payment's own restaurant credentials —
+        // never the currently authenticated (staff) user's restaurant, which
+        // may not be the same tenant this payment belongs to.
+        $secretKey = $payment->order->branch->restaurant->paymentGateways->paystack_secret_data;
 
         $response = Http::withToken($secretKey)
             ->get("https://api.paystack.co/transaction/verify/{$reference}");

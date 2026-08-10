@@ -23,16 +23,21 @@ class PayfastController extends Controller
 {
     public function initiatePayfastPayment(Request $request)
     {
+        abort_if(!user()->hasRole('Admin_' . user()->restaurant_id), 403);
+
         $paymentId = $request->payment_id;
         $amount = $request->amount;
         $currency = $request->currency;
-        $restaurantId = $request->restaurant_id;
+        // Always use the authenticated user's own restaurant; never trust a
+        // client-supplied restaurant_id, which would let one tenant activate
+        // a package against another tenant's account.
+        $restaurantId = restaurant()->id;
         $packageId = $request->package_id;
         $restaurant = Restaurant::findOrFail($restaurantId);
         $package = Package::findOrFail($packageId);
         $hash = global_setting()->hash;
 
-        $restaurantPayment = RestaurantPayment::findOrFail($request->payment_id);
+        $restaurantPayment = RestaurantPayment::where('restaurant_id', $restaurantId)->findOrFail($request->payment_id);
         $globalInvoice = GlobalInvoice::with('package', 'restaurant', 'currency', 'globalSubscription')
             ->whereNotNull('pay_date')
             ->where('restaurant_id', restaurant()->id)->get();

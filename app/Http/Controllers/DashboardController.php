@@ -21,6 +21,8 @@ class DashboardController extends Controller
 
     public function superadmin()
     {
+        abort_if(!user()->hasRole('Super Admin'), 403);
+
         // Check if onboarding steps are completed
         $smtpConfigured = (smtp_setting()->mail_driver == 'smtp' && smtp_setting()->verified) || smtp_setting()->mail_driver != 'smtp';
         $cronConfigured = global_setting()->hide_cron_job == 1;

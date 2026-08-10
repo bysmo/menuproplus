@@ -45,18 +45,34 @@ class StaffTable extends Component
 
     public function showDeleteCustomer($id)
     {
-        $this->customer = User::findOrFail($id);
+        $this->customer = User::withoutGlobalScopes()->where('restaurant_id', restaurant()->id)->findOrFail($id);
         $this->confirmDeleteCustomerModal = true;
     }
 
     public function deleteCustomer($id)
     {
-        $user = User::find($id);
-        $restaurantId = $user ? $user->restaurant_id : null;
-        User::destroy($id);
+        $user = User::withoutGlobalScopes()->where('restaurant_id', restaurant()->id)->find($id);
+
+        if (!$user) {
+            return;
+        }
+
+        // Never allow a staff member to delete their own account from this table.
+        if ($user->id == user()->id) {
+            $this->alert('error', __('messages.cannotDeleteOwnAccount'), [
+                'toast' => true,
+                'position' => 'top-end',
+                'showCancelButton' => false,
+                'cancelButtonText' => __('app.close')
+            ]);
+            return;
+        }
+
+        $restaurantId = $user->restaurant_id;
+        $user->delete();
 
         if ($restaurantId) {
-            cache()->forget('restaurant_' . $restaurantId . '_staff_stats');    
+            cache()->forget('restaurant_' . $restaurantId . '_staff_stats');
         }
 
         $this->confirmDeleteCustomerModal = false;
@@ -73,7 +89,16 @@ class StaffTable extends Component
 
     public function setUserRole($role, $userID)
     {
-        $employee = User::find($userID);
+        // The target user must belong to this restaurant, and the role must be
+        // one of the restaurant-scoped roles this component itself offers —
+        // never an arbitrary client-supplied role name (e.g. a global role
+        // such as Super Admin) or a user from another tenant.
+        $employee = User::withoutGlobalScopes()->where('restaurant_id', restaurant()->id)->find($userID);
+
+        if (!$employee || !$this->roles->pluck('name')->contains($role)) {
+            return;
+        }
+
         $employee->syncRoles([$role]);
         $this->redirect(route('staff.index'), navigate: true);
     }

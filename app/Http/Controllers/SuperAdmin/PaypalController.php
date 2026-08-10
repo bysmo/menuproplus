@@ -15,11 +15,12 @@ use App\Models\EmailSetting;
 
 class PaypalController extends Controller
 {
-    private $_api_context, $paypalClientId, $paypalSecret;
+    private $_api_context, $paypalClientId, $paypalSecret, $paypalMode;
 
     public function __construct()
     {
         $credential = SuperadminPaymentGateway::first();
+        $this->paypalMode = $credential->paypal_mode;
         $this->paypalClientId = $credential->paypal_mode === 'sandbox' ? $credential->test_paypal_client_id : $credential->live_paypal_client_id;
         $this->paypalSecret = $credential->paypal_mode === 'sandbox' ? $credential->test_paypal_secret : $credential->live_paypal_secret;
 
@@ -34,7 +35,9 @@ class PaypalController extends Controller
 
     public function initiatePayment(Request $request)
     {
-        $restaurantPayment = RestaurantPayment::findOrFail($request->payment_id);
+        abort_if(!user()->hasRole('Admin_' . user()->restaurant_id), 403);
+
+        $restaurantPayment = RestaurantPayment::where('restaurant_id', restaurant()->id)->findOrFail($request->payment_id);
         $package = Package::findOrFail($request->input('package_id'));
 
         return $package->package_type->value === 'lifetime'
@@ -465,8 +468,36 @@ class PaypalController extends Controller
         }
     }
 
+    /**
+     * Verify the IPN by posting it back to PayPal, per PayPal's official IPN verification flow.
+     */
+    private function isValidPaypalIpn(Request $request): bool
+    {
+        $url = $this->paypalMode === 'sandbox'
+            ? 'https://ipnpb.sandbox.paypal.com/cgi-bin/webscr'
+            : 'https://ipnpb.paypal.com/cgi-bin/webscr';
+
+        $body = 'cmd=_notify-validate&' . $request->getContent();
+
+        try {
+            $response = Http::withHeaders(['Content-Type' => 'application/x-www-form-urlencoded'])
+                ->withBody($body, 'application/x-www-form-urlencoded')
+                ->post($url);
+        } catch (\Exception $e) {
+            info('PayPal IPN verification request failed: ' . $e->getMessage());
+            return false;
+        }
+
+        return trim($response->body()) === 'VERIFIED';
+    }
+
     public function verifyBillingIPN(Request $request)
     {
+        if (!$this->isValidPaypalIpn($request)) {
+            info('PayPal IPN: signature verification failed, rejecting');
+            return response('Invalid IPN', 400);
+        }
+
         $txnType = $request->get('txn_type');
         if ($txnType == 'recurring_payment') {
             $recurringPaymentId = $request->get('recurring_payment_id');

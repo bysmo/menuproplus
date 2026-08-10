@@ -51,6 +51,10 @@ class ModifierGroups extends Component
 
     public function deleteModifierGroup($id)
     {
+        if (!user_can('Delete Menu Item')) {
+            return;
+        }
+
         $modifierGroup = ModifierGroup::findOrFail($id);
         $modifierGroup->delete();
         $this->confirmDeleteModifierModal = false;

@@ -61,6 +61,7 @@ class Cart extends Component
     public $showCartVariationModal = false;
     public $showCustomerNameModal = false;
     public $showPaymentModal = false;
+    public $showEmptyCartModal = false;
     public $showMenu = true;
     public $showCart = false;
     public $orderItemList = [];
@@ -287,6 +288,7 @@ private function saveCartToSession()
  */
 public function emptyCart()
 {
+    $this->showEmptyCartModal = false;
     \Log::info('🗑️ Vidage du panier demandé');
 
     // Vider toutes les propriétés du panier
@@ -423,10 +425,23 @@ public function emptyCart()
         }
 
         if (request()->has('current_order')) {
-            $this->orderID = request()->get('current_order');
-            $this->order = Order::find($this->orderID);
-            if ($this->order->status == 'paid') {
-                $this->redirect(module_enabled('Subdomain') ? url('/') : route('shop_restaurant', ['hash' => $this->order->branch->restaurant->hash]));
+            $candidateOrder = Order::find(request()->get('current_order'));
+
+            // Only allow resuming an order that belongs to this restaurant and,
+            // for a dine-in QR session, to the table currently being served —
+            // otherwise a guessed/enumerated order id would let a stranger
+            // attach to and manipulate someone else's order.
+            $belongsToRestaurant = $candidateOrder && $candidateOrder->branch->restaurant_id === $this->restaurant->id;
+            $belongsToTable = $this->table && $candidateOrder && $candidateOrder->table_id === $this->table->id;
+            $belongsToCustomer = $this->customer && $candidateOrder && $candidateOrder->customer_id === $this->customer->id;
+
+            if ($belongsToRestaurant && ($belongsToTable || $belongsToCustomer)) {
+                $this->orderID = $candidateOrder->id;
+                $this->order = $candidateOrder;
+
+                if ($this->order->status == 'paid') {
+                    $this->redirect(module_enabled('Subdomain') ? url('/') : route('shop_restaurant', ['hash' => $this->order->branch->restaurant->hash]));
+                }
             }
         }
 
@@ -733,10 +748,18 @@ public function getCartQtyProperty()
             return;
         }
 
+        $orderType = OrderType::where('branch_id', $this->shopBranch->id)
+            ->where('is_active', true)
+            ->find($orderTypeId);
+
+        if (!$orderType) {
+            return;
+        }
+
         // Set the order type ID which will trigger updatedOrderTypeId
-        $this->orderTypeId = $orderTypeId;
-        $this->orderTypeSlug = OrderType::find($orderTypeId)->slug;
-        $this->orderType = OrderType::find($orderTypeId)->type;
+        $this->orderTypeId = $orderType->id;
+        $this->orderTypeSlug = $orderType->slug;
+        $this->orderType = $orderType->type;
 
         // Close the modal
         $this->showOrderTypeModal = false;
@@ -1127,6 +1150,11 @@ public function getCartQtyProperty()
         $this->showVariationModal = false;
         $menuItemVariation = MenuItemVariation::find($variationId);
 
+        // Never allow adding a variation belonging to another branch/restaurant's menu.
+        if (!$menuItemVariation || $menuItemVariation->menuItem->branch_id !== $this->shopBranch->id) {
+            return;
+        }
+
         // Set price context before using variation
         if ($this->orderTypeId) {
             $menuItemVariation->setPriceContext($this->orderTypeId, null);
@@ -1148,8 +1176,16 @@ public function getCartQtyProperty()
     #[On('setCustomer')]
     public function setCustomer($customer)
     {
-        $customer = Customer::find($customer['id']);
-        $this->customer = $customer;
+        // Don't trust the client-supplied event payload's id — a browser can
+        // dispatch this event with an arbitrary customer id. Re-derive the
+        // customer from the authenticated session instead.
+        $sessionCustomer = customer();
+
+        if (!$sessionCustomer || !isset($customer['id']) || (int) $sessionCustomer->id !== (int) $customer['id']) {
+            return;
+        }
+
+        $this->customer = $sessionCustomer;
     }
 
     public function filterMenu($id = null)
@@ -1197,6 +1233,13 @@ public function getCartQtyProperty()
     public function selectTableOrder($tableID = null)
     {
         if ($this->getTable) {
+            // The selected table must belong to the branch this cart session is for —
+            // a table hash from another branch/restaurant must never be accepted.
+            $table = $tableID ? Table::where('hash', $tableID)->first() : null;
+            if ($tableID && (!$table || $table->branch_id !== $this->shopBranch->id)) {
+                return;
+            }
+
             $this->tableID = $tableID;
             $this->getTable = false;
             $this->showTableModal = false;
@@ -1306,6 +1349,12 @@ public function getCartQtyProperty()
         }
 
         if ($updateOrder) {
+            // Only the order this session itself just created/is paying for may be
+            // updated here — never an arbitrary client-supplied order id.
+            if (!$this->paymentOrder || $updateOrder != $this->paymentOrder->id) {
+                return;
+            }
+
             $this->order = Order::find($updateOrder);
 
             Payment::create([
@@ -1628,6 +1677,10 @@ public function getCartQtyProperty()
 
     public function initiatePayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         $total = round($this->total, 2);
 
         $payment = RazorpayPayment::create([
@@ -1653,6 +1706,10 @@ public function getCartQtyProperty()
 
     public function initiateStripePayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         $payment = StripePayment::create([
             'order_id' => $id,
             'amount' => $this->total
@@ -1703,6 +1760,10 @@ public function getCartQtyProperty()
 
     public function initiateFlutterwavePayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         try {
             $paymentGateway = $this->restaurant->paymentGateways;
             $apiSecret = $paymentGateway->flutterwave_secret;
@@ -1750,6 +1811,10 @@ public function getCartQtyProperty()
 
     public function initiatePaypalPayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         $amount = $this->total;
         $currency = strtoupper($this->restaurant->currency->currency_code);
 
@@ -1829,6 +1894,10 @@ public function getCartQtyProperty()
 
     public function initiatePayfastPayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         $paymentGateway = $this->restaurant->paymentGateways;
         $isSandbox = $paymentGateway->payfast_mode === 'sandbox';
         $merchantId = $isSandbox ? $paymentGateway->test_payfast_merchant_id : $paymentGateway->payfast_merchant_id;
@@ -1869,6 +1938,10 @@ public function getCartQtyProperty()
 
     public function initiatePaystackPayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         try {
             $paymentGateway = $this->restaurant->paymentGateways;
 
@@ -1915,6 +1988,10 @@ public function getCartQtyProperty()
 
     public function initiateXenditPayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         try {
             $paymentGateway = $this->restaurant->paymentGateways;
             $secretKey = $paymentGateway->xendit_secret_key;
@@ -2060,6 +2137,10 @@ public function getCartQtyProperty()
         if (isset(explode('_', $this->selectedModifierItem)[1])) {
             $menuItemVariation = MenuItemVariation::find(explode('_', $this->selectedModifierItem)[1]);
 
+            if (!$menuItemVariation || $menuItemVariation->menuItem->branch_id !== $this->shopBranch->id) {
+                return;
+            }
+
             // Set price context on variation
             if ($this->orderTypeId) {
                 $menuItemVariation->setPriceContext($this->orderTypeId, null);
@@ -2077,6 +2158,9 @@ public function getCartQtyProperty()
         $modifierTotal = 0;
         foreach ($this->itemModifiersSelected[$keyId] ?? [] as $modifierId) {
             $modifier = ModifierOption::find($modifierId);
+            if ($modifier && ($modifier->modifierGroup->branch_id ?? null) !== $this->shopBranch->id) {
+                continue;
+            }
             if ($modifier) {
                 if ($this->orderTypeId) {
                     $modifier->setPriceContext($this->orderTypeId, null);
@@ -2100,7 +2184,13 @@ public function getCartQtyProperty()
 
     public function showItemDetail($id)
     {
-        $this->selectedItem = MenuItem::find($id);
+        $item = MenuItem::find($id);
+
+        if (!$item || $item->branch_id !== $this->shopBranch->id) {
+            return;
+        }
+
+        $this->selectedItem = $item;
         $this->showItemDetailModal = true;
     }
 

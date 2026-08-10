@@ -130,7 +130,7 @@ class CashierController extends Controller
         // ✅ Vérifier que l'utilisateur a accès à cette session
         // Admin peut voir toutes les sessions de toutes les branches
         // Utilisateur normal ne peut voir que les sessions de sa branche
-        if (auth()->user()->branch_id && $session->branch_id !== branch()->id) {
+        if (auth()->user()->branch_id && (int) $session->branch_id !== (int) auth()->user()->branch_id) {
             abort(403, 'Accès non autorisé à cette session.');
         }
 
@@ -256,7 +256,7 @@ class CashierController extends Controller
 
         // ✅ Vérification de la branche (optionnelle pour l'impression)
         // Les admins peuvent imprimer toutes les sessions
-        if (auth()->user()->branch_id && $session->branch_id !== branch()->id) {
+        if (auth()->user()->branch_id && (int) $session->branch_id !== (int) auth()->user()->branch_id) {
             abort(403, 'Accès non autorisé à cette session.');
         }
 
@@ -286,7 +286,7 @@ class CashierController extends Controller
         }
 
         // ✅ Vérification de la branche (optionnelle pour l'impression)
-        if (auth()->user()->branch_id && $session->branch_id !== branch()->id) {
+        if (auth()->user()->branch_id && (int) $session->branch_id !== (int) auth()->user()->branch_id) {
             abort(403, 'Accès non autorisé à cette session.');
         }
 
@@ -312,7 +312,7 @@ class CashierController extends Controller
         ])->findOrFail($id);
 
         // ✅ Vérification de la branche
-        if (auth()->user()->branch_id && $session->branch_id !== branch()->id) {
+        if (auth()->user()->branch_id && (int) $session->branch_id !== (int) auth()->user()->branch_id) {
             abort(403, 'Accès non autorisé à cette session.');
         }
 

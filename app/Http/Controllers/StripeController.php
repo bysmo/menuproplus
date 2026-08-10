@@ -100,8 +100,10 @@ class StripeController extends Controller
 
     public function licensePayment(Request $request)
     {
+        abort_if(!user()->hasRole('Admin_' . user()->restaurant_id), 403);
+
         $paymentGateway = SuperadminPaymentGateway::first();
-        $restaurantPayment = RestaurantPayment::findOrFail($request->license_payment);
+        $restaurantPayment = RestaurantPayment::where('restaurant_id', restaurant()->id)->findOrFail($request->license_payment);
         $restaurant = Restaurant::find($restaurantPayment->restaurant_id);
         $stripe = new \Stripe\StripeClient($paymentGateway->stripe_secret);
         if (!$restaurant->stripe_id) {

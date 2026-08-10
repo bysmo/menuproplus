@@ -21,6 +21,15 @@ class ChangeBranch extends Component
     {
         $branch = Branch::find($id);
 
+        if (!$branch) {
+            abort(404);
+        }
+
+        // A user restricted to a single branch may not switch to another branch,
+        // even within the same restaurant.
+        if (user()->branch_id && (int) user()->branch_id !== (int) $branch->id) {
+            abort(403, "Vous n'êtes pas autorisé à accéder à cette branche.");
+        }
 
         session(['branch' => $branch]);
 

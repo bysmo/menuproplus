@@ -135,6 +135,10 @@ class OrderDetail extends Component
 
     public function initiatePayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         $payment = RazorpayPayment::create([
             'order_id' => $id,
             'amount' => $this->total
@@ -159,6 +163,10 @@ class OrderDetail extends Component
 
     public function initiateStripePayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         $payment = StripePayment::create([
             'order_id' => $id,
             'amount' => $this->total
@@ -213,6 +221,10 @@ class OrderDetail extends Component
     }
     public function initiatePaypalPayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         $amount = $this->total;
         $currency = strtoupper($this->restaurant->currency->currency_code);
 
@@ -292,6 +304,10 @@ class OrderDetail extends Component
 
     public function initiatePayfastPayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         $paymentGateway = $this->restaurant->paymentGateways;
         $isSandbox = $paymentGateway->payfast_mode === 'sandbox';
         $merchantId = $isSandbox ? $paymentGateway->test_payfast_merchant_id : $paymentGateway->payfast_merchant_id;
@@ -332,6 +348,10 @@ class OrderDetail extends Component
 
     public function initiatePaystackPayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         try {
             $paymentGateway = $this->restaurant->paymentGateways;
 
@@ -378,6 +398,10 @@ class OrderDetail extends Component
 
     public function initiateXenditPayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         try {
             $paymentGateway = $this->restaurant->paymentGateways;
             $secretKey = $paymentGateway->xendit_secret_key;
@@ -541,6 +565,10 @@ class OrderDetail extends Component
 
     public function initiateFlutterwavePayment($id)
     {
+        if (!$this->paymentOrder || $id != $this->paymentOrder->id) {
+            return;
+        }
+
         try {
             $paymentGateway = $this->restaurant->paymentGateways;
             $apiSecret = $paymentGateway->flutterwave_secret;

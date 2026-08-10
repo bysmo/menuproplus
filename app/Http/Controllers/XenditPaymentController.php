@@ -23,6 +23,7 @@ class XenditPaymentController extends Controller
     {
         $restaurant = Restaurant::where('hash', $societyHash)->firstOrFail();
         $this->secretKey = $restaurant->paymentGateways->xendit_secret_key;
+        $this->webhookToken = $restaurant->paymentGateways->xendit_webhook_token;
     }
 
         /**
@@ -34,6 +35,11 @@ class XenditPaymentController extends Controller
     info('Xendit Webhook Callback:', $request->all());
 
     $this->setKeys($restaurantHash);
+
+    $callbackToken = $request->header('x-callback-token');
+    if (!$this->webhookToken || !$callbackToken || !hash_equals($this->webhookToken, $callbackToken)) {
+        return response()->json(['message' => 'Unauthorized'], 401);
+    }
 
     $status = $request->status ?? null;
     $externalId = $request->external_id ?? null;
@@ -170,7 +176,12 @@ class XenditPaymentController extends Controller
     {
         $invoiceId = $request->query('external_id');
 
-        $xenditPayment = XenditPayment::where('xendit_payment_id', $invoiceId)->first();
+        // Only a still-pending payment may be marked failed here — never
+        // overwrite one already completed, which an attacker could otherwise
+        // do just by guessing its external_id.
+        $xenditPayment = XenditPayment::where('xendit_payment_id', $invoiceId)
+            ->where('payment_status', 'pending')
+            ->first();
 
         if ($xenditPayment) {
             $xenditPayment->payment_status = 'failed';

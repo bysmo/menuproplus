@@ -532,6 +532,10 @@ class Pos extends Component
             return;
         }
 
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         $this->orderDetail->update(['order_status' => $value]);
     }
 
@@ -597,7 +601,16 @@ class Pos extends Component
 
     public function showPayment($id)
     {
+        // Only the order already loaded into this component may be paid here.
+        if ($id != $this->orderID) {
+            return;
+        }
+
         $order = Order::find($id);
+
+        if (!$order) {
+            return;
+        }
 
         $this->dispatch('showPaymentModal', id: $order->id);
     }
@@ -696,6 +709,10 @@ class Pos extends Component
     #[On('setTable')]
     public function setTable(Table $table)
     {
+        if (($this->orderID && !user_can('Update Order')) || (!$this->orderID && !user_can('Create Order'))) {
+            return;
+        }
+
         // Check table lock status first
         $tableModel = Table::find($table->id);
         if (!$tableModel->canBeAccessedByUser(user()->id)) {
@@ -792,6 +809,10 @@ class Pos extends Component
 
     public function confirmTableChange()
     {
+        if (($this->orderID && !user_can('Update Order')) || (!$this->orderID && !user_can('Create Order'))) {
+            return;
+        }
+
         if (!$this->pendingTable) {
             $this->showTableChangeConfirmationModal = false;
             return;
@@ -913,6 +934,10 @@ class Pos extends Component
 
     public function deleteCartItems($id)
     {
+        if (($this->orderID && !user_can('Update Order')) || (!$this->orderID && !user_can('Create Order'))) {
+            return;
+        }
+
         // Update table activity when removing items
         if ($this->tableId) {
             $table = Table::find($this->tableId);
@@ -997,7 +1022,16 @@ class Pos extends Component
 
     public function deleteOrderItems($id)
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         $orderItem = OrderItem::find($id);
+
+        // Only items belonging to the order loaded in this component may be removed here.
+        if ($orderItem && (!$this->orderDetail || $orderItem->order_id != $this->orderDetail->id)) {
+            return;
+        }
 
         if ($orderItem) {
             $kotItems = KotItem::where('menu_item_id', $orderItem->menu_item_id)
@@ -1082,6 +1116,12 @@ class Pos extends Component
 
     public function deleteOrder($id)
     {
+        // Only the order already loaded into this component may be deleted here,
+        // and only by a user with permission to modify it.
+        if ($id != $this->orderID || !user_can('Update Order')) {
+            return;
+        }
+
         $order = Order::find($id);
 
         if (!$order) {
@@ -1339,6 +1379,10 @@ class Pos extends Component
 
     public function addDiscounts()
     {
+        if (!user_can('Add Discount on POS')) {
+            return;
+        }
+
         $this->validate([
             'discountValue' => 'required|numeric|min:0',
             'discountType' => 'required|in:fixed,percent',
@@ -1372,6 +1416,10 @@ class Pos extends Component
 
     public function removeCurrentDiscount()
     {
+        if (!user_can('Add Discount on POS')) {
+            return;
+        }
+
         $order = $this->tableOrderID ? $this->tableOrder->activeOrder : $this->orderDetail;
 
         if ($order) {
@@ -1390,6 +1438,10 @@ class Pos extends Component
 
     public function removeExtraCharge($chargeId, $orderType)
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         $order = $this->tableOrderID ? $this->tableOrder->activeOrder : $this->orderDetail;
 
         if ($order) {
@@ -2286,6 +2338,10 @@ class Pos extends Component
 
     public function saveDeliveryExecutive()
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         $this->orderDetail->update(['delivery_executive_id' => $this->selectDeliveryExecutive]);
         $this->orderDetail->refresh();
         $this->alert('success', __('messages.deliveryExecutiveAssigned'), [
@@ -2298,6 +2354,10 @@ class Pos extends Component
 
     public function cancelOrder()
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         if (!$this->cancelReason && !$this->cancelReasonText) {
             $this->alert('error', __('modules.settings.cancelReasonRequired'), [
                 'toast' => true,
@@ -2343,6 +2403,9 @@ class Pos extends Component
 
     public function updatedSelectWaiter($value)
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
 
         if ($this->orderID) {
             $order = Order::find($this->orderID);
@@ -2431,8 +2494,15 @@ class Pos extends Component
             return;
         }
 
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         KotItem::where('kot_id', $parts[1])
             ->where('id', $parts[2])
+            ->whereHas('kot', function ($query) {
+                $query->where('order_id', $this->orderDetail->id);
+            })
             ->update(['note' => $note]);
     }
 

@@ -18,10 +18,17 @@ class ItemVariations extends Component
     public $showEditVariationsModal = false;
     public $showDeleteVariationsModal = false;
     
+    private function findOwnVariation($id): MenuItemVariation
+    {
+        return MenuItemVariation::whereHas('menuItem', function ($query) {
+            $query->where('branch_id', branch()->id);
+        })->findOrFail($id);
+    }
+
     public function editVariation($id)
     {
         $this->showEditVariationsModal = true;
-        $this->itemVariation = MenuItemVariation::findOrFail($id);
+        $this->itemVariation = $this->findOwnVariation($id);
         $this->variationName = $this->itemVariation->variation;
         $this->variationPrice = $this->itemVariation->price;
     }
@@ -29,13 +36,12 @@ class ItemVariations extends Component
     public function deleteVariation($id)
     {
         $this->showDeleteVariationsModal = true;
-        $this->itemVariation = MenuItemVariation::findOrFail($id);
+        $this->itemVariation = $this->findOwnVariation($id);
     }
 
     public function deleteItemVariation($id)
     {
-
-        MenuItemVariation::destroy($id);
+        $this->findOwnVariation($id)->delete();
         $this->showDeleteVariationsModal = false;
 
         $this->alert('success', __('messages.itemVariationDeleted'), [
@@ -48,7 +54,8 @@ class ItemVariations extends Component
 
     public function submitForm()
     {
-        MenuItemVariation::where('id', $this->itemVariation->id)->update([
+        $variation = $this->findOwnVariation($this->itemVariation->id);
+        $variation->update([
             'variation' => $this->variationName,
             'price' => $this->variationPrice
         ]);

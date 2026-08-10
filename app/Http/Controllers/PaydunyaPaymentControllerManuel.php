@@ -120,6 +120,13 @@ class PaydunyaPaymentControllerManuel   extends Controller
 
         $order = Order::with('items.menuItem', 'branch')->findOrFail($request->order_id);
 
+        // The order must actually belong to the restaurant resolved from the
+        // hash — otherwise payment would be collected under the wrong
+        // merchant's PayDunya store for another restaurant's order.
+        if (!$order->branch || $order->branch->restaurant_id !== $restaurant->id) {
+            abort(404);
+        }
+
         // ── Calcul du montant restant à payer ───────────────────────────────
         $amountToPay = (int) ($order->total - ($order->amount_paid ?? 0));
 
@@ -402,22 +409,30 @@ class PaydunyaPaymentControllerManuel   extends Controller
 
         // ── Vérification du hash (sécurité) ─────────────────────────────
         // hash_received = SHA-512(masterKey + token)
-        if ($restaurant && $hash) {
-            try {
-                $this->setupForRestaurant($restaurant);
-                $expectedHash = hash('sha512', $this->masterKey . $token);
-                if (! hash_equals($expectedHash, $hash)) {
-                    Log::error('[PayDunya] IPN : hash invalide', [
-                        'token'     => $token,
-                        'expected'  => substr($expectedHash, 0, 16) . '...',
-                        'received'  => substr($hash, 0, 16) . '...',
-                    ]);
-                    return response()->json(['message' => 'Hash invalide'], 401);
-                }
-            } catch (\Throwable $e) {
-                Log::warning('[PayDunya] IPN : impossible de vérifier le hash', ['error' => $e->getMessage()]);
-                // On continue sans vérification si les clés ne sont pas disponibles
+        // Fail-closed : toute notification sans hash vérifiable est rejetée.
+        if (! $restaurant || ! $hash) {
+            Log::error('[PayDunya] IPN : restaurant ou hash manquant, notification rejetée', [
+                'token' => $token,
+                'has_restaurant' => (bool) $restaurant,
+                'has_hash' => (bool) $hash,
+            ]);
+            return response()->json(['message' => 'Notification non vérifiable'], 401);
+        }
+
+        try {
+            $this->setupForRestaurant($restaurant);
+            $expectedHash = hash('sha512', $this->masterKey . $token);
+            if (! hash_equals($expectedHash, $hash)) {
+                Log::error('[PayDunya] IPN : hash invalide', [
+                    'token'     => $token,
+                    'expected'  => substr($expectedHash, 0, 16) . '...',
+                    'received'  => substr($hash, 0, 16) . '...',
+                ]);
+                return response()->json(['message' => 'Hash invalide'], 401);
             }
+        } catch (\Throwable $e) {
+            Log::warning('[PayDunya] IPN : impossible de vérifier le hash', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Notification non vérifiable'], 401);
         }
 
         // ── Traitement selon le statut ────────────────────────────────────

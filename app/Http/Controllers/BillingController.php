@@ -13,6 +13,14 @@ use App\Models\GlobalSubscription;
 class BillingController extends Controller
 {
 
+    public function __construct()
+    {
+        // Billing/invoice data is sensitive: only the Super Admin role may view it,
+        // not any global-scope (restaurant_id = null) user created via the
+        // superadmin user-management flow with a lesser role.
+        abort_if(!user()->hasRole('Super Admin'), 403);
+    }
+
     public function index()
     {
         return view('billing.index');

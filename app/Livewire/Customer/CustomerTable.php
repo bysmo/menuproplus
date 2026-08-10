@@ -33,12 +33,20 @@ class CustomerTable extends Component
 
     public function showEditCustomer($id)
     {
+        if (!user_can('Update Customer')) {
+            return;
+        }
+
         $this->customer = Customer::findOrFail($id);
         $this->showEditCustomerModal = true;
     }
 
     public function showDeleteCustomer($id)
     {
+        if (!user_can('Delete Customer')) {
+            return;
+        }
+
         $this->customer = Customer::findOrFail($id);
         $this->confirmDeleteCustomerModal = true;
     }
@@ -51,6 +59,10 @@ class CustomerTable extends Component
 
     public function deleteCustomer($id, $deleteOrder = false)
     {
+        if (!user_can('Delete Customer')) {
+            return;
+        }
+
         if ($deleteOrder) {
             Order::where('customer_id', $id)->delete();
         }

@@ -21,8 +21,10 @@ class FlutterwaveController extends Controller
 {
     public function initiatePayment(Request $request)
     {
+        abort_if(!user()->hasRole('Admin_' . user()->restaurant_id), 403);
+
         $paymentGateway = SuperadminPaymentGateway::first();
-        $restaurantPayment = RestaurantPayment::findOrFail($request->payment_id);
+        $restaurantPayment = RestaurantPayment::where('restaurant_id', restaurant()->id)->findOrFail($request->payment_id);
         $restaurant = restaurant()::find($restaurantPayment->restaurant_id);
         $package = Package::find($request->input('package_id'));
 

@@ -110,7 +110,18 @@ class CashierDashboard extends Component
      */
     public function onBranchChanged($branchId)
     {
-        $this->selectedBranchId = $branchId;
+        // A user restricted to a single branch may never switch to another one,
+        // even by calling this handler directly.
+        if (auth()->user()->branch_id && (int) auth()->user()->branch_id !== (int) $branchId) {
+            return;
+        }
+
+        $branch = \App\Models\Branch::find($branchId);
+        if (!$branch) {
+            return;
+        }
+
+        $this->selectedBranchId = $branch->id;
         $this->loadActiveSession();
         $this->resetPage(); // Reset pagination
     }
@@ -289,7 +300,13 @@ class CashierDashboard extends Component
 
     public function selectPayment($paymentId)
     {
-        $this->selectedPayment = Payment::with('order.customer')->findOrFail($paymentId);
+        $payment = Payment::with('order.customer')->findOrFail($paymentId);
+
+        if ($payment->branch_id !== $this->selectedBranchId) {
+            abort(403);
+        }
+
+        $this->selectedPayment = $payment;
         $this->paymentAmount = $this->selectedPayment->amount;
         $this->showPaymentModal = true;
     }

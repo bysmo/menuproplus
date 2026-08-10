@@ -14,7 +14,7 @@ class PublishLanguageRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return user() && user()->hasRole('Super Admin');
     }
 
     /**

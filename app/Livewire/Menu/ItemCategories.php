@@ -22,18 +22,30 @@ class ItemCategories extends Component
 
     public function showEditCategory($id)
     {
+        if (!user_can('Update Item Category')) {
+            return;
+        }
+
         $this->showEditItemCategory = true;
         $this->itemCategory = ItemCategory::findOrFail($id);
     }
 
     public function showDeleteCategory($id)
     {
+        if (!user_can('Delete Item Category')) {
+            return;
+        }
+
         $this->confirmDeleteCategory = true;
         $this->itemCategory = ItemCategory::findOrFail($id);
     }
 
     public function deleteItemCategory($id)
     {
+        if (!user_can('Delete Item Category')) {
+            return;
+        }
+
         ItemCategory::destroy($id);
         $this->confirmDeleteCategory = false;
 

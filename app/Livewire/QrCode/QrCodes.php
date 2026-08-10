@@ -6,6 +6,7 @@ use App\Helper\Files;
 use App\Models\Area;
 use Livewire\Component;
 use App\Models\Table;
+use App\Models\Branch;
 use App\Models\FileStorage;
 
 class QrCodes extends Component
@@ -15,6 +16,14 @@ class QrCodes extends Component
 
     public function downloadQrCode($tableCode, $branchId)
     {
+        // Ensure the requested branch belongs to the current restaurant and,
+        // for a branch-restricted user, is the branch they are assigned to.
+        $branch = Branch::find($branchId);
+
+        if (!$branch || (user()->branch_id && (int) user()->branch_id !== (int) $branch->id)) {
+            abort(403);
+        }
+
         $filename = 'qrcode-' . $branchId . '-' . str()->slug($tableCode, '-', (auth()->user() ? auth()->user()->locale : 'en')) . '.png';
 
         $file = FileStorage::where('filename', $filename)->first();

@@ -26,6 +26,9 @@ class CustomerList extends Component
 
     public function exportCustomerList()
     {
+        if (!user_can('Show Customer')) {
+            abort(403);
+        }
 
         if (!in_array('Export Report', restaurant_modules())) {
             $this->dispatch('showUpgradeLicense');
@@ -55,6 +58,10 @@ class CustomerList extends Component
 
     public function importCustomerList()
     {
+        if (!user_can('Create Customer')) {
+            abort(403);
+        }
+
         $this->validate([
             'file' => 'required|mimes:xlsx,csv|max:10240',
         ]);

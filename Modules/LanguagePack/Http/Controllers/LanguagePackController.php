@@ -11,6 +11,13 @@ use Modules\LanguagePack\Http\Requests\PublishLanguageRequest;
 class LanguagePackController extends Controller
 {
 
+    public function __construct()
+    {
+        // Publishing rewrites/deletes translation directories app-wide: restrict
+        // to the actual Super Admin role, not merely any authenticated account.
+        abort_if(!user()->hasRole('Super Admin'), 403);
+    }
+
     public function publishAll()
     {
         $languages = LanguageSetting::all();

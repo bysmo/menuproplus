@@ -25,6 +25,8 @@ class SlateDetails extends Component
     public function loadSlate()
     {
         if ($this->slateId) {
+            // Slate has no automatic tenant scope, so it must be restricted
+            // explicitly to the current restaurant.
             $this->slate = Slate::with([
                 'orders' => function($q) {
                     $q->with([
@@ -37,7 +39,7 @@ class SlateDetails extends Component
                 'customer',
                 'branch',
                 'restaurant'
-            ])->find($this->slateId);
+            ])->where('restaurant_id', restaurant()->id)->find($this->slateId);
         }
     }
 

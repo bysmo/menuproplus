@@ -119,6 +119,8 @@ class XenditController extends Controller
      */
     public function initiateXenditPayment(Request $request)
     {
+            abort_if(!user()->hasRole('Admin_' . user()->restaurant_id), 403);
+
             $this->setXenditConfigs();
 
             $package = Package::findOrFail($request->package_id);

@@ -125,27 +125,32 @@ Route::get('page/{slug}', [CustomMenuController::class, 'index'])->name('customM
 Route::post('stripe/order-payment', [StripeController::class, 'orderPayment'])->name('stripe.order_payment');
 Route::get('/stripe/success-callback', [StripeController::class, 'success'])->name('stripe.success');
 
-Route::post('stripe/license-payment', [StripeController::class, 'licensePayment'])->name('stripe.license_payment');
+// Subscription/license payment initiation acts on the caller's own tenant
+// subscription: it must only be reachable by an authenticated restaurant user.
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('stripe/license-payment', [StripeController::class, 'licensePayment'])->name('stripe.license_payment');
+    Route::post('/flutterwave/initiate-payment', [FlutterwaveController::class, 'initiatePayment'])->name('flutterwave.initiate-payment');
+    Route::post('/paypal/initiate-payment', [PaypalController::class, 'initiatePayment'])->name('paypal.initiate-payment');
+    Route::post('/payfast/initiate-payment', [PayfastController::class, 'initiatePayfastPayment'])->name('payfast.initiate-payment');
+    Route::post('/paystack/initiate-payment', [PaystackController::class, 'initiatePaystackPayment'])->name('paystack.initiate-payment');
+    Route::post('/xendit/initiate-payment', [XenditController::class, 'initiatePaystackPayment'])->name('xendit.initiate-payment');
+});
 Route::get('/stripe/license-success-callback', [StripeController::class, 'licenseSuccess'])->name('stripe.license_success');
-Route::post('/flutterwave/initiate-payment', [FlutterwaveController::class, 'initiatePayment'])->name('flutterwave.initiate-payment');
 Route::get('/flutterwave/callback', [FlutterwaveController::class, 'paymentCallback'])->name('flutterwave.callback');
 
 // OTP Login Routes
 Route::get('/otp-login', [OtpLoginController::class, 'showOtpLoginForm'])->name('otp.login');
-Route::post('/otp/send', [OtpLoginController::class, 'sendOtp'])->name('otp.send');
-Route::post('/otp/verify', [OtpLoginController::class, 'verifyOtp'])->name('otp.verify');
-Route::post('/otp/resend', [OtpLoginController::class, 'resendOtp'])->name('otp.resend');
+// Rate-limit OTP delivery (per IP+email) to prevent flooding/enumeration, and OTP
+// verification to prevent brute-forcing the 6-digit code.
+Route::post('/otp/send', [OtpLoginController::class, 'sendOtp'])->name('otp.send')->middleware('throttle:3,1');
+Route::post('/otp/verify', [OtpLoginController::class, 'verifyOtp'])->name('otp.verify')->middleware('throttle:5,1');
+Route::post('/otp/resend', [OtpLoginController::class, 'resendOtp'])->name('otp.resend')->middleware('throttle:3,1');
 
-Route::post('/paypal/initiate-payment', [PaypalController::class, 'initiatePayment'])->name('paypal.initiate-payment');
 Route::get('billing/paypal-recurring', [PaypalController::class, 'payWithPaypalRecurrring'])->name('billing.paypal-recurring');
 Route::get('/paypal/lifetime/success', [PaypalController::class, 'paypalLifetimeSuccess'])->name('paypal.lifetime.success');
 
-Route::post('/payfast/initiate-payment', [PayfastController::class, 'initiatePayfastPayment'])->name('payfast.initiate-payment');
 Route::get('billing/payfast-success', [PayFastController::class, 'payFastPaymentSuccess'])->name('billing.payfast-success');
 Route::get('billing/payfast-cancel', [PayFastController::class, 'payFastPaymentCancel'])->name('billing.payfast-cancel');
-
-Route::post('/paystack/initiate-payment', [PaystackController::class, 'initiatePaystackPayment'])->name('paystack.initiate-payment');
-Route::post('/xendit/initiate-payment', [XenditController::class, 'initiatePaystackPayment'])->name('xendit.initiate-payment');
 
 // Routes PayDunya (Mobile Money: Orange, MTN, Moov)
 Route::post('/paydunya/initiate-payment', [PaydunyaPaymentController::class, 'initiatePayment'])->name('paydunya.initiate-payment');
@@ -305,12 +310,14 @@ Route::match(["get", "post"], "/xendit/subscription/failed", [XenditController::
 Route::post('/webhook/save-xendit-webhook/{hash}', [XenditWebhookController::class, 'handleSubscriptionWebhook'])->name('billing.save-xendit-webhook');
 
 
-Route::get('/receipt/{id}/preview', [ViewPngController::class, 'preview']); // shows the view to capture
-Route::get('/kot/{id}/preview/{kotPlaceid?}', [ViewPngController::class, 'previewKot'])->name('kot.preview'); // shows KOT view to capture
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/receipt/{id}/preview', [ViewPngController::class, 'preview']); // shows the view to capture
+    Route::get('/kot/{id}/preview/{kotPlaceid?}', [ViewPngController::class, 'previewKot'])->name('kot.preview'); // shows KOT view to capture
 
-Route::post('/kot/png', [ViewPngController::class, 'storeKot'])->name('kot.png.store'); // saves KOT PNG
-Route::post('/order/png', [ViewPngController::class, 'storeOrder'])->name('order.png.store'); // saves Order PNG
-Route::post('/report/png', [ViewPngController::class, 'storeReport'])->name('report.png.store'); // saves Report PNG
+    Route::post('/kot/png', [ViewPngController::class, 'storeKot'])->name('kot.png.store'); // saves KOT PNG
+    Route::post('/order/png', [ViewPngController::class, 'storeOrder'])->name('order.png.store'); // saves Order PNG
+    Route::post('/report/png', [ViewPngController::class, 'storeReport'])->name('report.png.store'); // saves Report PNG
+});
 
 Route::middleware(['auth', 'verified'])->prefix('backend')->name('backend.')->group(function () {
     

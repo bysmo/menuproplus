@@ -18,6 +18,14 @@ class PaystackWebhookController extends Controller
     {
         $this->setPaystackConfigs();
 
+        $signature = $request->header('x-paystack-signature');
+        $secret = config('paystack.secretKey');
+
+        if (!$secret || !$signature || !hash_equals(hash_hmac('sha512', $request->getContent(), $secret), $signature)) {
+            \Illuminate\Support\Facades\Log::warning('Paystack Webhook: Invalid or missing signature');
+            return response()->json(['success' => false, 'message' => 'Invalid signature'], 401);
+        }
+
         switch ($request['event']) {
 
             case 'subscription.create':

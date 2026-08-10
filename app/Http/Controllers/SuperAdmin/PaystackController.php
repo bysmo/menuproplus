@@ -29,6 +29,15 @@ class PaystackController extends Controller
      */
     public function initiatePaystackPayment(Request $request)
     {
+        abort_if(!user()->hasRole('Admin_' . user()->restaurant_id), 403);
+
+        // If a payment_id is supplied it must belong to this restaurant — it is
+        // later used, unverified, to mark a RestaurantPayment as paid once the
+        // gateway confirms the transaction.
+        if ($request->payment_id && !RestaurantPayment::where('restaurant_id', restaurant()->id)->where('id', $request->payment_id)->exists()) {
+            abort(403);
+        }
+
         $this->setPaystackConfigs();
 
         $package = Package::find($request->package_id);
@@ -162,7 +171,7 @@ class PaystackController extends Controller
             $invoice->save();
 
             if ($paymentId) {
-                $restaurantPayment = RestaurantPayment::find($paymentId);
+                $restaurantPayment = RestaurantPayment::where('restaurant_id', $globalSubscription->restaurant_id)->find($paymentId);
 
                 if ($restaurantPayment) {
                     $restaurantPayment->amount = $paymentDetails['data']['amount'] / 100; // Paystack amount divided by 100
@@ -202,7 +211,7 @@ class PaystackController extends Controller
             return redirect()->route('dashboard')->with('livewire', true);
         } else {
             if ($paymentId) {
-                $restaurantPayment = RestaurantPayment::find($paymentId);
+                $restaurantPayment = RestaurantPayment::where('restaurant_id', restaurant()->id)->find($paymentId);
 
                 if ($restaurantPayment) {
                     $restaurantPayment->status = 'failed';

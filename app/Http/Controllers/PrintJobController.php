@@ -118,6 +118,11 @@ class PrintJobController extends Controller
     // Electron calls this after attempting to print
     public function update(Request $request, PrintJob $printJob)
     {
+        $branch = $request->get('branch');
+
+        if (!$branch || $printJob->branch_id !== $branch->id) {
+            return response()->json(['message' => 'Print job not found', 'status' => 'error'], 404);
+        }
 
         $request->validate([
             'status'      => 'required|in:done,failed',

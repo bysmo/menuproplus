@@ -113,6 +113,10 @@ class OrderDetail extends Component
     #[On('showOrderDetail')]
     public function showOrder($id, $fromPos = null)
     {
+        if (!user_can('Show Order')) {
+            return;
+        }
+
         $this->order = Order::with('items', 'items.menuItem', 'items.menuItemVariation', 'payments', 'cancelReason')->find($id);
         $this->orderStatus = $this->order->status;
         $this->fromPos = $fromPos;
@@ -136,6 +140,10 @@ class OrderDetail extends Component
     #[On('setTable')]
     public function setTable(Table $table)
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         // Check if there's an existing table assigned
         $hasTable = !is_null($this->tableNo) ||
                    ($this->order && $this->order->table);
@@ -186,6 +194,10 @@ class OrderDetail extends Component
 
     public function confirmTableChange()
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         if (!$this->pendingTable) {
             $this->showTableChangeConfirmationModal = false;
             return;
@@ -245,6 +257,10 @@ class OrderDetail extends Component
 
     public function saveOrderStatus()
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         if ($this->order) {
             Order::where('id', $this->order->id)->update(['status' => $this->orderStatus]);
 
@@ -256,6 +272,10 @@ class OrderDetail extends Component
 
     public function showAddCustomer($id)
     {
+        if (!user_can('Update Order') || !$this->order || $id != $this->order->id) {
+            return;
+        }
+
         $this->order = Order::find($id);
         $this->showAddCustomerModal = true;
     }
@@ -268,7 +288,16 @@ class OrderDetail extends Component
 
     public function deleteOrderItems($id)
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         $orderItem = OrderItem::find($id);
+
+        // Only items belonging to the order currently loaded may be removed here.
+        if ($orderItem && (!$this->order || $orderItem->order_id != $this->order->id)) {
+            return;
+        }
 
         if ($orderItem) {
             $kotItems = KotItem::where('menu_item_id', $orderItem->menu_item_id)
@@ -317,6 +346,10 @@ class OrderDetail extends Component
             return;
         }
 
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         $this->order->update(['order_status' => $value]);
         $this->orderProgressStatus = $value;
 
@@ -333,6 +366,9 @@ class OrderDetail extends Component
 
     public function saveOrder($action)
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
 
         switch ($action) {
         case 'bill':
@@ -475,11 +511,19 @@ class OrderDetail extends Component
 
     public function showPayment($id)
     {
+        if (!$this->order || $id != $this->order->id) {
+            return;
+        }
+
         $this->dispatch('showPaymentModal', id: $id);
     }
 
     public function cancelOrderStatus($id)
     {
+        if (!user_can('Update Order') || !$this->order || $id != $this->order->id) {
+            return;
+        }
+
         // Validate that a cancel reason is provided
         if (!$this->cancelReason && !$this->cancelReasonText) {
             $this->alert('error', __('modules.settings.cancelReasonRequired'), [
@@ -535,6 +579,10 @@ class OrderDetail extends Component
 
     public function cancelOrder($id)
     {
+        if (!user_can('Update Order') || !$this->order || $id != $this->order->id) {
+            return;
+        }
+
         // Validate that a cancel reason is provided
         if (!$this->cancelReason && !$this->cancelReasonText) {
             $this->alert('error', __('modules.settings.cancelReasonRequired'), [
@@ -589,6 +637,10 @@ class OrderDetail extends Component
 
     public function paymentReceived($orderId, $status)
     {
+        if (!user_can('Update Order') || !$this->order || $orderId != $this->order->id) {
+            return;
+        }
+
         $order = Order::with('payments')->find($orderId);
 
         if (!$order) {
@@ -629,6 +681,10 @@ class OrderDetail extends Component
 
     public function deleteOrder($id)
     {
+        if (!user_can('Delete Order') || !$this->order || $id != $this->order->id) {
+            return;
+        }
+
         $order = Order::find($id);
 
         if (!$order) {
@@ -677,6 +733,10 @@ class OrderDetail extends Component
 
     public function saveDeliveryExecutive()
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         $this->order->update(['delivery_executive_id' => $this->deliveryExecutive]);
         $this->order->fresh();
         $this->alert('success', __('messages.deliveryExecutiveAssigned'), [
@@ -689,7 +749,15 @@ class OrderDetail extends Component
 
     public function removeCharge($chargeId)
     {
+        if (!user_can('Update Order')) {
+            return;
+        }
+
         $charge = OrderCharge::find($chargeId);
+
+        if ($charge && (!$this->order || $charge->order_id != $this->order->id)) {
+            return;
+        }
 
         if ($charge) {
             $charge->delete();
@@ -703,6 +771,10 @@ class OrderDetail extends Component
     public function updatePaymentMethod($id, $paymentMethod)
     {
         if (!$id || !$paymentMethod || !$this->order) {
+            return;
+        }
+
+        if (!user_can('Update Order')) {
             return;
         }
 
@@ -737,7 +809,7 @@ class OrderDetail extends Component
 
     public function updatedSelectWaiter($value)
     {
-        if ($this->order) {
+        if ($this->order && user_can('Update Order')) {
             $this->order->update(['waiter_id' => $value ?: null]);
 
             $this->alert('success', __('messages.waiterUpdated'), [

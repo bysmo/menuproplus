@@ -24,11 +24,18 @@ class SuperAdminUserTable extends Component
 
     public function mount()
     {
+        abort_if(!user()->hasRole('Super Admin'), 403);
+
         $this->roles = Role::where('name', '<>', 'Super Admin')->get();
     }
 
     public function showEditUser($id)
     {
+        $user = User::whereNull('restaurant_id')->find($id);
+        if (!$user) {
+            return;
+        }
+
         // Dispatch event to the edit component
         $this->dispatch('showEditUser', $id);
     }
@@ -41,13 +48,13 @@ class SuperAdminUserTable extends Component
 
     public function showDeleteUser($id)
     {
-        $this->user = User::findOrFail($id);
+        $this->user = User::whereNull('restaurant_id')->findOrFail($id);
         $this->confirmDeleteUserModal = true;
     }
 
     public function deleteUser($id)
     {
-        $user = User::findOrFail($id);
+        $user = User::whereNull('restaurant_id')->findOrFail($id);
 
         // Don't allow superadmin to delete themselves
         if ($user->id == user()->id) {
@@ -74,11 +81,23 @@ class SuperAdminUserTable extends Component
 
     public function setUserRole($role, $userID)
     {
-        $user = User::findOrFail($userID);
+        $user = User::whereNull('restaurant_id')->findOrFail($userID);
 
         // Don't allow superadmin to change their own role
         if ($user->id == user()->id) {
             $this->alert('error', __('messages.cannotEditOwnRole'), [
+                'toast' => true,
+                'position' => 'top-end',
+                'showCancelButton' => false,
+                'cancelButtonText' => __('app.close')
+            ]);
+            return;
+        }
+
+        // Only a role from the allowed (non-Super-Admin) list offered by this
+        // component may be assigned — never an arbitrary client-supplied value.
+        if (!$this->roles->pluck('name')->contains($role)) {
+            $this->alert('error', 'Invalid role.', [
                 'toast' => true,
                 'position' => 'top-end',
                 'showCancelButton' => false,

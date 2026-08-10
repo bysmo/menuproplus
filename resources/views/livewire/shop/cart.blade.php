@@ -102,6 +102,27 @@
 
     </x-dialog-modal>
 
+    <!-- Modal de confirmation pour vider le panier -->
+    <x-confirmation-modal wire:model.live="showEmptyCartModal">
+        <x-slot name="title">
+            Vider le panier
+        </x-slot>
+
+        <x-slot name="content">
+            Êtes-vous sûr de vouloir vider le panier ? Tous les articles ajoutés seront supprimés.
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="$set('showEmptyCartModal', false)" wire:loading.attr="disabled">
+                {{ __('app.cancel') }}
+            </x-secondary-button>
+
+            <x-danger-button class="ms-3" wire:click="emptyCart" wire:loading.attr="disabled">
+                Vider le panier
+            </x-danger-button>
+        </x-slot>
+    </x-confirmation-modal>
+
 
 
 
@@ -1050,10 +1071,10 @@
                                             </x-button>
                                         @endif
 
-                                        <!-- 🔥 NOUVEAU : Bouton Vider le Panier -->
+                                        <!-- Bouton Vider le Panier -->
                                         <button
-                                            wire:click="emptyCart"
-                                            wire:confirm="Êtes-vous sûr de vouloir vider le panier ?"
+                                            type="button"
+                                            wire:click="$set('showEmptyCartModal', true)"
                                             class="w-full bg-red-100 text-red-600 hover:bg-red-200 py-3 rounded-lg border border-red-300 transition-colors flex items-center justify-center gap-2"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
