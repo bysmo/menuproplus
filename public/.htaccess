@@ -72,6 +72,4 @@ Header set Cache-Control "max-age=0, private, no-store, no-cache, must-revalidat
   ExpiresByType application/pdf "access plus 1 year"
   ExpiresByType image/vnd.microsoft.icon "access plus 1 year"
 </IfModule>
-RewriteCond %{HTTP_HOST} ^menuproplus\.aladints\.com$
-RewriteRule ^/?$ "https\:\/\/menuproplus\.aladints\.com\/" [R=301,L]
 
