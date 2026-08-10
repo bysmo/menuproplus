@@ -4,22 +4,17 @@
 
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/bemo1278/public_html/menuprotest.aladints.com
-    - export DEPLOYPATH_PROD=/home/bemo1278/public_html/menuproplus.aladints.com
+    - export DEPLOYPATH=/home/bemo1278/public_html/menuproplus.aladints.com
     
     # 1. Utilisation de rsync pour synchroniser sans écraser le stockage (images, documents) ni le fichier .env
     # NOTE: L'exclusion de 'storage/app/public' garantit que vos images de production ne seront jamais supprimées.
     - /usr/bin/rsync -aP --exclude '.git' --exclude 'storage/app/public' --exclude 'storage/framework/sessions' --exclude 'storage/logs' --exclude '.env' * $DEPLOYPATH/
-    - /usr/bin/rsync -aP --exclude '.git' --exclude 'storage/app/public' --exclude 'storage/framework/sessions' --exclude 'storage/logs' --exclude '.env' * $DEPLOYPATH_PROD/
-
     
     # 2. Mise en maintenance (pour éviter des erreurs pendant le déploiement)
     - /usr/local/bin/php $DEPLOYPATH/artisan down || true
-    - /usr/local/bin/php $DEPLOYPATH_PROD/artisan down || true
-
+    
     # 3. Installation des dépendances Composer
     - /usr/local/bin/composer install --no-dev --optimize-autoloader --prefer-dist -d $DEPLOYPATH
-    - /usr/local/bin/composer install --no-dev --optimize-autoloader --prefer-dist -d $DEPLOYPATH_PROD
     
     # 4. Sauvegarde de la base de données.
     # Les identifiants NE sont PLUS dans ce fichier (qui est versionné dans git).
@@ -29,15 +24,12 @@ deployment:
     #   password=VOTRE_MOT_DE_PASSE
     # et des permissions restreintes : chmod 600 ~/.my.cnf
     - /usr/bin/mysqldump --defaults-extra-file=$HOME/.my.cnf bemo1278_menuprotest > $DEPLOYPATH/storage/app/db_backup_$(date +"%Y%m%d_%H%M%S").sql || true
-    - /usr/bin/mysqldump --defaults-extra-file=$HOME/.my.cnf bemo1278_menuproplus > $DEPLOYPATH_PROD/storage/app/db_backup_$(date +"%Y%m%d_%H%M%S").sql || true
     
     # 5. Exécution des migrations SEULES (pas de --seed pour ne pas écraser ni doubler les données !)
     - /usr/local/bin/php $DEPLOYPATH/artisan migrate --force
-    - /usr/local/bin/php $DEPLOYPATH_PROD/artisan migrate --force
     
     # 6. Création du lien symbolique de stockage
     - /usr/local/bin/php $DEPLOYPATH/artisan storage:link || true
-    - /usr/local/bin/php $DEPLOYPATH_PROD/artisan storage:link || true
     
     # 7. Optimisation des caches de Laravel pour la production
     - /usr/local/bin/php $DEPLOYPATH/artisan optimize:clear
@@ -45,13 +37,6 @@ deployment:
     - /usr/local/bin/php $DEPLOYPATH/artisan event:cache
     - /usr/local/bin/php $DEPLOYPATH/artisan route:cache
     - /usr/local/bin/php $DEPLOYPATH/artisan view:cache
-
-    - /usr/local/bin/php $DEPLOYPATH_PROD/artisan optimize:clear
-    - /usr/local/bin/php $DEPLOYPATH_PROD/artisan config:cache
-    - /usr/local/bin/php $DEPLOYPATH_PROD/artisan event:cache
-    - /usr/local/bin/php $DEPLOYPATH_PROD/artisan route:cache
-    - /usr/local/bin/php $DEPLOYPATH_PROD/artisan view:cache
     
     # 8. Sortie du mode maintenance
     - /usr/local/bin/php $DEPLOYPATH/artisan up
-    - /usr/local/bin/php $DEPLOYPATH_PROD/artisan up
