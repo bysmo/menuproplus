@@ -16,9 +16,14 @@ deployment:
     # 3. Installation des dépendances Composer
     - /usr/local/bin/composer install --no-dev --optimize-autoloader --prefer-dist -d $DEPLOYPATH
     
-    # 4. Sauvegarde de la base de données (mot de passe collé à -p, et spécification du nom de la base de données)
-    # L'utilisation des guillemets autour du mot de passe prévient les erreurs liées aux caractères spéciaux.
-    - /usr/bin/mysqldump -u bemo1278_menuprotest -p"tkeW#}}]H8q^" bemo1278_menuprotest > $DEPLOYPATH/storage/app/db_backup_$(date +"%Y%m%d_%H%M%S").sql || true
+    # 4. Sauvegarde de la base de données.
+    # Les identifiants NE sont PLUS dans ce fichier (qui est versionné dans git).
+    # Ils doivent être placés dans ~/.my.cnf sur le serveur (hors du dépôt), avec :
+    #   [client]
+    #   user=bemo1278_menuprotest
+    #   password=VOTRE_MOT_DE_PASSE
+    # et des permissions restreintes : chmod 600 ~/.my.cnf
+    - /usr/bin/mysqldump --defaults-extra-file=$HOME/.my.cnf bemo1278_menuprotest > $DEPLOYPATH/storage/app/db_backup_$(date +"%Y%m%d_%H%M%S").sql || true
     
     # 5. Exécution des migrations SEULES (pas de --seed pour ne pas écraser ni doubler les données !)
     - /usr/local/bin/php $DEPLOYPATH/artisan migrate --force
