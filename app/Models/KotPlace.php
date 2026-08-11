@@ -16,6 +16,14 @@ class KotPlace extends Model
 
     protected $table = 'kot_places';
 
+    public function getNameAttribute($value)
+    {
+        if (in_array(trim($value ?? ''), ['Default Kitchen', 'Default Kitchen Bon de cuisine'])) {
+            return __('modules.kot.defaultKitchen');
+        }
+        return $value;
+    }
+
     public function printerSetting()
     {
         return $this->belongsTo(Printer::class, 'printer_id');

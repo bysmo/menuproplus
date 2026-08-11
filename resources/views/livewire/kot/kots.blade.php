@@ -6,8 +6,7 @@
                     @if($showAllKitchens)
                         {{ __('kitchen::modules.menu.allKitchenKot') }}
                     @else
-                        {{ $kotPlace?->name }}
-                        @lang('menu.kot')
+                        {{ $kotPlace?->name }} - @lang('menu.kot')
                     @endif
                     @if(pusherSettings()->is_enabled_pusher_broadcast)
                         <div class="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">

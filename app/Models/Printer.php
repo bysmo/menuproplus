@@ -29,6 +29,14 @@ class Printer extends Model
         'order_details',
     ];
 
+    public function getNameAttribute($value)
+    {
+        if (in_array(trim($value ?? ''), ['Default Printer', 'Default Thermal Printer'])) {
+            return __('modules.printerSetting.defaultPrinter');
+        }
+        return $value;
+    }
+
     public function getKotDetailsAttribute()
     {
         $kots = $this->kots; // [1,11]

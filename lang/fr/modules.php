@@ -570,6 +570,7 @@ return [
     ],
 
     'order' => [
+        'defaultPosTerminal' => 'Terminal POS par défaut',
         'date' => 'Date',
         'dateParts' => 'Parties de la date',
         'showYear' => 'Afficher l\'année',
@@ -2444,9 +2445,11 @@ return [
         'special_instructions' => 'Instructions Spéciales :',
         'print_success' => 'Imprimé avec Succès !',
         'print_failed' => 'Échec de l\'impression ! :error',
+        'defaultKitchen' => 'Cuisine par défaut',
     ],
 
     'printerSetting' => [
+        'defaultPrinter' => 'Imprimante par défaut',
         'browserPopupPrint' => 'Impression popup navigateur',
         'directPrint' => 'Impression directe',
         'title' => 'Titre (Pour identifier facilement l\'imprimante)',

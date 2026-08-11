@@ -15,6 +15,14 @@ class MultipleOrder extends Model
 
     protected $table = 'order_places';
 
+    public function getNameAttribute($value)
+    {
+        if (in_array(trim($value ?? ''), ['Default POS Terminal', 'Default Order Place'])) {
+            return __('modules.order.defaultPosTerminal');
+        }
+        return $value;
+    }
+
     public function printerSetting()
     {
         return $this->belongsTo(Printer::class, 'printer_id');
