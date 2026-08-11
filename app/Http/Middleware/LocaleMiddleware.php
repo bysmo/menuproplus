@@ -19,11 +19,26 @@ class LocaleMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-
         try {
             $user = auth()->user();
         } catch (\Exception $e) {
+            $user = null;
+        }
 
+        // Set locale for application
+        if (session()->has('locale')) {
+            App::setLocale(session('locale'));
+        } elseif ($user && !empty($user->locale)) {
+            App::setLocale($user->locale);
+            session(['locale' => $user->locale]);
+        } elseif (session()->has('customer_locale')) {
+            App::setLocale(session('customer_locale'));
+        } else {
+            $defaultLocale = global_setting()?->locale ?? 'fr';
+            App::setLocale($defaultLocale);
+        }
+
+        if (!$user) {
             return $next($request);
         }
 

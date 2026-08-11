@@ -31,10 +31,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Add CORS middleware globally to handle all CORS requests
         $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
+        $middleware->web(append: [
+            \App\Http\Middleware\LocaleMiddleware::class,
+        ]);
 
         // Add CustomerSiteMiddleware for customer-facing pages
         $middleware->alias([
             'customer.site' => \App\Http\Middleware\CustomerSiteMiddleware::class,
+            'locale' => \App\Http\Middleware\LocaleMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -16,6 +16,7 @@ class GlobalSettingController extends Controller
 
     public function __construct()
     {
+        parent::__construct();
         // App-update / server-environment info and file deletion are
         // Super-Admin-only, not merely for any global-scope account.
         abort_if(!user()->hasRole('Super Admin'), 403);

@@ -15,6 +15,7 @@ class BillingController extends Controller
 
     public function __construct()
     {
+        parent::__construct();
         // Billing/invoice data is sensitive: only the Super Admin role may view it,
         // not any global-scope (restaurant_id = null) user created via the
         // superadmin user-management flow with a lesser role.

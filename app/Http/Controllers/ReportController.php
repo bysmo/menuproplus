@@ -8,6 +8,7 @@ class ReportController extends Controller
 {
     public function __construct()
     {
+        parent::__construct();
         abort_if((!user_can('Show Reports')), 403);
     }
 

@@ -9,6 +9,7 @@ class SuperadminSettingController extends Controller
 
     public function __construct()
     {
+        parent::__construct();
         // SaaS-wide settings and superadmin user/role management are
         // Super-Admin-only, not for any global-scope (restaurant_id = null) account.
         abort_if(!user()->hasRole('Super Admin'), 403);

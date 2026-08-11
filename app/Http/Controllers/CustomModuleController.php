@@ -22,6 +22,7 @@ class CustomModuleController extends Controller
 
     public function __construct()
     {
+        parent::__construct();
         // Module install/activate/license operations are Super-Admin-only,
         // not merely for any global-scope (restaurant_id = null) account.
         abort_if(!user()->hasRole('Super Admin'), 403);

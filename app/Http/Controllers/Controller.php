@@ -49,14 +49,12 @@ abstract class Controller
             $user = auth()->user();
 
             if (isset($user)) {
-
-                App::setLocale($user?->locale ?? 'en');
+                App::setLocale($user?->locale ?? 'fr');
             } else {
                 try {
-
-                    App::setLocale(session('locale') ?? global_setting()?->locale);
+                    App::setLocale(session('locale') ?? global_setting()?->locale ?? 'fr');
                 } catch (\Exception $e) {
-                    App::setLocale('en');
+                    App::setLocale('fr');
                 }
             }
         }
