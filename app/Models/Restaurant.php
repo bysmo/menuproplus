@@ -55,6 +55,7 @@ class Restaurant extends BaseModel
         'enable_admin_reservation' => 'boolean',
         'enable_customer_reservation' => 'boolean',
         'restrict_qr_order_by_location' => 'boolean',
+        'qr_customization' => 'array',
     ];
 
     public function logoUrl(): Attribute

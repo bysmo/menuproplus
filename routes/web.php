@@ -92,6 +92,11 @@ Route::get('/livewire/update', function (Request $request) {
     return redirect()->to($previous);
 })->name('livewire.update.get');
 
+// Secure Short QR Code Redirection
+Route::get('/q/{code}', [\App\Http\Controllers\QrRedirectController::class, 'redirectShortUrl'])
+    ->name('qr.short')
+    ->where('code', '[A-Za-z0-9_-]+');
+
 Route::group(['prefix' => 'restaurant', 'middleware' => 'customer.site'], function () {
     // QR Codes
     Route::get('table/{code}', [ShopController::class, 'tableOrder'])

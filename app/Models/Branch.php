@@ -55,14 +55,81 @@ class Branch extends BaseModel
         return $this->restaurant_id;
     }
 
+    public function getQrOptions(): array
+    {
+        $restaurant = $this->restaurant;
+        $customization = $restaurant?->qr_customization ?? [];
+
+        $options = [];
+
+        if (!empty($customization['foreground_color'])) {
+            $options['foreground_color'] = $customization['foreground_color'];
+        }
+        if (!empty($customization['background_color'])) {
+            $options['background_color'] = $customization['background_color'];
+        }
+        if (!empty($customization['eye_color'])) {
+            $options['eye_color'] = $customization['eye_color'];
+        }
+        if (!empty($customization['eye_shape'])) {
+            $options['eye_shape'] = $customization['eye_shape'];
+        }
+        if (!empty($customization['label_text'])) {
+            $options['label_text'] = $customization['label_text'];
+        }
+        if (!empty($customization['label_color'])) {
+            $options['label_color'] = $customization['label_color'];
+        }
+        if (!empty($customization['label_size'])) {
+            $options['label_size'] = (int) $customization['label_size'];
+        }
+        if (!empty($customization['label_font'])) {
+            $options['label_font'] = $customization['label_font'];
+        }
+        if (!empty($customization['logo_size'])) {
+            $options['logo_size'] = (int) $customization['logo_size'];
+        }
+        if (isset($customization['logo_padding'])) {
+            $options['logo_padding'] = (int) $customization['logo_padding'];
+        }
+
+        // Resolve logo path
+        if (!empty($customization['show_logo']) && $customization['show_logo']) {
+            $logoPath = null;
+            if (!empty($customization['custom_logo'])) {
+                $customPath = public_path('user-uploads/logo/' . $customization['custom_logo']);
+                if (file_exists($customPath)) {
+                    $logoPath = $customPath;
+                }
+            }
+            if (!$logoPath && $restaurant?->logo) {
+                $restLogoPath = public_path('user-uploads/logo/' . $restaurant->logo);
+                if (file_exists($restLogoPath)) {
+                    $logoPath = $restLogoPath;
+                }
+            }
+            if ($logoPath) {
+                $options['logo_path'] = $logoPath;
+            }
+        }
+
+        return $options;
+    }
+
     public function generateQrCode()
     {
         // Generate a new unique_hash to invalidate old QR code links
         $this->generateUniqueHash();
         $this->save();
-        
-        // $this->createQrCode(route('table_order', [$this->getRestaurantId()]) . '?branch=' . $this->id);
-        $this->createQrCode(route('table_order', [$this->restaurant_id]) . '?branch=' . $this->unique_hash . '&hash=' . $this->restaurant->hash . '&from_qr=1');
+
+        // Get shortened secure URL
+        $shortUrl = \App\Services\QrShortLinkService::getShortUrlForBranch($this);
+
+        $this->createQrCode(
+            $shortUrl,
+            null,
+            $this->getQrOptions()
+        );
     }
 
     public function deliverySetting()
