@@ -44,7 +44,11 @@ class Table extends BaseModel
 
     public function qRCodeUrl(): Attribute
     {
-        return Attribute::get(fn(): string => asset_url_local_s3('qrcodes/' . $this->getQrCodeFileName()));
+        return Attribute::get(function (): string {
+            $path = public_path(Files::UPLOAD_FOLDER . '/qrcodes/' . $this->getQrCodeFileName());
+            $v = file_exists($path) ? filemtime($path) : time();
+            return asset_url_local_s3('qrcodes/' . $this->getQrCodeFileName()) . '?v=' . $v;
+        });
     }
 
     /**

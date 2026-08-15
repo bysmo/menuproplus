@@ -372,17 +372,25 @@ class QrCodes extends Component
     private function regenerateAllQrCodes(): void
     {
         $branch = branch();
+        if (! $branch) {
+            $branch = Branch::withoutGlobalScopes()->where('restaurant_id', restaurant()->id)->first();
+        }
 
-        // Branch QR
-        $branch->generateQrCode();
+        if ($branch) {
+            $branch->refresh();
+            if ($branch->restaurant) {
+                $branch->restaurant->refresh();
+            }
 
-        // Tables QRs
-        $tables = Table::whereHas('area', function ($q) use ($branch) {
-            $q->where('branch_id', $branch->id);
-        })->get();
+            // Branch QR
+            $branch->generateQrCode();
 
-        foreach ($tables as $table) {
-            $table->generateQrCode();
+            // Tables QRs (fetch all tables regardless of area scoping)
+            $tables = Table::withoutGlobalScopes()->where('branch_id', $branch->id)->get();
+
+            foreach ($tables as $table) {
+                $table->generateQrCode();
+            }
         }
     }
 
