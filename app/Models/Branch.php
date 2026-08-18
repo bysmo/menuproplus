@@ -113,6 +113,15 @@ class Branch extends BaseModel
             }
         }
 
+        // Branding footer settings
+        $options['show_branding'] = isset($customization['show_branding']) ? (bool) $customization['show_branding'] : true;
+        if (!empty($customization['branding_text'])) {
+            $options['branding_text'] = $customization['branding_text'];
+        }
+        if (!empty($customization['branding_website'])) {
+            $options['branding_website'] = $customization['branding_website'];
+        }
+
         return $options;
     }
 

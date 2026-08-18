@@ -42,6 +42,11 @@ class QrCodes extends Component
     public int    $label_size  = 18;
     public string $label_font  = 'noto_sans'; // 'noto_sans', 'open_sans'
 
+    // Branding Footer (ALTES / Menupro+)
+    public bool   $show_branding     = true;
+    public string $branding_text     = 'Menupro+, designed by ALTES';
+    public string $branding_website  = 'https://menuproplus.aladints.com/';
+
     // Live preview base64 data URI
     public ?string $previewData = null;
 
@@ -87,6 +92,10 @@ class QrCodes extends Component
         $this->label_color = $c['label_color'] ?? $this->foreground_color;
         $this->label_size  = (int) ($c['label_size'] ?? 18);
         $this->label_font  = $c['label_font'] ?? 'noto_sans';
+
+        $this->show_branding    = isset($c['show_branding']) ? (bool) $c['show_branding'] : true;
+        $this->branding_text    = $c['branding_text'] ?? 'Menupro+, designed by ALTES';
+        $this->branding_website = $c['branding_website'] ?? 'https://menuproplus.aladints.com/';
     }
 
     // ─── Universal Livewire Property Watcher ───────────────────────────
@@ -152,6 +161,12 @@ class QrCodes extends Component
     public function toggleShowLogo(): void
     {
         $this->show_logo = !$this->show_logo;
+        $this->refreshPreview();
+    }
+
+    public function toggleShowBranding(): void
+    {
+        $this->show_branding = !$this->show_branding;
         $this->refreshPreview();
     }
 
@@ -239,31 +254,37 @@ class QrCodes extends Component
     public function saveCustomization(): void
     {
         $this->validate([
-            'foreground_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'background_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'eye_color'        => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'eye_shape'        => ['required', 'in:square,rounded,circle,leaf'],
-            'show_logo'        => ['boolean'],
-            'logo_size'        => ['integer', 'min:5', 'max:30'],
-            'logo_padding'     => ['integer', 'min:0', 'max:25'],
-            'label_text'       => ['nullable', 'string', 'max:100'],
-            'label_color'      => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'label_size'       => ['integer', 'min:10', 'max:36'],
-            'label_font'       => ['required', 'in:noto_sans,open_sans'],
+            'foreground_color'  => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'background_color'  => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'eye_color'         => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'eye_shape'         => ['required', 'in:square,rounded,circle,leaf'],
+            'show_logo'         => ['boolean'],
+            'logo_size'         => ['integer', 'min:5', 'max:30'],
+            'logo_padding'      => ['integer', 'min:0', 'max:25'],
+            'label_text'        => ['nullable', 'string', 'max:100'],
+            'label_color'       => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'label_size'        => ['integer', 'min:10', 'max:36'],
+            'label_font'        => ['required', 'in:noto_sans,open_sans'],
+            'show_branding'     => ['boolean'],
+            'branding_text'     => ['nullable', 'string', 'max:120'],
+            'branding_website'  => ['nullable', 'string', 'max:150'],
         ]);
 
         $customization = [
-            'foreground_color' => $this->foreground_color,
-            'background_color' => $this->background_color,
-            'eye_shape'        => $this->eye_shape,
-            'eye_color'        => $this->sync_eye_color ? $this->foreground_color : $this->eye_color,
-            'show_logo'        => $this->show_logo,
-            'logo_size'        => $this->logo_size,
-            'logo_padding'     => $this->logo_padding,
-            'label_text'       => $this->label_text ?: null,
-            'label_color'      => $this->label_color,
-            'label_size'       => $this->label_size,
-            'label_font'       => $this->label_font,
+            'foreground_color'  => $this->foreground_color,
+            'background_color'  => $this->background_color,
+            'eye_shape'         => $this->eye_shape,
+            'eye_color'         => $this->sync_eye_color ? $this->foreground_color : $this->eye_color,
+            'show_logo'         => $this->show_logo,
+            'logo_size'         => $this->logo_size,
+            'logo_padding'      => $this->logo_padding,
+            'label_text'        => $this->label_text ?: null,
+            'label_color'       => $this->label_color,
+            'label_size'        => $this->label_size,
+            'label_font'        => $this->label_font,
+            'show_branding'     => $this->show_branding,
+            'branding_text'     => $this->branding_text,
+            'branding_website'  => $this->branding_website,
         ];
 
         // Handle custom logo upload
@@ -319,6 +340,9 @@ class QrCodes extends Component
         $this->label_color      = '#000000';
         $this->label_size       = 18;
         $this->label_font       = 'noto_sans';
+        $this->show_branding    = true;
+        $this->branding_text    = 'Menupro+, designed by ALTES';
+        $this->branding_website = 'https://menuproplus.aladints.com/';
 
         $this->refreshPreview();
     }
@@ -326,16 +350,20 @@ class QrCodes extends Component
     private function buildOptionsArray(bool $forPreview = false): array
     {
         $options = [
-            'foreground_color' => $this->foreground_color,
-            'background_color' => $this->background_color,
-            'eye_shape'        => $this->eye_shape,
-            'eye_color'        => $this->sync_eye_color ? $this->foreground_color : $this->eye_color,
-            'label_text'       => $this->label_text ?: null,
-            'label_color'      => $this->label_color,
-            'label_size'       => $this->label_size,
-            'label_font'       => $this->label_font,
-            'logo_size'        => $this->logo_size,
-            'logo_padding'     => $this->logo_padding,
+            'foreground_color'  => $this->foreground_color,
+            'background_color'  => $this->background_color,
+            'eye_shape'         => $this->eye_shape,
+            'eye_color'         => $this->sync_eye_color ? $this->foreground_color : $this->eye_color,
+            'label_text'        => $this->label_text ?: null,
+            'label_color'       => $this->label_color,
+            'label_size'        => $this->label_size,
+            'label_font'        => $this->label_font,
+            'logo_size'         => $this->logo_size,
+            'logo_padding'      => $this->logo_padding,
+            'show_branding'     => $this->show_branding,
+            'branding_text'     => $this->branding_text,
+            'branding_website'  => $this->branding_website,
+            'altes_logo_path'   => public_path('img/altes-logo.png'),
         ];
 
         // Resolve logo path for preview or generation

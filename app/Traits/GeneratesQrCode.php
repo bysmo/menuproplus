@@ -327,12 +327,154 @@ trait GeneratesQrCode
             $this->applyCustomLogoWithPadding($gdImage, $matrix, $logoPath, $logoSizePct, $logoPadding, $bgHex);
         }
 
+        // 3. Apply branding footer (Menupro+, designed by ALTES + Logo ALTES + Website)
+        $gdImage = $this->applyBrandingFooter($gdImage, $options, $bgHex, $fgHex);
+
         ob_start();
         imagepng($gdImage);
         $rawPng = ob_get_clean();
         imagedestroy($gdImage);
 
         return $rawPng;
+    }
+
+    /**
+     * Calculate relative perceived brightness / luminance of a hex color.
+     */
+    private function getLuminance(string $hex): float
+    {
+        $hex = ltrim($hex, '#');
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+        if (strlen($hex) !== 6) {
+            return 255.0;
+        }
+        $r = hexdec(substr($hex, 0, 2));
+        $g = hexdec(substr($hex, 2, 2));
+        $b = hexdec(substr($hex, 4, 2));
+        return ($r * 0.299 + $g * 0.587 + $b * 0.114);
+    }
+
+    /**
+     * Apply the ALTES / Menupro+ branding footer onto the QR code image.
+     */
+    private function applyBrandingFooter($gdImage, array $options, string $bgHex, string $fgHex)
+    {
+        $showBranding = $options['show_branding'] ?? true;
+        if (!$showBranding) {
+            return $gdImage;
+        }
+
+        $brandingText = $options['branding_text'] ?? 'Menupro+, designed by ALTES';
+        $brandingUrl  = $options['branding_website'] ?? 'https://menuproplus.aladints.com/';
+        $logoPath     = $options['altes_logo_path'] ?? (function_exists('public_path') && app()->has('path.public') ? public_path('img/altes-logo.png') : dirname(__DIR__, 2) . '/public/img/altes-logo.png');
+
+        if (!extension_loaded('gd') || !$gdImage) {
+            return $gdImage;
+        }
+
+        $w = imagesx($gdImage);
+        $h = imagesy($gdImage);
+
+        // Proportional scale factor based on standard 360px QR code width
+        $scale = max(0.65, min(3.5, $w / 360));
+
+        $footerH = (int) round(70 * $scale);
+        $newH = $h + $footerH;
+
+        $canvas = imagecreatetruecolor($w, $newH);
+        imagealphablending($canvas, true);
+        imagesavealpha($canvas, true);
+
+        // Fill background
+        $bg = $this->parseColor($bgHex);
+        $bgGd = imagecolorallocate($canvas, $bg->getRed(), $bg->getGreen(), $bg->getBlue());
+        imagefilledrectangle($canvas, 0, 0, $w, $newH, $bgGd);
+
+        // Copy QR code onto top of canvas
+        imagecopy($canvas, $gdImage, 0, 0, 0, 0, $w, $h);
+        imagedestroy($gdImage);
+
+        // Determine contrasting colors based on background luminance
+        $lum = $this->getLuminance($bgHex);
+        $isDarkBg = ($lum < 130);
+
+        if ($isDarkBg) {
+            $sepColor     = imagecolorallocate($canvas, 71, 85, 105);        // Slate 600
+            $primaryColor = imagecolorallocate($canvas, 251, 191, 36);       // Gold/Yellow #FBBF24
+            $urlColor     = imagecolorallocate($canvas, 147, 197, 253);       // Blue 300 #93C5FD
+        } else {
+            $sepColor     = imagecolorallocate($canvas, 226, 232, 240);       // Slate 200 #E2E8F0
+            $primaryColor = imagecolorallocate($canvas, 30, 64, 175);        // Aladin Blue Primary #1E40AF
+            $urlColor     = imagecolorallocate($canvas, 100, 116, 139);       // Slate 500 #64748B
+        }
+
+        // Draw thin separator line
+        $marginPad = (int) round(20 * $scale);
+        $sepY = $h + (int) round(4 * $scale);
+        imageline($canvas, $marginPad, $sepY, $w - $marginPad, $sepY, $sepColor);
+
+        // Resolve fonts
+        $basePath = dirname(__DIR__, 2);
+        $fontBold = $basePath . '/vendor/dompdf/dompdf/lib/fonts/DejaVuSans-Bold.ttf';
+        if (!file_exists($fontBold)) {
+            $fontBold = $basePath . '/vendor/endroid/qr-code/assets/noto_sans.otf';
+        }
+
+        $fontReg = $basePath . '/vendor/endroid/qr-code/assets/noto_sans.otf';
+        if (!file_exists($fontReg)) {
+            $fontReg = $fontBold;
+        }
+
+        // 1. Line 1: Logo ALTES + "Menupro+, designed by ALTES"
+        $t1Size = max(7, (int) round(10 * $scale));
+        $b1 = imagettfbbox($t1Size, 0, $fontBold, $brandingText);
+        $t1W = abs($b1[2] - $b1[0]);
+
+        $hasLogo = file_exists($logoPath);
+        $targetLogoW = 0;
+        $targetLogoH = (int) round(22 * $scale);
+        $gap = (int) round(7 * $scale);
+        $srcLogo = null;
+
+        if ($hasLogo) {
+            $rawLogo = @file_get_contents($logoPath);
+            if ($rawLogo) {
+                $srcLogo = @imagecreatefromstring($rawLogo);
+                if ($srcLogo) {
+                    $srcW = imagesx($srcLogo);
+                    $srcH = imagesy($srcLogo);
+                    $targetLogoW = (int) round($srcW * ($targetLogoH / $srcH));
+                }
+            }
+        }
+
+        $totalLine1W = $t1W + ($hasLogo && $targetLogoW > 0 ? $targetLogoW + $gap : 0);
+        $line1StartX = max(4, (int) round(($w - $totalLine1W) / 2));
+
+        if ($hasLogo && $srcLogo && $targetLogoW > 0) {
+            $logoX = $line1StartX;
+            $logoY = $h + (int) round(13 * $scale);
+            imagecopyresampled($canvas, $srcLogo, $logoX, $logoY, 0, 0, $targetLogoW, $targetLogoH, $srcW, $srcH);
+            imagedestroy($srcLogo);
+            $t1X = $logoX + $targetLogoW + $gap;
+        } else {
+            $t1X = $line1StartX;
+        }
+
+        $t1Y = $h + (int) round(29 * $scale);
+        imagettftext($canvas, $t1Size, 0, $t1X, $t1Y, $primaryColor, $fontBold, $brandingText);
+
+        // 2. Line 2: Website URL
+        $t2Size = max(6, (int) round(8 * $scale));
+        $b2 = imagettfbbox($t2Size, 0, $fontReg, $brandingUrl);
+        $t2W = abs($b2[2] - $b2[0]);
+        $t2X = max(4, (int) round(($w - $t2W) / 2));
+        $t2Y = $h + (int) round(52 * $scale);
+        imagettftext($canvas, $t2Size, 0, $t2X, $t2Y, $urlColor, $fontReg, $brandingUrl);
+
+        return $canvas;
     }
 
     abstract protected function getQrCodeFileName(): string;

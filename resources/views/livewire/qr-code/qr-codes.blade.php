@@ -412,6 +412,59 @@
                             </div>
                         </div>
 
+                        {{-- ─── 5. SECTION: PIED DE PAGE & SIGNATURE ALTES (BRANDING) ─── --}}
+                        <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block"></span>
+                                    Signature & Pied de Page (ALTES)
+                                </h3>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" wire:model.live="show_branding" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                    <span class="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                        {{ $show_branding ? 'Activé' : 'Désactivé' }}
+                                    </span>
+                                </label>
+                            </div>
+
+                            @if ($show_branding)
+                                <div class="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700 animate-fade-in">
+                                    <div class="p-3 bg-blue-50/60 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800 flex items-center gap-3">
+                                        <img src="{{ asset('img/altes-logo.png') }}" alt="ALTES Logo" class="w-8 h-8 object-contain rounded-md bg-white p-0.5 shadow-xs border border-blue-200">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs font-bold text-blue-900 dark:text-blue-200">Pied de page de marque officiel</p>
+                                            <p class="text-[11px] text-blue-700 dark:text-blue-300 truncate">Intègre la signature ALTES, le logo et le lien web au bas du QR code</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {{-- Texte de marque --}}
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Texte de signature
+                                            </label>
+                                            <input type="text" wire:model.live="branding_text"
+                                                maxlength="120"
+                                                class="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Menupro+, designed by ALTES">
+                                        </div>
+
+                                        {{-- Lien Web --}}
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Site Web Menupro+
+                                            </label>
+                                            <input type="text" wire:model.live="branding_website"
+                                                maxlength="150"
+                                                class="w-full text-xs border border-gray-300 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                                placeholder="https://menuproplus.aladints.com/">
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
                     </div>{{-- /left controls --}}
 
                     {{-- ── COLONNE DROITE: APERÇU FIXE & EN DIRECT ── --}}
@@ -423,7 +476,7 @@
 
                             {{-- Conteneur QR avec dimensions fixes --}}
                             <div class="relative bg-white dark:bg-gray-900 p-3 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 flex items-center justify-center w-full min-h-[220px]">
-                                <div wire:loading wire:target="refreshPreview,foreground_color,background_color,eye_color,eye_shape,show_logo,logo_size,custom_logo,label_text,label_color,label_size,label_font,removeCustomLogo,setEyeShape,setColorPreset,setLabelPreset,clearLabelText,toggleShowLogo,toggleSyncEyeColor"
+                                <div wire:loading wire:target="refreshPreview,foreground_color,background_color,eye_color,eye_shape,show_logo,logo_size,custom_logo,label_text,label_color,label_size,label_font,removeCustomLogo,setEyeShape,setColorPreset,setLabelPreset,clearLabelText,toggleShowLogo,toggleSyncEyeColor,show_branding,branding_text,branding_website,toggleShowBranding"
                                     class="absolute inset-0 flex flex-col items-center justify-center bg-white/85 dark:bg-gray-900/85 rounded-2xl z-20 backdrop-blur-xs">
                                     <svg class="animate-spin h-7 w-7 text-indigo-600" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -466,13 +519,19 @@
                                     </span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-gray-500">Logo</span>
+                                    <span class="text-gray-500">Logo central</span>
                                     <span class="font-semibold {{ $show_logo ? 'text-emerald-600' : 'text-gray-400' }}">
                                         {{ $show_logo ? 'Oui (' . $logo_size . '%)' : 'Non' }}
                                     </span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-gray-500">Texte</span>
+                                    <span class="text-gray-500">Signature ALTES</span>
+                                    <span class="font-semibold {{ $show_branding ? 'text-blue-600' : 'text-gray-400' }}">
+                                        {{ $show_branding ? 'Activée' : 'Désactivée' }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-500">Texte table</span>
                                     <span class="font-semibold truncate max-w-[110px] text-right {{ $label_text ? 'text-gray-800 dark:text-gray-200' : 'text-gray-400' }}">
                                         {{ $label_text ?: '—' }}
                                     </span>
